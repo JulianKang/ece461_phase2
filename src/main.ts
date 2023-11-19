@@ -71,7 +71,7 @@ function createOrClearDirectory(directoryPath: string) {
 }
 
 // Function to fetch the number of weekly commits and other required data
-async function fetchDataAndCalculateScore(inputUrl: string) {
+export async function fetchDataAndCalculateScore(inputUrl: string) {
   let repoUrl = inputUrl;
 
   // Check if the input URL is an npm package link and try to get the corresponding GitHub repo
@@ -231,7 +231,7 @@ async function fetchDataAndCalculateScore(inputUrl: string) {
     
     // Log the JSON output
     console.log(jsonOutput);
-
+    return output
   } catch (error) {
     winston.error(`Error processing URL ${repoUrl}: ${error}`);
     process.exit(1); // Exit with a failure status code (1) on error
