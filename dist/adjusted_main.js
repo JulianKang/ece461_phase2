@@ -106,12 +106,13 @@ function fetchDataAndCalculateScore(inputUrl) {
                 }
                 else {
                     winston.error(`Unable to find GitHub repository for npm package "${packageName}"`);
-                    process.exit(1); // Exit with a failure status code (1) on error
+                    //   process.exit(1); // Exit with a failure status code (1) on error
                 }
             }
             else {
                 winston.error(`Invalid npm package link: "${inputUrl}"`);
-                process.exit(1); // Exit with a failure status code (1) on error
+                throw new Error(`Invalid npm package link: "${inputUrl}"`);
+                // process.exit(1); // Exit with a failure status code (1) on error
             }
         }
         // Define your GitHub Personal Access Token
@@ -128,7 +129,8 @@ function fetchDataAndCalculateScore(inputUrl) {
         const parsedURL = parseGitHubUrl(repoUrl);
         if (parsedURL == null) {
             winston.error(`Invalid GitHub URL: ${repoUrl}`);
-            process.exit(1);
+            throw new Error(`Invalid GitHub URL: ${repoUrl}`);
+            //  process.exit(1);
         }
         // Read GraphQL queries from queries.txt
         const queries = `query {
@@ -163,13 +165,15 @@ function fetchDataAndCalculateScore(inputUrl) {
             if (response.data.errors) {
                 // Log GraphQL query errors
                 winston.error(`GraphQL query errors: ${JSON.stringify(response.data.errors)}`);
-                process.exit(1); // Exit with a failure status code (1) on error
+                //process.exit(1); // Exit with a failure status code (1) on error
+                throw new Error(`GraphQL query errors: ${JSON.stringify(response.data.errors)}`);
             }
             const data = response.data.data;
             winston.info(data);
             if (!data || !data.repository || !data.repository.defaultBranchRef || !data.repository.defaultBranchRef.target || !data.repository.defaultBranchRef.target.history || !data.repository.defaultBranchRef.target.history.edges || !data.repository.defaultBranchRef.target.history.edges[0] || !data.repository.defaultBranchRef.target.history.edges[0].node || !data.repository.defaultBranchRef.target.history.edges[0].node.committedDate) {
                 winston.error(`Error: GraphQL response does not contain the expected data for URL ${repoUrl}`);
-                process.exit(1); // Exit with a failure status code (1) on error
+                //process.exit(1); // Exit with a failure status code (1) on error
+                throw new Error(`Error: GraphQL response does not contain the expected data for URL ${repoUrl}`);
             }
             // Extract the necessary data from the GraphQL response
             const lastCommitDate = new Date(data.repository.defaultBranchRef.target.history.edges[0].node.committedDate);
@@ -229,7 +233,8 @@ function fetchDataAndCalculateScore(inputUrl) {
         }
         catch (error) {
             winston.error(`Error processing URL ${repoUrl}: ${error}`);
-            process.exit(1); // Exit with a failure status code (1) on error
+            //process.exit(1); // Exit with a failure status code (1) on error
+            throw new Error(`Error processing URL ${repoUrl}: ${error}`);
         }
     });
 }
@@ -249,26 +254,11 @@ function processAndCalculateScoresForUrls(filePath, outputStream) {
         }
         catch (error) {
             console.error('Error processing URLs or calculating scores:', error);
-            process.exit(1); // Exit with a failure status code (1) on error
+            //process.exit(1); // Exit with a failure status code (1) on error
+            throw new Error(`Error processing URLs or calculating scores: ${error}`);
         }
     });
 }
-const filePath = process.argv[2];
-if (!filePath) {
-    process.exit(1); // Exit with a failure status code (1) when no file path is provided
-}
-// Create a writable stream for NDJSON output
-const outputStream = fs.createWriteStream('output.ndjson');
-// Write the NDJSON header
-outputStream.write('[');
-// Process URLs and write NDJSON output
-processAndCalculateScoresForUrls(filePath, outputStream);
-// Handle the end of NDJSON data and close the output stream
-outputStream.on('finish', () => {
-    // Close the NDJSON array
-    fs.appendFileSync('output.ndjson', ']');
-    process.exit(0);
-});
 // Define a function to parse GitHub repository URL
 function parseGitHubUrl(url) {
     const githubRegex = /github\.com\/([^/]+)\/([^/]+)/;

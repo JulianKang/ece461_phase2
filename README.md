@@ -34,7 +34,7 @@ This file contains TypeScript functions to assess GitHub repositories:
 
 A TypeScript script (`checkrepo.ts`) fetches and analyzes GitHub repository info. Customize GraphQL queries in `queries.txt`.
 
-## Jest Configuration (jtest.config.js)
+## Jest Configuration (jest.config.js)
 
 This Jest configuration file (`jtest.config.js`) simplifies TypeScript testing setup.
 

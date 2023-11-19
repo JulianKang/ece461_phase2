@@ -6,6 +6,17 @@ import mysql from 'mysql2/promise';
 import 'dotenv/config';
 import { type } from 'node:os';
 
+/** 
+ * An enum for the different user types.
+ * Highest permission level is admin, lowest is guest.
+ * Keep user type values in order from lowest to highest permission level (if possible).
+ */
+export enum userType {
+  guest,
+  user,
+  admin
+}
+
 /**
  * Database configuration object.
  */
@@ -89,7 +100,7 @@ class DBCommunicator {
    * @param query - The SQL query wanted to execute.
    * @returns A promise that resolves with the a boolean of access permission or false on error.
    */
-  private async checkPermission(userRoleId: number, queryType: string, query: string): Promise<boolean | false> {
+  private async checkPermission(userRoleId: number, queryType: string, query: string): Promise<boolean> {
     const sql = 'SELECT COUNT(*) as count FROM permissions WHERE role_id = ? AND (query_type = ? OR (query_type IS NULL AND query = ?))';
     const values = [userRoleId, queryType, query];
     const result : QueryResult | null = await this.query(sql, values);
