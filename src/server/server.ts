@@ -173,7 +173,8 @@ class PackageManagementAPI {
     res.status(200).json(dbResp);
   }
 
-  // TODO? endpoint: '/package' POST
+  // zendpoint: '/package' POST
+  // TODO validate and test
   private async handleCreatePackage(req: Request, res: Response) {
     // Skeleton package creation logic (replace with actual logic)
     // You can access request data using req.body
@@ -214,7 +215,7 @@ class PackageManagementAPI {
         }
         // Content needs progress. Can currently Unzip but don't know how to analyze the metric scores.
         else if("Content" in req.body){
-            const base64: string = req.body.Content
+            const base64: Schemas.PackageContent = req.body.Content
             const JSprogram: string = req.body.JsProgram
             const URL: string = helper.APIHelpPackageContent(base64, JSprogram)
             let result: object = {error: "Package Disqualified Rating"}
@@ -241,7 +242,8 @@ class PackageManagementAPI {
     }
   }
 
-  // TODO endpoint: '/reset' DELETE
+  // endpoint: '/reset' DELETE
+  // TODO test
   private handleReset(req: Request, res: Response) {
     // Skeleton system reset logic (replace with actual logic)
     // For example, you can clear data or perform other reset actions
@@ -256,10 +258,25 @@ class PackageManagementAPI {
       401	
       You do not have permission to reset the registry.
      */
+    // Check if the user is an admin
+    const data : Schemas.User = req.body.User;
+
+    if(!data.isAdmin) {
+      throw new Server_Error(401, 'You do not have permission to reset the registry.');
+    }
+
+    // Pass user to Database to authenticate token and reset if valid
+    const result = this.database.resetRegistry(data);
+
+    if (!result) { 
+      throw new Server_Error(400, 'There is missing field(s) in the AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
+    }
+
     res.json({ message: 'System reset successfully' });
   }
 
   // endpoint: '/package/:id' GET
+  // TODO validate and test
   private handleGetPackageById(req: Request, res: Response) {
     // Skeleton logic to retrieve a package by ID (replace with actual logic)
     // You can access the ID using req.params.id
@@ -296,6 +313,7 @@ class PackageManagementAPI {
   }
 
   // endpoint: '/package/:id' PUT
+  // TODO validate and test
   private handleUpdatePackageById(req: Request, res: Response) {
     // Skeleton logic to update a package by ID (replace with actual logic)
     // You can access the ID using req.params.id and data using req.body
@@ -358,6 +376,7 @@ class PackageManagementAPI {
   }
 
   // endpoint: '/package/:id' DELETE
+  // TODO validate and test
   private handleDeletePackageById(req: Request, res: Response) {
     // Skeleton logic to delete a package by ID (replace with actual logic)
     // You can access the ID using req.params.id
@@ -395,6 +414,7 @@ class PackageManagementAPI {
   }
 
   // endpoint: '/package/:id/rate' GET
+  // TODO validate and test
   private handleRatePackage(req: Request, res: Response) {
     // Skeleton logic to rate a package by ID (replace with actual logic)
     // You can access the ID using req.params.id
@@ -450,6 +470,7 @@ class PackageManagementAPI {
   }
 
   // endpoint: '/authenticate' PUT
+  // currently out of scope, will implement if we have time
   private async handleAuthenticateUser(req: Request, res: Response) {
     throw new Server_Error(501, 'This system does not support authentication.');
     /**
@@ -503,6 +524,7 @@ class PackageManagementAPI {
   }
 
   // endpoint: '/package/byName/:name' GET
+  // TODO validate and test
   private handleGetPackageByName(req: Request, res: Response) {
     // Skeleton logic to retrieve a package by name (replace with actual logic)
     // You can access the name using req.params.name
@@ -540,6 +562,7 @@ class PackageManagementAPI {
   }
 
   // endpoint: '/package/byName/:name' DELETE
+  // TODO validate and test
   private handleDeletePackageByName(req: Request, res: Response) {
     // Skeleton logic to delete a package by name (replace with actual logic)
     // You can access the name using req.params.name
@@ -578,6 +601,7 @@ class PackageManagementAPI {
   }
 
   // endpoint: '/package/byRegEx' POST
+  // TODO validate and test
   private handleSearchPackagesByRegex(req: Request, res: Response) {
     // Skeleton logic to search packages by regex (replace with actual logic)
     // You can access the search parameters using req.body

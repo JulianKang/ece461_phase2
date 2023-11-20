@@ -16,7 +16,7 @@ import * as Schemas from '../schemas';
 const { Buffer } = require('buffer');
 const AdmZip = require('adm-zip');
 
-export function APIHelpPackageContent(base64: string, JsProgram: string) {
+export function APIHelpPackageContent(base64: Schemas.PackageContent, JsProgram: Schemas.PackageJSProgram) {
     const zipBuffer: Buffer = Buffer.from(base64, 'base64');
     const unzipDir = './src/cloned_repositories';
 
@@ -70,7 +70,7 @@ export function APIHelpPackageContent(base64: string, JsProgram: string) {
     }
 }
 
-export async function APIHelpPackageURL(url: string, JsProgram:string){
+export async function APIHelpPackageURL(url: Schemas.PackageURL, JsProgram:Schemas.PackageJSProgram){
     const error_response: object = {error: 'Package is not uploaded due to the disqualified rating.'}
     try {
         const result: Schemas.CLIOutput = await fetchDataAndCalculateScore(url);
@@ -92,20 +92,18 @@ export async function APIHelpPackageURL(url: string, JsProgram:string){
         else{
             //DataBase.AddPackage(url, metrics, ...)
         }
-        //Put in logic to store package in database and download as zipfile
+        // TODO Put in logic to store package in database and download as zipfile
         //Check if already in database too should be something like:
         // upload = DataBaseManager.InsertFromUrl(url, result)
         // upload includes data for success_response or error
         // if error in upload: {return alread_exists_response} else{} do whats below
-        const success_response = { //temp success_response, would really want to return data base object
-                "metadata": {
-                  "Name": "Underscore",
-                  "Version": "1.0.0",
-                  "ID": "underscore"
+        const success_response : Schemas.Package = { //temp success_response, would really want to return data base object
+                metadata : {
+                  Name: "Underscore",
+                  Version: "1.0.0",
+                  ID: "underscore"
                 },
-                "data": {
-                  "Content": "Base64 of zipfile"
-                }
+                data: "Base64 of zipfile"
             }
 
         return success_response
@@ -142,7 +140,7 @@ export async function getUserAPIKey(username: string, password: string): Promise
     }
  */
 export async function queryForPackage(Input: Schemas.PackageQuery) : Promise<Schemas.PackageMetadata[]>{
-    // process version
+    // process "Version"
     const versionRegex = /\(([^)]+)\)/;
     const lines : string[] = Input.Version.split('\n');
     const versions = lines.map((line) => {
