@@ -10,7 +10,7 @@ on:
 env:
   applicationfolder: .
   AWS_REGION: us-east-2
-  S3BUCKET: ece461project-webappdeploymentbucket-2lx7q4y0g218
+  S3BUCKET: ece461project2-webappdeploymentbucket-1kv8j892axxhq
 
 jobs:
   build:

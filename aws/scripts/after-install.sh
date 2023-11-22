@@ -2,7 +2,7 @@
 set -xe
 
 # Set your S3 bucket and folder path
-S3_BUCKET="ece461project-webappdeploymentbucket-2lx7q4y0g218"
+S3_BUCKET="ece461project2-webappdeploymentbucket-1kv8j892axxhq"
 S3_FOLDER="project-code/"
 
 # Set your destination folder
