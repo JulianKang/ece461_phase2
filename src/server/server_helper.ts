@@ -157,7 +157,7 @@ export async function queryForPackage(Input: Schemas.PackageQuery) : Promise<Sch
     // query DB for package based on name and each requested version
     let foundPackages : Schemas.PackageMetadata[] = [];
     for(const version of versions) {
-        const packageData = await DBCommunicator.getPackage(Input.Name, version); // TODO - implement mock DBCommunicator
+        const packageData = false;//await DBCommunicator.getPackage(Input.Name, version); // TODO - implement mock DBCommunicator
         if(packageData){
             foundPackages.push(packageData);
         }
