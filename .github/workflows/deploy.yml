@@ -43,7 +43,7 @@ jobs:
         run: $GITHUB_WORKSPACE/.github/scripts/build.sh
 
       - name: Upload Entire Repository to S3
-        run: aws s3 sync . s3://${{ env.S3BUCKET }}/project-code/
+        run: aws s3 cp . s3://${{ env.S3BUCKET }}/project-code/ --recursive
 
   deploy:
     needs: build
