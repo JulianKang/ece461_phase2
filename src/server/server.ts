@@ -55,7 +55,7 @@ class PackageManagementAPI {
   private app: express.Express;
   private packages: any[];
   private nextPackageId: number;
-  private database = dbCommunicator; 
+  private database = dbCommunicator;
 
   constructor() {
     this.app = express();
@@ -86,7 +86,7 @@ class PackageManagementAPI {
   }
 
   // Returns the Express app object (used in testing)
-  public getApp() : express.Express {
+  public getApp(): express.Express {
     return this.app;
   }
 
@@ -94,7 +94,7 @@ class PackageManagementAPI {
   private ErrorHandler(err: Error, req: Request, res: Response, next: NextFunction) {
     let errorMessage: string;
     let statusCode: number;
-  
+
     // Collect multiple errors in an array
     const errors: Error[] = Array.isArray(err) ? err : [err];
     if (errors.length > 1) {
@@ -102,9 +102,9 @@ class PackageManagementAPI {
     }
 
     errorMessage = err.message;
-    statusCode = (err instanceof Server_Error)   ? err.num : 
-                 (err instanceof AggregateError) ? 500     : // TODO replace with more appropriate error code, or add .num to AggregateError
-                                                   500; // default to 500
+    statusCode = (err instanceof Server_Error) ? err.num :
+      (err instanceof AggregateError) ? 500 : // TODO replace with more appropriate error code, or add .num to AggregateError
+        500; // default to 500
 
     // Log and send the error          
     logger.error(`${err}`); // TODO replace with actual error logging logic
@@ -126,7 +126,7 @@ class PackageManagementAPI {
     if (true) {
       next(); // Authentication successful
     }
-    
+
     throw new Server_Error(401, 'Authentication failed');
   }
 
@@ -141,7 +141,7 @@ class PackageManagementAPI {
 
   // endpoint: '/packages' POST
   // TODO test
-  private async handleSearchPackages(req: Request, res: Response) : Promise<void> {
+  private async handleSearchPackages(req: Request, res: Response): Promise<void> {
     // Skeleton package creation logic (replace with actual logic)
     // You can access request data using req.body
     const data = req.body;
@@ -164,12 +164,12 @@ class PackageManagementAPI {
     }
 
     // ask database and process
-    data.forEach(async (query:Schemas.PackageQuery) => {
+    data.forEach(async (query: Schemas.PackageQuery) => {
       // Query the database for the requested packages
       const result = await helper.queryForPackage(query);
       dbResp.push(result);
     });
-  
+
     res.status(200).json(dbResp);
   }
 
@@ -194,50 +194,50 @@ class PackageManagementAPI {
       424	
       Package is not uploaded due to the disqualified rating.
      */
-    try{
-        if("URL" in req.body && "Content" in req.body || !("JSProgram" in req.body)){
-          throw new Server_Error(400, 'There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set)');
+    try {
+      if ("URL" in req.body && "Content" in req.body || !("JSProgram" in req.body)) {
+        throw new Server_Error(400, 'There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set)');
+      }
+      if ("URL" in req.body) {
+        const newPackage = req.body;
+        const url: string = newPackage.URL
+        const JsProgram: string = newPackage.JsProgram
+        const result: object = await helper.APIHelpPackageURL(url, JsProgram)
+        if ('metadata' in result) {
+          res.status(201).json(result);
         }
-        if("URL" in req.body){
-            const newPackage = req.body;
-            const url: string = newPackage.URL
-            const JsProgram: string = newPackage.JsProgram
-            const result: object  = await helper.APIHelpPackageURL(url, JsProgram)
-            if ('metadata' in result){
-              res.status(201).json(result);
-            }
-            else if ('package already exists' in result){
-              throw new Server_Error(409, "Package exists already");
-            }
-            else {
-              throw new Server_Error(424, "Package Disqualified Rating");
-            }
+        else if ('package already exists' in result) {
+          throw new Server_Error(409, "Package exists already");
         }
-        // Content needs progress. Can currently Unzip but don't know how to analyze the metric scores.
-        else if("Content" in req.body){
-            const base64: Schemas.PackageContent = req.body.Content
-            const JSprogram: string = req.body.JsProgram
-            const URL: string = helper.APIHelpPackageContent(base64, JSprogram)
-            let result: object = {error: "Package Disqualified Rating"}
-            if(URL){
-              result = await helper.APIHelpPackageURL(URL, JSprogram)
-              logger.info(`${result}`)
-            }
-            if ('metadata' in result){
-                res.status(201).json(result);
-            }
-            else if ('package exists' in result){
-              throw new Server_Error(409, "Package exists already");
-            }
-            else {
-              throw new Server_Error(424, "Package Disqualified Rating");
-            }
+        else {
+          throw new Server_Error(424, "Package Disqualified Rating");
         }
-        else{
-          throw new Server_Error(400, 'There is missing field(s)');
+      }
+      // Content needs progress. Can currently Unzip but don't know how to analyze the metric scores.
+      else if ("Content" in req.body) {
+        const base64: Schemas.PackageContent = req.body.Content
+        const JSprogram: string = req.body.JsProgram
+        const URL: string = helper.APIHelpPackageContent(base64, JSprogram)
+        let result: object = { error: "Package Disqualified Rating" }
+        if (URL) {
+          result = await helper.APIHelpPackageURL(URL, JSprogram)
+          logger.info(`${result}`)
         }
+        if ('metadata' in result) {
+          res.status(201).json(result);
+        }
+        else if ('package exists' in result) {
+          throw new Server_Error(409, "Package exists already");
+        }
+        else {
+          throw new Server_Error(424, "Package Disqualified Rating");
+        }
+      }
+      else {
+        throw new Server_Error(400, 'There is missing field(s)');
+      }
     }
-    catch(error){
+    catch (error) {
       throw new Server_Error(400, 'There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set)');
     }
   }
@@ -259,16 +259,16 @@ class PackageManagementAPI {
       You do not have permission to reset the registry.
      */
     // Check if the user is an admin
-    const data : Schemas.User = req.body.User;
+    const data: Schemas.User = req.body.User;
 
-    if(!data.isAdmin) {
+    if (!data.isAdmin) {
       throw new Server_Error(401, 'You do not have permission to reset the registry.');
     }
 
     // Pass user to Database to authenticate token and reset if valid
     const result = this.database.resetRegistry(data);
 
-    if (!result) { 
+    if (!result) {
       throw new Server_Error(400, 'There is missing field(s) in the AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
     }
 
@@ -292,24 +292,24 @@ class PackageManagementAPI {
       404	
       Package does not exist.
      */
-      const packageId = req.params.id;
+    const packageId = req.params.id;
 
-      // Check if packageId is provided and is not empty
-      if (!packageId) {
-        throw new Server_Error(400, 'Package ID is missing or invalid.');
-      }
-  
-      // Perform database query or other actions to get the package by ID
-      // For demonstration purposes, let's assume you have a packages database and a function getPackageById
-      const package_result: object = {}//getPackageById(packageId);
-  
-      if (!package_result) {
-          // Package not found
-          throw new Server_Error(404, 'Package not found.');
-      }
-  
-      // Successfully retrieved the package
-      return res.status(200).json(package_result);
+    // Check if packageId is provided and is not empty
+    if (!packageId) {
+      throw new Server_Error(400, 'Package ID is missing or invalid.');
+    }
+
+    // Perform database query or other actions to get the package by ID
+    // For demonstration purposes, let's assume you have a packages database and a function getPackageById
+    const package_result: object = {}//getPackageById(packageId);
+
+    if (!package_result) {
+      // Package not found
+      throw new Server_Error(404, 'Package not found.');
+    }
+
+    // Successfully retrieved the package
+    return res.status(200).json(package_result);
   }
 
   // endpoint: '/package/:id' PUT
@@ -317,7 +317,7 @@ class PackageManagementAPI {
   private handleUpdatePackageById(req: Request, res: Response) {
     // Skeleton logic to update a package by ID (replace with actual logic)
     // You can access the ID using req.params.id and data using req.body
-    
+
     /**
      * 200	
       Version is updated.
@@ -328,51 +328,51 @@ class PackageManagementAPI {
       404	
       Package does not exist.
      */
-    
-      const packageId = req.params.id;
-      const updatedPackageData = req.body;
-  
-      // Check for top-level required fields in the request body
-      const requiredTopLevelFields = ["metadata", "data"];
-      const missingTopLevelFields = requiredTopLevelFields.filter(field => !updatedPackageData[field]);
-  
-      if (missingTopLevelFields.length > 0) {
-        throw new Server_Error(400, `Missing required top-level fields: ${missingTopLevelFields.join(', ')}`);
+
+    const packageId = req.params.id;
+    const updatedPackageData = req.body;
+
+    // Check for top-level required fields in the request body
+    const requiredTopLevelFields = ["metadata", "data"];
+    const missingTopLevelFields = requiredTopLevelFields.filter(field => !updatedPackageData[field]);
+
+    if (missingTopLevelFields.length > 0) {
+      throw new Server_Error(400, `Missing required top-level fields: ${missingTopLevelFields.join(', ')}`);
+    }
+
+    // Check for required subfields within 'metadata' and 'data'
+    if (updatedPackageData.metadata) {
+      const requiredMetadataFields = ["Name", "Version", "ID"];
+      const missingMetadataFields = requiredMetadataFields.filter(field => !updatedPackageData.metadata[field]);
+
+      if (missingMetadataFields.length > 0) {
+        throw new Server_Error(400, `Missing required 'metadata' subfields: ${missingMetadataFields.join(', ')}`);
       }
-  
-      // Check for required subfields within 'metadata' and 'data'
-      if (updatedPackageData.metadata) {
-          const requiredMetadataFields = ["Name", "Version", "ID"];
-          const missingMetadataFields = requiredMetadataFields.filter(field => !updatedPackageData.metadata[field]);
-  
-          if (missingMetadataFields.length > 0) {
-            throw new Server_Error(400, `Missing required 'metadata' subfields: ${missingMetadataFields.join(', ')}`);
-          }
+    }
+
+    if (updatedPackageData.data) {
+      const requiredDataFields = ["Content", "URL", "JSProgram"];
+      const missingDataFields = requiredDataFields.filter(field => !updatedPackageData.data[field]);
+
+      if (missingDataFields.length > 0) {
+        throw new Server_Error(400, `Missing required 'data' subfields: ${missingDataFields.join(', ')}`);
       }
-  
-      if (updatedPackageData.data) {
-          const requiredDataFields = ["Content", "URL", "JSProgram"];
-          const missingDataFields = requiredDataFields.filter(field => !updatedPackageData.data[field]);
-  
-          if (missingDataFields.length > 0) {
-            throw new Server_Error(400, `Missing required 'data' subfields: ${missingDataFields.join(', ')}`);
-          }
-      }
-  
-      // Update the package (replace this with your actual update logic)
-      // For demonstration purposes, let's assume you have a packages database and a function updatePackageById
-      const updatedPackage: boolean = false //updatePackageById(packageId, updatedPackageData);
-  
-      if (!updatedPackage) {
-          // Package does not exist
-          throw new Server_Error(404, 'Package not found.');
-      }
-  
-      // Successfully updated package
-      return res.status(200).json({
-          message: 'Version is updated.',
-          updatedPackage
-      });
+    }
+
+    // Update the package (replace this with your actual update logic)
+    // For demonstration purposes, let's assume you have a packages database and a function updatePackageById
+    const updatedPackage: boolean = false //updatePackageById(packageId, updatedPackageData);
+
+    if (!updatedPackage) {
+      // Package does not exist
+      throw new Server_Error(404, 'Package not found.');
+    }
+
+    // Successfully updated package
+    return res.status(200).json({
+      message: 'Version is updated.',
+      updatedPackage
+    });
   }
 
   // endpoint: '/package/:id' DELETE
@@ -390,27 +390,27 @@ class PackageManagementAPI {
       404	
       Package does not exist.
      */
-    
-      const packageId = req.params.id;
 
-      // Check if the package ID is provided
-      if (!packageId) {
-        throw new Server_Error(400, 'Package ID is missing or invalid.');
-      }
-  
-      // Perform database delete or other actions to delete the package
-      // For demonstration purposes, let's assume you have a packages database and a function deletePackageById
-      const deletedPackage: boolean = false//deletePackageById(packageId);
-  
-      if (!deletedPackage) {
-          // Package does not exist
-          throw new Server_Error(404, 'Package not found.');
-      }
-  
-      // Successfully deleted package
-      return res.status(200).json({
-          message: 'Package is deleted successfully.'
-      });
+    const packageId = req.params.id;
+
+    // Check if the package ID is provided
+    if (!packageId) {
+      throw new Server_Error(400, 'Package ID is missing or invalid.');
+    }
+
+    // Perform database delete or other actions to delete the package
+    // For demonstration purposes, let's assume you have a packages database and a function deletePackageById
+    const deletedPackage: boolean = false//deletePackageById(packageId);
+
+    if (!deletedPackage) {
+      // Package does not exist
+      throw new Server_Error(404, 'Package not found.');
+    }
+
+    // Successfully deleted package
+    return res.status(200).json({
+      message: 'Package is deleted successfully.'
+    });
   }
 
   // endpoint: '/package/:id/rate' GET
@@ -431,42 +431,42 @@ class PackageManagementAPI {
       500	
       The package rating system choked on at least one of the metrics.
      */
-      const packageId = req.params.id;
-      const ratingData = req.body;
-  
-      // Check if the package ID is provided
-      if (!packageId) {
-        throw new Server_Error(400, 'Package ID is missing or invalid.');
-      }
-  
-      // Check for required fields in the rating data
-      const requiredFields = [
-          "BusFactor",
-          "Correctness",
-          "RampUp",
-          "ResponsiveMaintainer",
-          "LicenseScore",
-          "GoodPinningPractice",
-          "PullRequest",
-          "NetScore"
-      ];
-  
-      const missingFields = requiredFields.filter(field => typeof ratingData[field] !== 'number');
-      if (missingFields.length > 0) {
-        throw new Server_Error(400, `Missing or invalid rating fields: ${missingFields.join(', ')}`);
-      }
-  
-      // Perform rating logic or database updates here
-      // For demonstration purposes, let's assume you have a package ratings database and a function ratePackage
-      const ratedPackage: object = {}//ratePackage(packageId, ratingData);
-  
-      if (!ratedPackage) {
-          // Package does not exist
-          throw new Server_Error(404, 'Package not found.');
-      }
-  
-      // Successfully rated package
-      return res.status(200).json(ratedPackage);
+    const packageId = req.params.id;
+    const ratingData = req.body;
+
+    // Check if the package ID is provided
+    if (!packageId) {
+      throw new Server_Error(400, 'Package ID is missing or invalid.');
+    }
+
+    // Check for required fields in the rating data
+    const requiredFields = [
+      "BusFactor",
+      "Correctness",
+      "RampUp",
+      "ResponsiveMaintainer",
+      "LicenseScore",
+      "GoodPinningPractice",
+      "PullRequest",
+      "NetScore"
+    ];
+
+    const missingFields = requiredFields.filter(field => typeof ratingData[field] !== 'number');
+    if (missingFields.length > 0) {
+      throw new Server_Error(400, `Missing or invalid rating fields: ${missingFields.join(', ')}`);
+    }
+
+    // Perform rating logic or database updates here
+    // For demonstration purposes, let's assume you have a package ratings database and a function ratePackage
+    const ratedPackage: object = {}//ratePackage(packageId, ratingData);
+
+    if (!ratedPackage) {
+      // Package does not exist
+      throw new Server_Error(404, 'Package not found.');
+    }
+
+    // Successfully rated package
+    return res.status(200).json(ratedPackage);
   }
 
   // endpoint: '/authenticate' PUT
@@ -493,31 +493,31 @@ class PackageManagementAPI {
       const username: string = req.body.User.name;
       const isAdmin: boolean = req.body.User.isAdmin;
       const password: string = req.body.Secret.password;
-      if(!username || !password || req.body.User.isAdmin == null){
+      if (!username || !password || req.body.User.isAdmin == null) {
         res.status(400).json({ error: 'Missing Fields' });
         return;
       }
       // Implement your actual user authentication logic here
       const isValidUser = await helper.getUserAPIKey(username, password);
-      
+
       //Temporary 'Base Case' Authentication
       if (!isValidUser) {
         throw new Server_Error(401, 'User or Password is invalid');
       }
-        // Create the user object to include in the JWT token
-        const userObj = req.body.User
-         /**
-          *  {
-          username: username,
-          isAdmin: isAdmin,
-        };
-          */
-  
-        // Sign the JWT token
-        const token = jwt.sign(userObj, secretKey, { expiresIn: '10h' });
-  
-        // Return the token in the "Bearer" format
-        res.status(200).send(`"bearer ${token}"`);
+      // Create the user object to include in the JWT token
+      const userObj = req.body.User
+      /**
+       *  {
+       username: username,
+       isAdmin: isAdmin,
+     };
+       */
+
+      // Sign the JWT token
+      const token = jwt.sign(userObj, secretKey, { expiresIn: '10h' });
+
+      // Return the token in the "Bearer" format
+      res.status(200).send(`"bearer ${token}"`);
     } catch (error) {
       res.status(400).json({ error: 'Missing Fields' });
     }
@@ -529,36 +529,36 @@ class PackageManagementAPI {
     // Skeleton logic to retrieve a package by name (replace with actual logic)
     // You can access the name using req.params.name
 
-     /**
-     * 
-     * 200	
-      Return the package history.
+    /**
+    * 
+    * 200	
+     Return the package history.
 
-     * 400	
-      There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.
+    * 400	
+     There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.
 
-      404	
-      Package does not exist.
-     */
+     404	
+     Package does not exist.
+    */
 
-      const packageName = req.params.name;
+    const packageName = req.params.name;
 
-      // Check if the package name is provided
-      if (!packageName) {
-        throw new Server_Error(400, 'Package name is missing or invalid.');
-      }
-  
-      // Perform a database query or other actions to retrieve the package history by name
-      // For demonstration purposes, let's assume you have a packages database and a function getPackageByName
-      const packageHistory: object = {}//getPackageByName(packageName);
-  
-      if (!packageHistory) {
-          // Package does not exist
-          throw new Server_Error(404, 'Package not found.');
-      }
-  
-      // Successfully retrieved package history
-      return res.status(200).json(packageHistory);
+    // Check if the package name is provided
+    if (!packageName) {
+      throw new Server_Error(400, 'Package name is missing or invalid.');
+    }
+
+    // Perform a database query or other actions to retrieve the package history by name
+    // For demonstration purposes, let's assume you have a packages database and a function getPackageByName
+    const packageHistory: object = {}//getPackageByName(packageName);
+
+    if (!packageHistory) {
+      // Package does not exist
+      throw new Server_Error(404, 'Package not found.');
+    }
+
+    // Successfully retrieved package history
+    return res.status(200).json(packageHistory);
   }
 
   // endpoint: '/package/byName/:name' DELETE
@@ -567,37 +567,37 @@ class PackageManagementAPI {
     // Skeleton logic to delete a package by name (replace with actual logic)
     // You can access the name using req.params.name
 
-         /**
-     * 
-     * 200	
-      Package is deleted.
+    /**
+* 
+* 200	
+ Package is deleted.
 
-     * 400	
-      There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.
+* 400	
+ There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.
 
-      404	
-      Package does not exist.
-     */
-      const packageName = req.params.name;
+ 404	
+ Package does not exist.
+*/
+    const packageName = req.params.name;
 
-      // Check if the package name is provided
-      if (!packageName) {
-        throw new Server_Error(400, 'Package name is missing or invalid.');
-      }
-  
-      // Perform database delete or other actions to delete the package by name
-      // For demonstration purposes, let's assume you have a packages database and a function deletePackageByName
-      const deletedPackage: boolean = false//deletePackageByName(packageName);
-  
-      if (!deletedPackage) {
-          // Package does not exist
-          throw new Server_Error(404, 'Package not found.');
-      }
-  
-      // Successfully deleted package
-      return res.status(200).json({
-          message: 'Package is deleted successfully.'
-      });
+    // Check if the package name is provided
+    if (!packageName) {
+      throw new Server_Error(400, 'Package name is missing or invalid.');
+    }
+
+    // Perform database delete or other actions to delete the package by name
+    // For demonstration purposes, let's assume you have a packages database and a function deletePackageByName
+    const deletedPackage: boolean = false//deletePackageByName(packageName);
+
+    if (!deletedPackage) {
+      // Package does not exist
+      throw new Server_Error(404, 'Package not found.');
+    }
+
+    // Successfully deleted package
+    return res.status(200).json({
+      message: 'Package is deleted successfully.'
+    });
   }
 
   // endpoint: '/package/byRegEx' POST
@@ -618,24 +618,24 @@ class PackageManagementAPI {
       No package found under this regex.
      */
 
-      const regexPattern = req.body.RegEx; // The property should match the name in the request body
+    const regexPattern = req.body.RegEx; // The property should match the name in the request body
 
-      // Check if the regex pattern is provided
-      if (!regexPattern) {
-        throw new Server_Error(400, 'Regular expression pattern is missing.');
-      }
-  
-      // Perform a search using the regex pattern
-      // For demonstration purposes, let's assume you have a packages database and a function searchPackagesByRegex
-      const searchResults: object[] = []//searchPackagesByRegex(regexPattern);
-  
-      if (searchResults.length === 0) {
-          // No packages found matching the regex
-          throw new Server_Error(404, 'No package found under this regex.');
-      }
-  
-      // Successfully retrieved search results
-      return res.status(200).json(searchResults);
+    // Check if the regex pattern is provided
+    if (!regexPattern) {
+      throw new Server_Error(400, 'Regular expression pattern is missing.');
+    }
+
+    // Perform a search using the regex pattern
+    // For demonstration purposes, let's assume you have a packages database and a function searchPackagesByRegex
+    const searchResults: object[] = []//searchPackagesByRegex(regexPattern);
+
+    if (searchResults.length === 0) {
+      // No packages found matching the regex
+      throw new Server_Error(404, 'No package found under this regex.');
+    }
+
+    // Successfully retrieved search results
+    return res.status(200).json(searchResults);
   }
 
   // Start the server on the specified port
