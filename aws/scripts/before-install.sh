@@ -7,8 +7,8 @@ if [ -d /usr/local/codedeployresources ]; then
 fi
 
 if [ -d /usr/local/project-code ]; then
-    rm -rf /usr/local/project-code/
+    rm -rf ~/project-code/
 fi
 
 mkdir -vp /usr/local/codedeployresources
-mkdir -vp /usr/local/project-code
+mkdir -vp ~/project-code
