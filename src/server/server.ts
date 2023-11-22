@@ -180,20 +180,20 @@ class PackageManagementAPI {
 		// You can access request data using req.body
 		//Check for improper stuff 400 code
 		/**
-		* 201	
-		Success. Check the ID in the returned metadata for the official ID
-		* 
-		* 400	
-		There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid.
-		
-		
-		409	
-		Package exists already.
-		
-		
-		424	
-		Package is not uploaded due to the disqualified rating.
-		*/
+		 * 201	
+		 Success. Check the ID in the returned metadata for the official ID
+		 * 
+		 * 400	
+		 There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid.
+		 
+		 
+		 409	
+		 Package exists already.
+		 
+		 
+		 424	
+		 Package is not uploaded due to the disqualified rating.
+		 */
 		try {
 			if ("URL" in req.body && "Content" in req.body || !("JSProgram" in req.body)) {
 				throw new Server_Error(400, 'There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set)');
