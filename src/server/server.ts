@@ -3,12 +3,12 @@ import bodyParser from 'body-parser';
 import * as helper from './server_helper'
 // import { userType } from '../dbCommunicator'
 import e from 'express';
-import dbCommunicator from '../dbCommunicator';
+// import dbCommunicator from '../dbCommunicator';
 import { Server_Error, AggregateError } from './server_errors'
 import { stat } from 'fs';
 import logger from '../logger'
 import * as Schemas from '../schemas';
-const jwt = require('jsonwebtoken');
+// const jwt = require('jsonwebtoken');
 // Example Request: curl -X POST -H "Content-Type: application/json" -d 
 //'{"name": "Sample Package", "version": "1.0.0", "data": {"URL": "https://example.com/package.zip"}}' http://localhost:3000/packages
 
@@ -57,7 +57,7 @@ class PackageManagementAPI {
 	private app: express.Express;
 	private packages: any[];
 	private nextPackageId: number;
-	private database = dbCommunicator;
+	// private database = dbCommunicator;
 	
 	constructor() {
 		this.app = express();
@@ -67,7 +67,7 @@ class PackageManagementAPI {
 		this.nextPackageId = 1;
 		
 		// Middleware
-		this.app.use(this.authenticate);
+		// this.app.use(this.authenticate);
 		this.app.use(this.ErrorHandler);
 		
 		// Define routes
@@ -303,7 +303,14 @@ class PackageManagementAPI {
 		
 		// Perform database query or other actions to get the package by ID
 		// For demonstration purposes, let's assume you have a packages database and a function getPackageById
-		const package_result: object = {}//getPackageById(packageId);
+		const package_result: Schemas.Package = {
+			metadata: {
+				Name: "Sample Package",
+				Version: "1.0.0",
+				ID: "smplpkg"
+			},
+			data: "print('Hello World')"
+		}//getPackageById(packageId);
 		
 		if (!package_result) {
 			// Package not found
@@ -516,10 +523,10 @@ class PackageManagementAPI {
 		*/
 		
 		// Sign the JWT token
-		const token = jwt.sign(userObj, secretKey, { expiresIn: '10h' });
+		// const token = jwt.sign(userObj, secretKey, { expiresIn: '10h' });
 		
 		// Return the token in the "Bearer" format
-		res.status(200).send(`"bearer ${token}"`);
+		// res.status(200).send(`"bearer ${token}"`);
 	} catch (error) {
 		res.status(400).json({ error: 'Missing Fields' });
 	}
@@ -649,4 +656,5 @@ start(port: number) {
 }
 
 const apiServer = new PackageManagementAPI();
-apiServer.start(8080); // alternative port for http - https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers
+logger.info(`Starting server on port 3000`);
+apiServer.start(3000); // alternative port for http - https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers
