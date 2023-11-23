@@ -49,6 +49,8 @@ this.app.post('/package/byRegEx', this.handleSearchPackagesByRegex.bind(this));
 * Testing:
 * 1. Currently don't have Unit Tests set up
 * 2. Can use make_test_requests.py and PackageContent to test
+* 
+* TODO, and SWITCH are used to find places that need to be updated
 */
 
 class PackageManagementAPI {
@@ -266,7 +268,7 @@ class PackageManagementAPI {
 		}
 		
 		// Pass user to Database to authenticate token and reset if valid
-		const result = this.database.resetRegistry(data);
+		const result = true; // CHANGE this.database.resetRegistry(data);
 		
 		if (!result) {
 			throw new Server_Error(400, 'There is missing field(s) in the AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');

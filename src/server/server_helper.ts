@@ -13,6 +13,7 @@ import { fetchDataAndCalculateScore } from '../adjusted_main'
 import * as SE from './server_errors'
 import logger from '../logger';
 import * as Schemas from '../schemas';
+import { error } from 'console';
 const { Buffer } = require('buffer');
 const AdmZip = require('adm-zip');
 
@@ -146,7 +147,10 @@ export async function queryForPackage(Input: Schemas.PackageQuery): Promise<Sche
     const versions = lines.map((line) => {
         try {
             const match = line.match(versionRegex);
-            return match ? match[1] : null;
+            if(!match) {
+                throw error;
+            }
+            return match[1];
         } catch (error) {
             throw new SE.Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
         }
@@ -155,7 +159,12 @@ export async function queryForPackage(Input: Schemas.PackageQuery): Promise<Sche
     // query DB for package based on name and each requested version
     let foundPackages: Schemas.PackageMetadata[] = [];
     for (const version of versions) {
-        const packageData = await DBCommunicator.getPackage(Input.Name, version); // TODO - implement mock DBCommunicator
+        // const packageData = await DBCommunicator.getPackage(Input.Name, version); 
+        const packageData: Schemas.PackageMetadata = { // SWITCH to  DBCommunicator.getPackage once implemented
+            Name: Input.Name,
+            Version: version,
+            ID: 'id'
+        }   
         if (packageData) {
             foundPackages.push(packageData);
         }
