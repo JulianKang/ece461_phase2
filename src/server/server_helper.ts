@@ -8,7 +8,7 @@
  * ************************************************** */
 import * as fs from 'fs';
 import path from 'path';
-// import DBCommunicator from '../dbCommunicator';
+import DBCommunicator from '../dbCommunicator';
 import { fetchDataAndCalculateScore } from '../adjusted_main'
 import * as SE from './server_errors'
 import logger from '../logger';
@@ -119,12 +119,12 @@ export async function APIHelpPackageURL(url: Schemas.PackageURL, JsProgram: Sche
 }
 
 export async function getUserAPIKey(username: string, password: string): Promise<string | boolean> {
-    // const admin = username === "ece30861defaultadminuser" && password === "correcthorsebatterystaple123(!__+@**(A'\"`;DROP TABLE packages;";
-    // if(admin){
-    //     return true
-    // }
+    const admin = username === "ece30861defaultadminuser" && password === "correcthorsebatterystaple123(!__+@**(A'\"`;DROP TABLE packages;";
+    if(admin){
+        return true
+    }
 
-    let authenication = 'abc123' //await DBCommunicator.authenticateUser(username, password);
+    let authenication = await DBCommunicator.authenticateUser(username, password);
     if (!authenication) {
         return false;
     }
@@ -159,12 +159,7 @@ export async function queryForPackage(Input: Schemas.PackageQuery): Promise<Sche
     // query DB for package based on name and each requested version
     let foundPackages: Schemas.PackageMetadata[] = [];
     for (const version of versions) {
-        // const packageData = await DBCommunicator.getPackage(Input.Name, version); 
-        const packageData: Schemas.PackageMetadata = { // SWITCH to  DBCommunicator.getPackage once implemented
-            Name: Input.Name,
-            Version: version,
-            ID: 'id'
-        }   
+        const packageData = await DBCommunicator.getPackage(Input.Name, version);   
         if (packageData) {
             foundPackages.push(packageData);
         }

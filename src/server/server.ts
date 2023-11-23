@@ -1,14 +1,13 @@
 import express, { Request, Response, NextFunction } from 'express';
 import bodyParser from 'body-parser';
 import * as helper from './server_helper'
-// import { userType } from '../dbCommunicator'
 import e from 'express';
-// import dbCommunicator from '../dbCommunicator';
+import dbCommunicator from '../dbCommunicator';
 import { Server_Error, AggregateError } from './server_errors'
 import { stat } from 'fs';
 import logger from '../logger'
 import * as Schemas from '../schemas';
-// const jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 // Example Request: curl -X POST -H "Content-Type: application/json" -d 
 //'{"name": "Sample Package", "version": "1.0.0", "data": {"URL": "https://example.com/package.zip"}}' http://localhost:3000/packages
 
@@ -57,7 +56,7 @@ class PackageManagementAPI {
 	private app: express.Express;
 	private packages: any[];
 	private nextPackageId: number;
-	// private database = dbCommunicator;
+	private database = dbCommunicator;
 	
 	constructor() {
 		this.app = express();
@@ -268,7 +267,7 @@ class PackageManagementAPI {
 		}
 		
 		// Pass user to Database to authenticate token and reset if valid
-		const result = true; // CHANGE this.database.resetRegistry(data);
+		const result = this.database.resetRegistry(data);
 		
 		if (!result) {
 			throw new Server_Error(400, 'There is missing field(s) in the AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
@@ -303,14 +302,7 @@ class PackageManagementAPI {
 		
 		// Perform database query or other actions to get the package by ID
 		// For demonstration purposes, let's assume you have a packages database and a function getPackageById
-		const package_result: Schemas.Package = {
-			metadata: {
-				Name: "Sample Package",
-				Version: "1.0.0",
-				ID: "smplpkg"
-			},
-			data: "print('Hello World')"
-		}//getPackageById(packageId);
+		const package_result: Schemas.Package = this.database.getPackageById(packageId);
 		
 		if (!package_result) {
 			// Package not found
@@ -322,7 +314,7 @@ class PackageManagementAPI {
 	}
 	
 	// endpoint: '/package/:id' PUT
-	// TODO validate and test
+	// TODO update to utilize schemas, will be more simple
 	private handleUpdatePackageById(req: Request, res: Response) {
 		// Skeleton logic to update a package by ID (replace with actual logic)
 		// You can access the ID using req.params.id and data using req.body
@@ -338,7 +330,7 @@ class PackageManagementAPI {
 		Package does not exist.
 		*/
 		
-		const packageId = req.params.id;
+		const packageId: Schemas.PackageID = req.params.id;
 		const updatedPackageData = req.body;
 		
 		// Check for top-level required fields in the request body
@@ -370,7 +362,7 @@ class PackageManagementAPI {
 		
 		// Update the package (replace this with your actual update logic)
 		// For demonstration purposes, let's assume you have a packages database and a function updatePackageById
-		const updatedPackage: boolean = false //updatePackageById(packageId, updatedPackageData);
+		const updatedPackage: boolean = this.database.updatePackageById(packageId, updatedPackageData);
 		
 		if (!updatedPackage) {
 			// Package does not exist
@@ -400,7 +392,7 @@ class PackageManagementAPI {
 		Package does not exist.
 		*/
 		
-		const packageId = req.params.id;
+		const packageId: Schemas.PackageID = req.params.id;
 		
 		// Check if the package ID is provided
 		if (!packageId) {
@@ -409,7 +401,7 @@ class PackageManagementAPI {
 		
 		// Perform database delete or other actions to delete the package
 		// For demonstration purposes, let's assume you have a packages database and a function deletePackageById
-		const deletedPackage: boolean = false//deletePackageById(packageId);
+		const deletedPackage: boolean = this.database.deletePackageById(packageId);
 		
 		if (!deletedPackage) {
 			// Package does not exist
@@ -467,7 +459,7 @@ class PackageManagementAPI {
 		
 		// Perform rating logic or database updates here
 		// For demonstration purposes, let's assume you have a package ratings database and a function ratePackage
-		const ratedPackage: object = {}//ratePackage(packageId, ratingData);
+		const ratedPackage: Schemas.PackageRating = {}//ratePackage(packageId, ratingData);
 		
 		if (!ratedPackage) {
 			// Package does not exist
