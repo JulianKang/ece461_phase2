@@ -8,7 +8,7 @@
  * ************************************************** */
 import * as fs from 'fs';
 import path from 'path';
-import DBCommunicator from '../dbCommunicator';
+// import DBCommunicator from '../dbCommunicator';
 import { fetchDataAndCalculateScore } from '../adjusted_main'
 import * as SE from './server_errors'
 import logger from '../logger';
@@ -124,7 +124,7 @@ export async function getUserAPIKey(username: string, password: string): Promise
     //     return true
     // }
 
-    let authenication = await DBCommunicator.authenticateUser(username, password);
+    let authenication = 'abc123' //await DBCommunicator.authenticateUser(username, password);
     if (!authenication) {
         return false;
     }

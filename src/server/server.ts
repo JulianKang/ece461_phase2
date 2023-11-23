@@ -1,7 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import bodyParser from 'body-parser';
 import * as helper from './server_helper'
-import { userType } from '../dbCommunicator'
+// import { userType } from '../dbCommunicator'
 import e from 'express';
 import dbCommunicator from '../dbCommunicator';
 import { Server_Error, AggregateError } from './server_errors'
