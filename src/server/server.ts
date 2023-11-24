@@ -1,11 +1,10 @@
+const jwt = require('jsonwebtoken');
 import express, { Request, Response, NextFunction } from 'express';
 import bodyParser from 'body-parser';
-import * as helper from './server_helper'
-import dbCommunicator from '../dbCommunicator';
 import { Server_Error, AggregateError } from './server_errors'
-import logger from '../logger'
 import * as Schemas from '../schemas';
-const jwt = require('jsonwebtoken');
+import dbCommunicator from '../dbCommunicator';
+import logger from '../logger';
 // Example Request: curl -X POST -H "Content-Type: application/json" -d 
 //'{"name": "Sample Package", "version": "1.0.0", "data": {"URL": "https://example.com/package.zip"}}' http://localhost:3000/packages
 

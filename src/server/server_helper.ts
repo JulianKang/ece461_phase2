@@ -1,21 +1,12 @@
-/*************************************************
- * 
- * Ideas:
- * 1. DataBase Communicator Object?
- * 2. Handle all API Computations. API should only handle responses nothing else.
- * 3. 
- * 
- * ************************************************** */
-import * as fs from 'fs';
-import path from 'path';
-import DBCommunicator from '../dbCommunicator';
-import { fetchDataAndCalculateScore } from '../adjusted_main'
-import * as SE from './server_errors'
-import logger from '../logger';
-import * as Schemas from '../schemas';
-import { error } from 'console';
 const { Buffer } = require('buffer');
 const AdmZip = require('adm-zip');
+import * as fs from 'fs';
+import { error } from 'console';
+import { fetchDataAndCalculateScore } from '../adjusted_main'
+import { Server_Error } from './server_errors'
+import * as Schemas from '../schemas';
+import dbCommunicator from '../dbCommunicator';
+import logger from '../logger';
 
 export function APIHelpPackageContent(base64: Schemas.PackageContent, JsProgram: Schemas.PackageJSProgram): Schemas.Package {
     const zipBuffer: Buffer = Buffer.from(base64, 'base64');
@@ -81,13 +72,13 @@ export async function APIHelpPackageURL(url: Schemas.PackageURL, JsProgram: Sche
             const value = result[key as keyof Schemas.CLIOutput];
             if (typeof value === 'number' && value < 0) {
                 //logger.info(value)
-                throw new SE.Server_Error(424, "Package is not uploaded due to the disqualified rating.")
+                throw new Server_Error(424, "Package is not uploaded due to the disqualified rating.")
             }
         }
 
         const package_exists = false//DataBase.ScanForPacakge(url)
         if (package_exists) {
-            throw new SE.Server_Error(409, "Package already exists")
+            throw new Server_Error(409, "Package already exists")
         }
         else {
             //DataBase.AddPackage(url, metrics, ...)
@@ -110,7 +101,7 @@ export async function APIHelpPackageURL(url: Schemas.PackageURL, JsProgram: Sche
         //res.status(201).json(newPackage);
     } catch (error) {
         // propogate error
-        throw new SE.Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
+        throw new Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
     }
 }
 
@@ -120,7 +111,7 @@ export async function getUserAPIKey(username: string, password: string): Promise
         return true
     }
 
-    let authenication = await DBCommunicator.authenticateUser(username, password);
+    let authenication = await dbCommunicator.authenticateUser(username, password);
     if (!authenication) {
         return false;
     }
@@ -128,7 +119,7 @@ export async function getUserAPIKey(username: string, password: string): Promise
     return authenication;
 }
 
-// TODO explicitly define the typings and set return once DBCommunicator is implemented for package search
+// TODO explicitly define the typings and set return once dbCommunicator is implemented for package search
 /*   
     example input
     {
@@ -148,14 +139,14 @@ export async function queryForPackage(Input: Schemas.PackageQuery): Promise<Sche
             }
             return match[1];
         } catch (error) {
-            throw new SE.Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
+            throw new Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
         }
     });
 
     // query DB for package based on name and each requested version
     let foundPackages: Schemas.PackageMetadata[] = [];
     for (const version of versions) {
-        const packageData = await DBCommunicator.getPackage(Input.Name, version);   
+        const packageData = await dbCommunicator.getPackage(Input.Name, version);   
         if (packageData) {
             foundPackages.push(packageData);
         }
