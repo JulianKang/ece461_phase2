@@ -17,7 +17,7 @@ import { error } from 'console';
 const { Buffer } = require('buffer');
 const AdmZip = require('adm-zip');
 
-export function APIHelpPackageContent(base64: Schemas.PackageContent, JsProgram: Schemas.PackageJSProgram) {
+export function APIHelpPackageContent(base64: Schemas.PackageContent, JsProgram: Schemas.PackageJSProgram): Schemas.Package {
     const zipBuffer: Buffer = Buffer.from(base64, 'base64');
     const unzipDir = './src/cloned_repositories';
 
@@ -71,8 +71,7 @@ export function APIHelpPackageContent(base64: Schemas.PackageContent, JsProgram:
     }
 }
 
-export async function APIHelpPackageURL(url: Schemas.PackageURL, JsProgram: Schemas.PackageJSProgram) {
-    const error_response: object = { error: 'Package is not uploaded due to the disqualified rating.' }
+export async function APIHelpPackageURL(url: Schemas.PackageURL, JsProgram: Schemas.PackageJSProgram): Promise<Schemas.Package> {
     try {
         const result: Schemas.CLIOutput = await fetchDataAndCalculateScore(url);
         //Check to see if Scores Fulfill the threshold if not return a different return code
@@ -82,13 +81,13 @@ export async function APIHelpPackageURL(url: Schemas.PackageURL, JsProgram: Sche
             const value = result[key as keyof Schemas.CLIOutput];
             if (typeof value === 'number' && value < 0) {
                 //logger.info(value)
-                return error_response
+                throw new SE.Server_Error(424, "Package is not uploaded due to the disqualified rating.")
             }
         }
 
         const package_exists = false//DataBase.ScanForPacakge(url)
         if (package_exists) {
-            return { error: 'package already exists' }
+            throw new SE.Server_Error(409, "Package already exists")
         }
         else {
             //DataBase.AddPackage(url, metrics, ...)
@@ -109,12 +108,9 @@ export async function APIHelpPackageURL(url: Schemas.PackageURL, JsProgram: Sche
 
         return success_response
         //res.status(201).json(newPackage);
-    } catch (error_out) {
-        console.error('Error in fetchDataAndCalculateScore:', error_out);
-        const error_response = {
-            error: "Invalid package format. Please ensure the package meets the required format."
-        }
-        return error_response
+    } catch (error) {
+        // propogate error
+        throw new SE.Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
     }
 }
 
