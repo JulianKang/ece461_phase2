@@ -14,3 +14,5 @@ aws s3 sync s3://$S3_BUCKET/$S3_FOLDER $DESTINATION_FOLDER
 cd ~/project-code
 
 npm install
+npm run build
+sudo npm install -g serve
