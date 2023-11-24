@@ -1,9 +1,6 @@
 // for consistency: 
-// import * as Schemas from './schemas';
-
-import e from "express";
-import exp from "node:constants";
-
+// import * as Schemas from '../src/schemas';
+// import Evaluate = Schemas.Evaluate; // if you need to use the type guards
 
 // from inherited code
 export interface CLIOutput {
@@ -135,7 +132,7 @@ export namespace Evaluate {
 
     // TYPES
     export function isPackageName(obj: any): obj is PackageName {
-        return obj && typeof obj === 'string';
+        return obj && typeof obj === 'string' && obj !== '*';
     }
 
     export function isPackageID(obj: any): obj is PackageID {
@@ -171,10 +168,10 @@ export namespace Evaluate {
 
     // INTERFACES
     export function isPackageMetadata(obj: any): obj is PackageMetadata {
-        return obj && isPackageName(obj.Name) && isPackageID(obj.ID) && isPackageVersion(obj.Version);
+        return obj && isPackageName(obj.Name) && (isPackageID(obj.ID) || obj.ID === null) && isPackageVersion(obj.Version);
     }
 
-    export function isPackageData(obj: any): obj is PackageData {
+    export function isPackageData(obj: any): obj is PackageData { // technically a union type not an interface
         return obj && (isPackageContent(obj) || isPackageURL(obj) || isPackageJSProgram(obj));
     }
 
@@ -183,30 +180,30 @@ export namespace Evaluate {
     }
 
     export function isUser(obj: any): obj is User {
-        return obj && obj.name && obj.isAdmin && typeof obj.name === 'string' && typeof obj.isAdmin === 'boolean';
+        return obj && obj.name && typeof obj.name === 'string' && typeof obj.isAdmin === 'boolean';
     }
     
-    export function isUserAuthenticationInfo(obj: any): obj is UserAuthenticationInfo {
+    export function isUserAuthetificationInfo(obj: any): obj is UserAuthenticationInfo {
         return obj && obj.password && typeof obj.password === 'string';
     }
     
     export function isPackageRating(obj: any): obj is PackageRating {
         return (
-            obj && obj.BusFactor && obj.Correctness && obj.RampUp && obj.ResponsiveMaintainer && obj.LicenseScore && obj.GoodPinningPractice && obj.PullRequest && obj.NetScore &&
-            typeof obj.BusFactor === 'number' &&
-            typeof obj.Correctness === 'number' &&
-            typeof obj.RampUp === 'number' &&
-            typeof obj.ResponsiveMaintainer === 'number' &&
-            typeof obj.LicenseScore === 'number' &&
-            typeof obj.GoodPinningPractice === 'number' &&
-            typeof obj.PullRequest === 'number' &&
-            typeof obj.NetScore === 'number'
+            obj &&
+            typeof obj.BusFactor === 'number' && obj.BusFactor >= 0 && obj.BusFactor <= 1 &&
+            typeof obj.Correctness === 'number' && obj.Correctness >= 0 && obj.Correctness <= 1 &&
+            typeof obj.RampUp === 'number' && obj.RampUp >= 0 && obj.RampUp <= 1 &&
+            typeof obj.ResponsiveMaintainer === 'number' && obj.ResponsiveMaintainer >= 0 && obj.ResponsiveMaintainer <= 1 &&
+            typeof obj.LicenseScore === 'number' && obj.LicenseScore >= 0 && obj.LicenseScore <= 1 &&
+            typeof obj.GoodPinningPractice === 'number' && obj.GoodPinningPractice >= 0 && obj.GoodPinningPractice <= 1 &&
+            typeof obj.PullRequest === 'number' && obj.PullRequest >= 0 && obj.PullRequest <= 1 &&
+            typeof obj.NetScore === 'number' && obj.NetScore >= 0 && obj.NetScore <= 1
         );
     }
     
     export function isPackageHistoryEntry(obj: any): obj is PackageHistoryEntry {
         return (
-            obj && obj.Date &&
+            obj &&
             typeof obj.Date === 'string' &&
             isAction(obj.Action) &&
             isUser(obj.User) &&
