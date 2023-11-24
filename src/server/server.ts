@@ -588,11 +588,6 @@ export class PackageManagementAPI {
 		// RegEx is valid format
 		const regexPattern: Schemas.PackageRegEx = req.body.RegEx; // The property should match the name in the request body
 		
-		// Check if the regex pattern is provided
-		if (!regexPattern) {
-			throw new Server_Error(400, 'Regular expression pattern is missing.');
-		}
-		
 		// Perform a search using the regex pattern
 		// For demonstration purposes, let's assume you have a packages database and a function searchPackagesByRegex
 		const searchResults: Schemas.PackageMetadata[] = await this.database.searchPackagesByRegex(regexPattern);
