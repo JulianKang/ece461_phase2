@@ -122,6 +122,7 @@ export interface PackageQuery {
 }
 
 // Evaluation of the various schemas
+// Type Guards
 namespace Evaluate {
     // ENUMS
     export function isAction(obj: any): obj is Actions {
