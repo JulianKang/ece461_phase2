@@ -172,7 +172,7 @@ export namespace Evaluate {
 
     // INTERFACES
     export function isPackageMetadata(obj: any): obj is PackageMetadata {
-        return obj && isPackageName(obj.Name) && isPackageID(obj.ID) && isPackageVersion(obj.Version);
+        return obj && isPackageName(obj.Name) && (isPackageID(obj.ID) || obj.ID === null) && isPackageVersion(obj.Version);
     }
 
     export function isPackageData(obj: any): obj is PackageData { // technically a union type not an interface
@@ -184,7 +184,7 @@ export namespace Evaluate {
     }
 
     export function isUser(obj: any): obj is User {
-        return obj && obj.name && obj.isAdmin && typeof obj.name === 'string' && typeof obj.isAdmin === 'boolean';
+        return obj && obj.name && typeof obj.name === 'string' && typeof obj.isAdmin === 'boolean';
     }
     
     export function isUserAuthetificationInfo(obj: any): obj is UserAuthenticationInfo {
@@ -193,7 +193,7 @@ export namespace Evaluate {
     
     export function isPackageRating(obj: any): obj is PackageRating {
         return (
-            obj && obj.BusFactor && obj.Correctness && obj.RampUp && obj.ResponsiveMaintainer && obj.LicenseScore && obj.GoodPinningPractice && obj.PullRequest && obj.NetScore &&
+            obj &&
             typeof obj.BusFactor === 'number' && obj.BusFactor >= 0 && obj.BusFactor <= 1 &&
             typeof obj.Correctness === 'number' && obj.Correctness >= 0 && obj.Correctness <= 1 &&
             typeof obj.RampUp === 'number' && obj.RampUp >= 0 && obj.RampUp <= 1 &&
@@ -207,7 +207,7 @@ export namespace Evaluate {
     
     export function isPackageHistoryEntry(obj: any): obj is PackageHistoryEntry {
         return (
-            obj && obj.Date &&
+            obj &&
             typeof obj.Date === 'string' &&
             isAction(obj.Action) &&
             isUser(obj.User) &&
