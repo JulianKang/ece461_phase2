@@ -123,7 +123,7 @@ export interface PackageQuery {
 
 // Evaluation of the various schemas
 // Type Guards
-namespace Evaluate {
+export namespace Evaluate {
     // ENUMS
     export function isAction(obj: any): obj is Actions {
         return obj && typeof obj === 'string' &&
@@ -162,6 +162,10 @@ namespace Evaluate {
     }
     
     export function isSemverRange(obj: any): obj is SemverRange {
+        return obj && typeof obj === 'string';
+    }
+
+    export function isPackageRegEx(obj: any): obj is PackageRegEx {
         return obj && typeof obj === 'string';
     }
 
