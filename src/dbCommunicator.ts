@@ -5,6 +5,7 @@
 import mysql from 'mysql2/promise';
 import 'dotenv/config';
 import { type } from 'node:os';
+import * as Schemas from './schemas';
 
 /** 
  * An enum for the different user types.
@@ -159,6 +160,33 @@ class DBCommunicator {
       console.error('Database query error:', error); // replace with logger when we gain access to it
       return null;
     }
+  }
+
+  // creating methods to for testing purposes to allow mocking, 
+  // will be overwritten by actual implementations in the future
+  async getPackageMetadata(name: Schemas.PackageName, version: Schemas.PackageVersion): Promise<Schemas.PackageMetadata | null> {
+    return null;
+  }
+  async resetRegistry(user: Schemas.User): Promise<boolean> {
+    return false;
+  }
+  async getPackageById(id: Schemas.PackageID): Promise<Schemas.Package | null> {
+    return null;
+  }
+  async updatePackageById(id: Schemas.PackageID, packageData: Schemas.Package): Promise<boolean> {
+    return false;
+  }
+  async deletePackageById(id: Schemas.PackageID): Promise<boolean> {
+    return false;
+  }
+  async getPackageRatings(id: Schemas.PackageID): Promise<Schemas.PackageRating | null> {
+    return null;
+  }
+  async deletePackageByName(name: Schemas.PackageName): Promise<boolean> {
+    return false;
+  }
+  async searchPackagesByRegex(regex: Schemas.PackageRegEx): Promise<Schemas.PackageMetadata[]> {
+    return [];
   }
 
   /**

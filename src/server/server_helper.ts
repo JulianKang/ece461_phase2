@@ -55,10 +55,30 @@ export function APIHelpPackageContent(base64: Schemas.PackageContent, JsProgram:
         //logger.info('ZIP file extraction complete.');
         //logger.info(gitRemoteUrl)
 
-        return gitRemoteUrl
+        // TODO
+        return {
+            metadata: {
+                Name: "Underscore",
+                Version: "1.0.0",
+                ID: "underscore"
+            },
+            data: "Base64 of zipfile"
+        }
+
+        // return gitRemoteUrl
     } catch (error) {
         logger.error(`${error}`)
-        return gitRemoteUrl
+        
+        // TODO
+        return {
+            metadata: {
+                Name: "Underscore",
+                Version: "1.0.0",
+                ID: "underscore"
+            },
+            data: "Base64 of zipfile"
+        }
+        // return gitRemoteUrl
     }
 }
 
@@ -119,7 +139,6 @@ export async function getUserAPIKey(username: string, password: string): Promise
     return authenication;
 }
 
-// TODO explicitly define the typings and set return once dbCommunicator is implemented for package search
 /*   
     example input
     {
@@ -146,7 +165,7 @@ export async function queryForPackage(Input: Schemas.PackageQuery): Promise<Sche
     // query DB for package based on name and each requested version
     let foundPackages: Schemas.PackageMetadata[] = [];
     for (const version of versions) {
-        const packageData = await dbCommunicator.getPackage(Input.Name, version);   
+        const packageData = await dbCommunicator.getPackageMetadata(Input.Name, version);   
         if (packageData) {
             foundPackages.push(packageData);
         }

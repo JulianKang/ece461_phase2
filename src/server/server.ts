@@ -39,7 +39,7 @@ import Evaluate = Schemas.Evaluate;
 * TODO, and SWITCH are used to find places that need to be updated
 */
 
-class PackageManagementAPI {
+export class PackageManagementAPI {
 	private app: express.Express;
 	private database = dbCommunicator;
 	
@@ -214,7 +214,7 @@ class PackageManagementAPI {
 	
 	// endpoint: '/reset' DELETE
 	// TODO test
-	private handleReset(req: Request, res: Response) {
+	private async handleReset(req: Request, res: Response) {
 		/**
 		  * 200	
 		  Registry is reset.
@@ -239,7 +239,7 @@ class PackageManagementAPI {
 			}
 			
 			// Pass user to Database to authenticate token and reset if valid
-			const result = this.database.resetRegistry(data);
+			const result = await this.database.resetRegistry(data);
 			
 			if (!result) {
 				throw new Server_Error(400, 'There is missing field(s) in the AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
@@ -256,7 +256,7 @@ class PackageManagementAPI {
 	
 	// endpoint: '/package/:id' GET
 	// TODO test
-	private handleGetPackageById(req: Request, res: Response) {
+	private async handleGetPackageById(req: Request, res: Response) {
 		/**
 		  * 200	
 		  Return the package. Content is required.
@@ -282,7 +282,7 @@ class PackageManagementAPI {
 		
 		// Perform database query or other actions to get the package by ID
 		// For demonstration purposes, let's assume you have a packages database and a function getPackageById
-		const package_result: Schemas.Package = this.database.getPackageById(packageId);
+		const package_result: Schemas.Package | null = await this.database.getPackageById(packageId);
 		
 		if (!package_result) {
 			// Package not found
@@ -295,7 +295,7 @@ class PackageManagementAPI {
 	
 	// endpoint: '/package/:id' PUT
 	// TODO test
-	private handleUpdatePackageById(req: Request, res: Response) {
+	private async handleUpdatePackageById(req: Request, res: Response) {
 		/**
 		  * 200	
 		  Version is updated.
@@ -325,7 +325,7 @@ class PackageManagementAPI {
 			
 			// Update the package (replace this with your actual update logic)
 			// For demonstration purposes, let's assume you have a packages database and a function updatePackageById
-			const updatedPackage: boolean = this.database.updatePackageById(packageId, updatedPackageData);
+			const updatedPackage: boolean = await this.database.updatePackageById(packageId, updatedPackageData);
 			
 			if (!updatedPackage) {
 				// Package does not exist
@@ -345,7 +345,7 @@ class PackageManagementAPI {
 	
 	// endpoint: '/package/:id' DELETE
 	// TODO test
-	private handleDeletePackageById(req: Request, res: Response) {
+	private async handleDeletePackageById(req: Request, res: Response) {
 		/**
 		  * 200	
 		  Version is deleted.
@@ -374,7 +374,7 @@ class PackageManagementAPI {
 		
 		// Perform database delete or other actions to delete the package
 		// For demonstration purposes, let's assume you have a packages database and a function deletePackageById
-		const deletedPackage: boolean = this.database.deletePackageById(packageId);
+		const deletedPackage: boolean = await this.database.deletePackageById(packageId);
 		
 		if (!deletedPackage) {
 			// Package does not exist
@@ -389,7 +389,7 @@ class PackageManagementAPI {
 	
 	// endpoint: '/package/:id/rate' GET
 	// TODO test
-	private handleRatePackage(req: Request, res: Response) {
+	private async handleRatePackage(req: Request, res: Response) {
 		/**
 		  * 200	
 		  Return the rating. Only use this if each metric was computed successfully.
@@ -421,7 +421,7 @@ class PackageManagementAPI {
 		
 		// Perform rating logic or database updates here
 		// For demonstration purposes, let's assume you have a package ratings database and a function ratePackage
-		const ratedPackage: Schemas.PackageRating = this.database.getPackageRatings(packageId);
+		const ratedPackage: Schemas.PackageRating | null = await this.database.getPackageRatings(packageId);
 		
 		if (!ratedPackage) {
 			// Package does not exist
@@ -524,7 +524,7 @@ class PackageManagementAPI {
 
 	// endpoint: '/package/byName/:name' DELETE
 	// TODO test
-	private handleDeletePackageByName(req: Request, res: Response) {
+	private async handleDeletePackageByName(req: Request, res: Response) {
 		/**
 		 * 200	
 		 Package is deleted.
@@ -553,7 +553,7 @@ class PackageManagementAPI {
 		
 		// Perform database delete or other actions to delete the package by name
 		// For demonstration purposes, let's assume you have a packages database and a function deletePackageByName
-		const deletedPackage: boolean = this.database.deletePackageByName(packageName);
+		const deletedPackage: boolean = await this.database.deletePackageByName(packageName);
 		
 		if (!deletedPackage) {
 			// Package does not exist
@@ -566,7 +566,7 @@ class PackageManagementAPI {
 
 	// endpoint: '/package/byRegEx' POST
 	// TODO test
-	private handleSearchPackagesByRegex(req: Request, res: Response) {
+	private async handleSearchPackagesByRegex(req: Request, res: Response) {
 		/**
 		 * 200	
 		 Return a list of packages.
@@ -595,7 +595,7 @@ class PackageManagementAPI {
 		
 		// Perform a search using the regex pattern
 		// For demonstration purposes, let's assume you have a packages database and a function searchPackagesByRegex
-		const searchResults: Schemas.PackageMetadata[] = this.database.searchPackagesByRegex(regexPattern);
+		const searchResults: Schemas.PackageMetadata[] = await this.database.searchPackagesByRegex(regexPattern);
 		
 		if (searchResults.length === 0) {
 			// No packages found matching the regex
