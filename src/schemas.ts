@@ -2,10 +2,6 @@
 // import * as Schemas from '../src/schemas';
 // import Evaluate = Schemas.Evaluate; // if you need to use the type guards
 
-import e from "express";
-import exp from "node:constants";
-
-
 // from inherited code
 export interface CLIOutput {
     'BUS_FACTOR_SCORE': number;
