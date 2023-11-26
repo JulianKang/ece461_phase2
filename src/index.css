@@ -1,0 +1,179 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Apply some basic styling to the navigation bar */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #fff;
+    color: #333;
+    padding: 10px 20px;
+    position: relative;
+    z-index: 100;
+    border-bottom: 1px solid #333;
+}
+
+/* Style the logo */
+.logo img {
+    height: 40px;
+}
+
+/* Style the links and separator */
+.links a {
+    text-decoration: none;
+    color: #333;
+    margin-right: 10px;
+}
+
+.separator {
+    color: #333;
+    font-weight: bold;
+    margin: 0 10px;
+}
+
+/* Make the navigation bar sticky */
+.sticky {
+    position: fixed;
+    top: 0;
+    width: 100%;
+}
+
+/* Add styles for the buttons */
+.buttons-container {
+    text-align: center;
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 50vh; /* Adjust the height as needed to control vertical centering */
+}
+
+.button {
+    width: 100px;
+    margin-top: 10px;
+    padding: 10px 20px;
+    background-color: #4b6cb7; /* Darkish blue */
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6); /* Shadow on bottom and right */
+    cursor: pointer;
+    transition: box-shadow 0.2s; /* Smooth transition for the shadow */
+}
+
+.button:active {
+    box-shadow: none; /* Remove shadow on hover (button pressed effect) */
+}
+
+.button.sign-in {
+    background-color: #4b6cb7;
+}
+
+.button.register {
+    background-color: #4b7b6c; /* Another color for the second button */
+}
+
+.sign-in-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 50vh; /* Adjust the height as needed to center vertically */
+}
+
+.sign-in-form h2 {
+    margin-bottom: 20px; /* Add space between heading and form */
+}
+
+.sign-in-form form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.sign-in-form input {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 100%;
+    margin: 10px 0; /* Add space between input fields */
+}
+
+.button.sign-in {
+    background-color: #4b6cb7;
+    margin-top: 10px; /* Add space between the inputs and the button */
+}
+
+.register-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 50vh; /* Adjust the height as needed to center vertically */
+}
+
+.register-form h2 {
+    margin-bottom: 20px; /* Add space between heading and form */
+}
+
+.register-form form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.register-form input {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 100%;
+    margin: 10px 0; /* Add space between input fields */
+}
+
+.button.register {
+    background-color: #4b7b6c; /* Color for the Register button */
+    margin-top: 10px; /* Add space between the inputs and the button */
+}
+
+.error-message {
+    color: red;
+     /* Hide the error message initially */
+}
+
+.block {
+    display: block;
+}
+
+.hide {
+    display: none;
+}
+
+/* Add a class for showing the error message */
+.show-error .error-message {
+    display: block;
+}
+
+.content {
+    display: flex;
+    flex: 1;
+    flex-direction: row; /* Arrange sections in rows */
+}
+
+.section {
+    flex: 1;
+    background-color: #f5f5f5;
+    padding: 20px;
+    box-sizing: border-box;
+    text-align: center;
+    border: 1px solid #333;
+}
