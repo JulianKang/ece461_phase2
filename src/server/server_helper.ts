@@ -74,6 +74,7 @@ export function APIHelpPackageContent(base64: Schemas.PackageContent, JsProgram:
 
 export async function APIHelpPackageURL(url: Schemas.PackageURL, JsProgram: Schemas.PackageJSProgram) {
     const error_response: object = { error: 'Package is not uploaded due to the disqualified rating.' }
+    console.log(url)
     try {
         const result: Schemas.CLIOutput = await fetchDataAndCalculateScore(url);
         //Check to see if Scores Fulfill the threshold if not return a different return code

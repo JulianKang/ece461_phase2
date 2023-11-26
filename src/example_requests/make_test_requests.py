@@ -12,18 +12,21 @@ data_url = {
   "JSProgram": "if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}\n"
 }
 
-url = 'http://localhost:3000/package'
-
+url = 'http://ec2-3-147-58-235.us-east-2.compute.amazonaws.com/'
+get_url = 'http://ec2-3-147-58-235.us-east-2.compute.amazonaws.com/api/package/1'
+post_url = 'http://ec2-3-147-58-235.us-east-2.compute.amazonaws.com/api/package'
+post_local = 'http://localhost:3000/package'
 headers = {'Content-Type': 'application/json'}
-
 # Perform the POST request
-response = requests.post(url, headers=headers, data=json.dumps(data))
-
+response = requests.post(post_url, headers=headers, data=json.dumps(data))
+#response = requests.get(get_url, headers=headers)
 # Print the JSON response and response code
 print("Response Code:", response.status_code)
-if response.status_code == 201:
+if response.status_code == 201 or response.status_code == 200:
     response_json = response.json()
     print("Response JSON:")
     print(json.dumps(response_json, indent=4))
+    #print(response)
 else:
     print("Request failed with status code:", response.status_code)
+    print(response)
