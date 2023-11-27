@@ -11,12 +11,39 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.userType = void 0;
-const promise_1 = __importDefault(require("mysql2/promise"));
+var promise_1 = __importDefault(require("mysql2/promise"));
 require("dotenv/config");
 /**
  * An enum for the different user types.
@@ -28,11 +55,11 @@ var userType;
     userType[userType["guest"] = 0] = "guest";
     userType[userType["user"] = 1] = "user";
     userType[userType["admin"] = 2] = "admin";
-})(userType = exports.userType || (exports.userType = {}));
+})(userType || (exports.userType = userType = {}));
 /**
  * Database configuration object.
  */
-const dbConfig = {
+var dbConfig = {
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASS,
@@ -79,12 +106,12 @@ if (!dbConfig.host || !dbConfig.user || !dbConfig.password || !dbConfig.database
 /**
  * A class for interacting with a MySQL database using the mysql2 library.
  */
-class DBCommunicator {
+var DBCommunicator = /** @class */ (function () {
     /**
      * Constructor for DBCommunicator.
      * It establishes a connection to the MySQL database.
      */
-    constructor() {
+    function DBCommunicator() {
         this.connection = null;
         this.authorization = null;
         this.connect();
@@ -92,17 +119,28 @@ class DBCommunicator {
     /**
      * Establishes a connection to the MySQL database.
      */
-    connect() {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                this.connection = yield promise_1.default.createConnection(dbConfig);
-                console.log('Connected to MySQL database'); // replace with logger when we gain access to it
-            }
-            catch (error) {
-                console.error('Error connecting to the database:', error); // replace with logger when we gain access to it
-            }
+    DBCommunicator.prototype.connect = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var _a, error_1;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        _b.trys.push([0, 2, , 3]);
+                        _a = this;
+                        return [4 /*yield*/, promise_1.default.createConnection(dbConfig)];
+                    case 1:
+                        _a.connection = _b.sent();
+                        console.log('Connected to MySQL database'); // replace with logger when we gain access to it
+                        return [3 /*break*/, 3];
+                    case 2:
+                        error_1 = _b.sent();
+                        console.error('Error connecting to the database:', error_1); // replace with logger when we gain access to it
+                        return [3 /*break*/, 3];
+                    case 3: return [2 /*return*/];
+                }
+            });
         });
-    }
+    };
     /**
      * Checks if a user is allowed to execute a given SQL query on the connected database.
      * @param userRoleId - The ID of the user trying to query the DB
@@ -110,79 +148,114 @@ class DBCommunicator {
      * @param query - The SQL query wanted to execute.
      * @returns A promise that resolves with the a boolean of access permission or false on error.
      */
-    checkPermission(userRoleId, queryType, query) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const sql = 'SELECT COUNT(*) as count FROM permissions WHERE role_id = ? AND (query_type = ? OR (query_type IS NULL AND query = ?))';
-            const values = [userRoleId, queryType, query];
-            const result = yield this.query(sql, values);
-            if (result == null || !Array.isArray(result) || result.length === 0) {
-                return false;
-            }
-            // Query the permissions table to check if the role has permission for the given query type and/or specific query
-            return result[0].count > 0;
+    DBCommunicator.prototype.checkPermission = function (userRoleId, queryType, query) {
+        return __awaiter(this, void 0, void 0, function () {
+            var sql, values, result;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        sql = 'SELECT COUNT(*) as count FROM permissions WHERE role_id = ? AND (query_type = ? OR (query_type IS NULL AND query = ?))';
+                        values = [userRoleId, queryType, query];
+                        return [4 /*yield*/, this.query(sql, values)];
+                    case 1:
+                        result = _a.sent();
+                        if (result == null || !Array.isArray(result) || result.length === 0) {
+                            return [2 /*return*/, false];
+                        }
+                        // Query the permissions table to check if the role has permission for the given query type and/or specific query
+                        return [2 /*return*/, result[0].count > 0];
+                }
+            });
         });
-    }
+    };
     /**
      * Authenticates a user with the given username and password.
      * @returns A promise that resolves with the user's permission if the user is authenticated, null otherwise.
      */
-    authenticateUser(username, password) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const sql = 'SELECT user_type FROM users WHERE username = ? AND password = ?';
-            const values = [username, password];
-            const result = yield this.query(sql, values);
-            if (result == null || !Array.isArray(result) || result.length === 0) {
-                return null;
-            }
-            return result[0].user_type;
+    DBCommunicator.prototype.authenticateUser = function (username, password) {
+        return __awaiter(this, void 0, void 0, function () {
+            var sql, values, result;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        sql = 'SELECT user_type FROM users WHERE username = ? AND password = ?';
+                        values = [username, password];
+                        return [4 /*yield*/, this.query(sql, values)];
+                    case 1:
+                        result = _a.sent();
+                        if (result == null || !Array.isArray(result) || result.length === 0) {
+                            return [2 /*return*/, null];
+                        }
+                        return [2 /*return*/, result[0].user_type];
+                }
+            });
         });
-    }
+    };
     /**
      * Executes a SQL query on the connected database.
      * @param sql - The SQL query to execute.
      * @param values - An array of values to replace placeholders in the SQL query.
      * @returns A promise that resolves with the query results or null on error.
      */
-    query(sql, values = []) {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (!this.connection) {
-                console.error('Database connection not established.'); // replace with logger when we gain access to it
-                return null;
-            }
-            try {
-                //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                const userRoleId = 1; /* Get user's role ID from the database */
-                //^THIS NEEDS TO CHANGE CANNOT BE HARD CODED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                const queryWords = sql.split(' ');
-                const queryTypeToCheck = queryWords[0].toUpperCase();
-                const hasPermission = yield this.checkPermission(userRoleId, queryTypeToCheck, sql);
-                if (hasPermission) {
-                    const [rows, fields] = yield this.connection.execute(sql, values);
-                    return rows;
+    DBCommunicator.prototype.query = function (sql, values) {
+        if (values === void 0) { values = []; }
+        return __awaiter(this, void 0, void 0, function () {
+            var userRoleId, queryWords, queryTypeToCheck, hasPermission, _a, rows, fields, error_2;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        if (!this.connection) {
+                            console.error('Database connection not established.'); // replace with logger when we gain access to it
+                            return [2 /*return*/, null];
+                        }
+                        _b.label = 1;
+                    case 1:
+                        _b.trys.push([1, 6, , 7]);
+                        userRoleId = 1;
+                        queryWords = sql.split(' ');
+                        queryTypeToCheck = queryWords[0].toUpperCase();
+                        return [4 /*yield*/, this.checkPermission(userRoleId, queryTypeToCheck, sql)];
+                    case 2:
+                        hasPermission = _b.sent();
+                        if (!hasPermission) return [3 /*break*/, 4];
+                        return [4 /*yield*/, this.connection.execute(sql, values)];
+                    case 3:
+                        _a = _b.sent(), rows = _a[0], fields = _a[1];
+                        return [2 /*return*/, rows];
+                    case 4:
+                        console.log('No permission for query: ', sql); // replace with logger when we gain access to it
+                        return [2 /*return*/, null];
+                    case 5: return [3 /*break*/, 7];
+                    case 6:
+                        error_2 = _b.sent();
+                        console.error('Database query error:', error_2); // replace with logger when we gain access to it
+                        return [2 /*return*/, null];
+                    case 7: return [2 /*return*/];
                 }
-                else {
-                    console.log('No permission for query: ', sql); // replace with logger when we gain access to it
-                    return null;
-                }
-            }
-            catch (error) {
-                console.error('Database query error:', error); // replace with logger when we gain access to it
-                return null;
-            }
+            });
         });
-    }
+    };
     /**
      * Closes the connection to the MySQL database.
      */
-    close() {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (this.connection) {
-                yield this.connection.end();
-                console.log('Database connection closed.'); // replace with logger when we gain access to it
-            }
+    DBCommunicator.prototype.close = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (!this.connection) return [3 /*break*/, 2];
+                        return [4 /*yield*/, this.connection.end()];
+                    case 1:
+                        _a.sent();
+                        console.log('Database connection closed.'); // replace with logger when we gain access to it
+                        _a.label = 2;
+                    case 2: return [2 /*return*/];
+                }
+            });
         });
-    }
-}
+    };
+    return DBCommunicator;
+}());
 exports.default = new DBCommunicator();
 // EXAMPLE USAGES:
 /* Select Data from a Table
