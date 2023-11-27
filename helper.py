@@ -27,6 +27,7 @@ class CLI_CMD_WRAPPER:
         except Exception as e:
             return False, e
 
+
 class MODULE_SCORE:
     def __init__(self, ndjson_str: str):
         self.ndjson_str = ndjson_str
