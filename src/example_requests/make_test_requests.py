@@ -16,10 +16,12 @@ url = 'http://ec2-3-147-58-235.us-east-2.compute.amazonaws.com/'
 get_url = 'http://ec2-3-147-58-235.us-east-2.compute.amazonaws.com/api/package/1'
 post_url = 'http://ec2-3-147-58-235.us-east-2.compute.amazonaws.com/api/package'
 post_local = 'http://localhost:3000/package'
+get_local = 'http://localhost:3000/package/1'
 headers = {'Content-Type': 'application/json'}
 # Perform the POST request
-response = requests.post(post_local, headers=headers, data=json.dumps(data))
+#response = requests.post(post_local, headers=headers, data=json.dumps(data))
 #response = requests.get(get_url, headers=headers)
+response = requests.get(get_local, headers=headers)
 # Print the JSON response and response code
 print("Response Code:", response.status_code)
 if response.status_code == 201 or response.status_code == 200:

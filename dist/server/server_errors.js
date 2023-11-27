@@ -1,4 +1,19 @@
 "use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AggregateError = exports.Server_Error = void 0;
 /*
@@ -12,7 +27,7 @@ exports.AggregateError = exports.Server_Error = void 0;
  * 500: Internal Server Error, ex database error
  * 501: Not Implemented, ie API endpoint not implemented
  */
-const DEFAULT_SERVER_ERRORS = {
+var DEFAULT_SERVER_ERRORS = {
     400: "Bad Request",
     401: "Unauthorized",
     404: "Not Found",
@@ -22,22 +37,29 @@ const DEFAULT_SERVER_ERRORS = {
     500: "Internal Server Error",
     501: "Not Implemented"
 };
-class Server_Error extends Error {
-    constructor(num, str) {
-        let message = str != null ? str :
+var Server_Error = /** @class */ (function (_super) {
+    __extends(Server_Error, _super);
+    function Server_Error(num, str) {
+        var _this = this;
+        var message = str != null ? str :
             num in DEFAULT_SERVER_ERRORS ? DEFAULT_SERVER_ERRORS[num] :
                 "Unknown Server Error or Default Error not Found";
-        super(message);
-        this.name = num.toString();
-        this.num = num;
+        _this = _super.call(this, message) || this;
+        _this.name = num.toString();
+        _this.num = num;
+        return _this;
     }
-}
+    return Server_Error;
+}(Error));
 exports.Server_Error = Server_Error;
-class AggregateError extends Error {
-    constructor(errors) {
-        super('Multiple errors occurred');
-        this.name = 'AggregateError';
-        this.errors = errors;
+var AggregateError = /** @class */ (function (_super) {
+    __extends(AggregateError, _super);
+    function AggregateError(errors) {
+        var _this = _super.call(this, 'Multiple errors occurred') || this;
+        _this.name = 'AggregateError';
+        _this.errors = errors;
+        return _this;
     }
-}
+    return AggregateError;
+}(Error));
 exports.AggregateError = AggregateError;
