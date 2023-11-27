@@ -11,7 +11,7 @@ DESTINATION_FOLDER="~/project-code"
 # Copy the entire GitHub repository code from S3 to the local folder
 #aws s3 sync s3://$S3_BUCKET/$S3_FOLDER $DESTINATION_FOLDER
 
-cd home/ubuntu/apps/ece461_phase2
+cd /home/ubuntu/apps/ece461_phase2
 
 npm install
 npm run build
