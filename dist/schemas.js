@@ -10,4 +10,4 @@ var Actions;
     Actions["UPDATE"] = "UPDATE";
     Actions["DOWNLOAD"] = "DOWNLOAD";
     Actions["RATE"] = "RATE";
-})(Actions || (exports.Actions = Actions = {}));
+})(Actions = exports.Actions || (exports.Actions = {}));

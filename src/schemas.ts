@@ -1,6 +1,6 @@
 // for consistency: 
-// import * as Schemas from './schemas';
-
+// import * as Schemas from '../src/schemas';
+// import Evaluate = Schemas.Evaluate; // if you need to use the type guards
 
 // from inherited code
 export interface CLIOutput {
@@ -25,6 +25,9 @@ export type PackageName = string;
 
 // Unique identifier for a package.
 export type PackageID = string;
+
+// Version of a package.
+export type PackageVersion = string;
 
 // Package content as a binary zip
 export type PackageContent = string;
@@ -113,4 +116,103 @@ export interface PackageHistoryEntry {
 export interface PackageQuery {
     Version: SemverRange;
     Name: PackageName;
+}
+
+// Evaluation of the various schemas
+// Type Guards
+export namespace Evaluate {
+    // ENUMS
+    export function isAction(obj: any): obj is Actions {
+        return obj && typeof obj === 'string' &&
+               (obj === Actions.CREATE || 
+                obj === Actions.UPDATE || 
+                obj === Actions.DOWNLOAD || 
+                obj === Actions.RATE);
+    }
+
+    // TYPES
+    export function isPackageName(obj: any): obj is PackageName {
+        return obj && typeof obj === 'string' && obj !== '*';
+    }
+
+    export function isPackageID(obj: any): obj is PackageID {
+        return obj && typeof obj === 'string';
+    }
+
+    export function isPackageVersion(obj: any): obj is PackageVersion {
+        return obj && typeof obj === 'string';
+    }
+
+    // TODO - how to check if binary zip?
+    export function isPackageContent(obj: any): obj is PackageContent {
+        return obj && typeof obj === 'string';
+    }
+
+    // TODO - what urls are valid?
+    export function isPackageURL(obj: any): obj is PackageURL {
+        return obj && typeof obj === 'string';
+    }
+
+    // TODO - how to check if JS program?
+    export function isPackageJSProgram(obj: any): obj is PackageJSProgram {
+        return obj && typeof obj === 'string';
+    }
+    
+    export function isSemverRange(obj: any): obj is SemverRange {
+        return obj && typeof obj === 'string';
+    }
+
+    export function isPackageRegEx(obj: any): obj is PackageRegEx {
+        return obj && typeof obj === 'string';
+    }
+
+    // INTERFACES
+    export function isPackageMetadata(obj: any): obj is PackageMetadata {
+        return obj && isPackageName(obj.Name) && (isPackageID(obj.ID) || obj.ID === null) && isPackageVersion(obj.Version);
+    }
+
+    export function isPackageData(obj: any): obj is PackageData { // technically a union type not an interface
+        return obj && (isPackageContent(obj) || isPackageURL(obj) || isPackageJSProgram(obj));
+    }
+
+    export function isPackage(obj: any): obj is Package{
+        return obj && isPackageData(obj.data) && isPackageMetadata(obj.metadata);
+    }
+
+    export function isUser(obj: any): obj is User {
+        return obj && obj.name && typeof obj.name === 'string' && typeof obj.isAdmin === 'boolean';
+    }
+    
+    export function isUserAuthetificationInfo(obj: any): obj is UserAuthenticationInfo {
+        return obj && obj.password && typeof obj.password === 'string';
+    }
+    
+    export function isPackageRating(obj: any): obj is PackageRating {
+        return (
+            obj &&
+            typeof obj.BusFactor === 'number' && obj.BusFactor >= 0 && obj.BusFactor <= 1 &&
+            typeof obj.Correctness === 'number' && obj.Correctness >= 0 && obj.Correctness <= 1 &&
+            typeof obj.RampUp === 'number' && obj.RampUp >= 0 && obj.RampUp <= 1 &&
+            typeof obj.ResponsiveMaintainer === 'number' && obj.ResponsiveMaintainer >= 0 && obj.ResponsiveMaintainer <= 1 &&
+            typeof obj.LicenseScore === 'number' && obj.LicenseScore >= 0 && obj.LicenseScore <= 1 &&
+            typeof obj.GoodPinningPractice === 'number' && obj.GoodPinningPractice >= 0 && obj.GoodPinningPractice <= 1 &&
+            typeof obj.PullRequest === 'number' && obj.PullRequest >= 0 && obj.PullRequest <= 1 &&
+            typeof obj.NetScore === 'number' && obj.NetScore >= 0 && obj.NetScore <= 1
+        );
+    }
+    
+    export function isPackageHistoryEntry(obj: any): obj is PackageHistoryEntry {
+        return (
+            obj &&
+            typeof obj.Date === 'string' &&
+            isAction(obj.Action) &&
+            isUser(obj.User) &&
+            isPackageMetadata(obj.PackageMetadata)
+        );
+    }
+
+    export function isPackageQuery(obj: any): obj is PackageQuery {
+        return obj && isSemverRange(obj.Version) && isPackageName(obj.Name);
+    }
+    
 }

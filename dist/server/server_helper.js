@@ -1,11 +1,7 @@
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -36,22 +32,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.queryForPackage = exports.getUserAPIKey = exports.APIHelpPackageURL = exports.APIHelpPackageContent = void 0;
-/*************************************************
- *
- * Ideas:
- * 1. DataBase Communicator Object?
- * 2. Handle all API Computations. API should only handle responses nothing else.
- * 3.
- *
- * ************************************************** */
-const fs = __importStar(require("fs"));
-// import DBCommunicator from '../dbCommunicator';
-const adjusted_main_1 = require("../adjusted_main");
-const SE = __importStar(require("./server_errors"));
-const logger_1 = __importDefault(require("../logger"));
-const console_1 = require("console");
 const { Buffer } = require('buffer');
 const AdmZip = require('adm-zip');
+const fs = __importStar(require("fs"));
+const console_1 = require("console");
+const adjusted_main_1 = require("../adjusted_main");
+const server_errors_1 = require("./server_errors");
+const dbCommunicator_1 = __importDefault(require("../dbCommunicator"));
+const logger_1 = __importDefault(require("../logger"));
 function APIHelpPackageContent(base64, JsProgram) {
     const zipBuffer = Buffer.from(base64, 'base64');
     const unzipDir = './src/cloned_repositories';
@@ -101,7 +89,6 @@ function APIHelpPackageContent(base64, JsProgram) {
 exports.APIHelpPackageContent = APIHelpPackageContent;
 function APIHelpPackageURL(url, JsProgram) {
     return __awaiter(this, void 0, void 0, function* () {
-        const error_response = { error: 'Package is not uploaded due to the disqualified rating.' };
         try {
             const result = yield (0, adjusted_main_1.fetchDataAndCalculateScore)(url);
             //Check to see if Scores Fulfill the threshold if not return a different return code
@@ -111,12 +98,12 @@ function APIHelpPackageURL(url, JsProgram) {
                 const value = result[key];
                 if (typeof value === 'number' && value < 0) {
                     //logger.info(value)
-                    return error_response;
+                    throw new server_errors_1.Server_Error(424, "Package is not uploaded due to the disqualified rating.");
                 }
             }
             const package_exists = false; //DataBase.ScanForPacakge(url)
             if (package_exists) {
-                return { error: 'package already exists' };
+                throw new server_errors_1.Server_Error(409, "Package already exists");
             }
             else {
                 //DataBase.AddPackage(url, metrics, ...)
@@ -137,23 +124,20 @@ function APIHelpPackageURL(url, JsProgram) {
             return success_response;
             //res.status(201).json(newPackage);
         }
-        catch (error_out) {
-            console.error('Error in fetchDataAndCalculateScore:', error_out);
-            const error_response = {
-                error: "Invalid package format. Please ensure the package meets the required format."
-            };
-            return error_response;
+        catch (error) {
+            // propogate error
+            throw new server_errors_1.Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
         }
     });
 }
 exports.APIHelpPackageURL = APIHelpPackageURL;
 function getUserAPIKey(username, password) {
     return __awaiter(this, void 0, void 0, function* () {
-        // const admin = username === "ece30861defaultadminuser" && password === "correcthorsebatterystaple123(!__+@**(A'\"`;DROP TABLE packages;";
-        // if(admin){
-        //     return true
-        // }
-        let authenication = 'abc123'; //await DBCommunicator.authenticateUser(username, password);
+        const admin = username === "ece30861defaultadminuser" && password === "correcthorsebatterystaple123(!__+@**(A'\"`;DROP TABLE packages;";
+        if (admin) {
+            return true;
+        }
+        let authenication = yield dbCommunicator_1.default.authenticateUser(username, password);
         if (!authenication) {
             return false;
         }
@@ -161,7 +145,7 @@ function getUserAPIKey(username, password) {
     });
 }
 exports.getUserAPIKey = getUserAPIKey;
-// TODO explicitly define the typings and set return once DBCommunicator is implemented for package search
+// TODO explicitly define the typings and set return once dbCommunicator is implemented for package search
 /*
     example input
     {
@@ -183,18 +167,13 @@ function queryForPackage(Input) {
                 return match[1];
             }
             catch (error) {
-                throw new SE.Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
+                throw new server_errors_1.Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
             }
         });
         // query DB for package based on name and each requested version
         let foundPackages = [];
         for (const version of versions) {
-            // const packageData = await DBCommunicator.getPackage(Input.Name, version); 
-            const packageData = {
-                Name: Input.Name,
-                Version: version,
-                ID: 'id'
-            };
+            const packageData = yield dbCommunicator_1.default.getPackage(Input.Name, version);
             if (packageData) {
                 foundPackages.push(packageData);
             }

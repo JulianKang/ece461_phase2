@@ -1,4 +1,23 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -12,17 +31,30 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const jwt = require('jsonwebtoken');
 const express_1 = __importDefault(require("express"));
 const body_parser_1 = __importDefault(require("body-parser"));
-const server_errors_1 = require("./server_errors");
+const helper = __importStar(require("./server_helper"));
 const dbCommunicator_1 = __importDefault(require("../dbCommunicator"));
+const server_errors_1 = require("./server_errors");
 const logger_1 = __importDefault(require("../logger"));
+const jwt = require('jsonwebtoken');
 // Example Request: curl -X POST -H "Content-Type: application/json" -d 
 //'{"name": "Sample Package", "version": "1.0.0", "data": {"URL": "https://example.com/package.zip"}}' http://localhost:3000/packages
 /**
 * PackageManagementAPI
 *
+* Functions:
+*  this.app.post('/packages', this.handleSearchPackages.bind(this));
+this.app.delete('/reset', this.handleReset.bind(this));
+this.app.get('/package/:id', this.handleGetPackageById.bind(this));
+this.app.put('/package/:id', this.handleUpdatePackageById.bind(this));
+this.app.delete('/package/:id', this.handleDeletePackageById.bind(this));
+this.app.post('/package', this.handleCreatePackage.bind(this));
+this.app.get('/package/:id/rate', this.handleRatePackage.bind(this));
+this.app.put('/authenticate', this.handleAuthenticateUser.bind(this));
+this.app.get('/package/byName/:name', this.handleGetPackageByName.bind(this));
+this.app.delete('/package/byName/:name', this.handleDeletePackageByName.bind(this));
+this.app.post('/package/byRegEx', this.handleSearchPackagesByRegex.bind(this));
 *
 * Current Progress:
 * 1. Most of Package Ingestion is Complete (handleCreatePackage), URL and zip content can
@@ -52,6 +84,8 @@ class PackageManagementAPI {
         this.database = dbCommunicator_1.default;
         this.app = (0, express_1.default)();
         this.app.use(body_parser_1.default.json());
+        this.packages = [];
+        this.nextPackageId = 1;
         // Middleware
         // this.app.use(this.authenticate);
         this.app.use(this.ErrorHandler);
@@ -91,7 +125,6 @@ class PackageManagementAPI {
         res.status(statusCode).json({ error: errorMessage });
     }
     // Middleware for authentication (placeholder)
-    // curently not working???? idk y
     authenticate(req, res, next) {
         // Check the request path to skip authentication for specific routes
         if (req.path === '/authenticate') {
@@ -117,132 +150,149 @@ class PackageManagementAPI {
     // TODO test
     handleSearchPackages(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
+            // Skeleton package creation logic (replace with actual logic)
+            // You can access request data using req.body
+            const data = req.body;
+            let dbResp = [];
             /**
-              * 200
-              List of packages
-              
-              * 400
-              There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.
-              
-              * 413
-              Too many packages returned.
-              */
-            try {
-                const data = req.body;
-                let dbResp = [];
-                if (!Array.isArray(data)) {
-                    throw new server_errors_1.Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
-                }
-                if (data.length > 100) {
-                    throw new server_errors_1.Server_Error(413, "Too many packages returned."); // don't actually know what to do for this error
-                }
-                // ask database and process
-                data.forEach((query) => __awaiter(this, void 0, void 0, function* () {
-                    // Query the database for the requested packages
-                    const result = yield helper.queryForPackage(query);
-                    dbResp.push(result);
-                }));
-                res.status(200).json(dbResp);
+            * 200
+            List of packages
+            
+            400
+            There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.
+            
+            413
+            Too many packages returned.
+            */
+            if (!Array.isArray(data)) {
+                throw new server_errors_1.Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
             }
-            catch (e) {
-                if (e instanceof server_errors_1.Server_Error) {
-                    throw e;
-                }
-                else { // req.body does not conform to Schemas.PackageQuery
-                    throw new server_errors_1.Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
-                }
+            if (data.length > 100) {
+                throw new server_errors_1.Server_Error(413, "Too many packages returned."); // don't actually know what to do for this error
             }
+            // ask database and process
+            data.forEach((query) => __awaiter(this, void 0, void 0, function* () {
+                // Query the database for the requested packages
+                const result = yield helper.queryForPackage(query);
+                dbResp.push(result);
+            }));
+            res.status(200).json(dbResp);
         });
     }
     // zendpoint: '/package' POST
-    // TODO validate helpers and test
+    // TODO validate and test
     handleCreatePackage(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
+            // Skeleton package creation logic (replace with actual logic)
+            // You can access request data using req.body
+            //Check for improper stuff 400 code
             /**
-              * 201
-              Success. Check the ID in the returned metadata for the official ID
-              
-              * 400
-              There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid.
-              
-              * 409
-              Package exists already.
-              
-              * 424
-              Package is not uploaded due to the disqualified rating.
-              */
+             * 201
+             Success. Check the ID in the returned metadata for the official ID
+             *
+             * 400
+             There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid.
+             
+             
+             409
+             Package exists already.
+             
+             
+             424
+             Package is not uploaded due to the disqualified rating.
+             */
             try {
-                const newPackage = req.body; // url or base64
-                let result;
-                if (!newPackage) {
-                    throw new server_errors_1.Server_Error(400, 'There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid.');
+                if ("URL" in req.body && "Content" in req.body || !("JSProgram" in req.body)) {
+                    throw new server_errors_1.Server_Error(400, 'There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set)');
                 }
-                else if ( /* is a url, TODO insert logic to check */true) {
-                    result = yield helper.APIHelpPackageURL(newPackage, 'no js program?');
+                if ("URL" in req.body) {
+                    const newPackage = req.body;
+                    const url = newPackage.URL;
+                    const JsProgram = newPackage.JsProgram;
+                    const result = yield helper.APIHelpPackageURL(url, JsProgram);
+                    if ('metadata' in result) {
+                        res.status(201).json(result);
+                    }
+                    else if ('package already exists' in result) {
+                        throw new server_errors_1.Server_Error(409, "Package exists already");
+                    }
+                    else {
+                        throw new server_errors_1.Server_Error(424, "Package Disqualified Rating");
+                    }
                 }
-                else { // how to handle base64????
-                    result = /* await  */ helper.APIHelpPackageContent(newPackage, 'no js program');
+                // Content needs progress. Can currently Unzip but don't know how to analyze the metric scores.
+                else if ("Content" in req.body) {
+                    const base64 = req.body.Content;
+                    const JSprogram = req.body.JsProgram;
+                    const URL = helper.APIHelpPackageContent(base64, JSprogram);
+                    let result = { error: "Package Disqualified Rating" };
+                    if (URL) {
+                        result = yield helper.APIHelpPackageURL(URL, JSprogram);
+                        logger_1.default.info(`${result}`);
+                    }
+                    if ('metadata' in result) {
+                        res.status(201).json(result);
+                    }
+                    else if ('package exists' in result) {
+                        throw new server_errors_1.Server_Error(409, "Package exists already");
+                    }
+                    else {
+                        throw new server_errors_1.Server_Error(424, "Package Disqualified Rating");
+                    }
+                }
+                else {
+                    throw new server_errors_1.Server_Error(400, 'There is missing field(s)');
                 }
             }
-            catch (e) {
-                if (e instanceof server_errors_1.Server_Error) {
-                    throw e;
-                }
-                else { // might never reach this branch, is likely caught in helper functions, but just in case
-                    throw new server_errors_1.Server_Error(400, 'There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid.');
-                }
+            catch (error) {
+                throw new server_errors_1.Server_Error(400, 'There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set)');
             }
-            res.status(201).json(result);
         });
     }
     // endpoint: '/reset' DELETE
     // TODO test
     handleReset(req, res) {
+        // Skeleton system reset logic (replace with actual logic)
+        // For example, you can clear data or perform other reset actions
+        // Respond with a success message
         /**
-          * 200
-          Registry is reset.
-          
-          * 400
-          There is missing field(s) in the AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.
-          
-          * 401
-          You do not have permission to reset the registry.
-          */
+        * 200
+        Registry is reset.
+        
+        400
+        There is missing field(s) in the AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.
+        
+        401
+        You do not have permission to reset the registry.
+        */
         // Check if the user is an admin
-        try {
-            const data = req.body.User;
-            if (!data.isAdmin) {
-                throw new server_errors_1.Server_Error(401, 'You do not have permission to reset the registry.');
-            }
-            // Pass user to Database to authenticate token and reset if valid
-            const result = this.database.resetRegistry(data);
-            if (!result) {
-                throw new server_errors_1.Server_Error(400, 'There is missing field(s) in the AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
-            }
+        const data = req.body.User;
+        if (!data.isAdmin) {
+            throw new server_errors_1.Server_Error(401, 'You do not have permission to reset the registry.');
         }
-        catch (e) {
-            if (e instanceof server_errors_1.Server_Error) {
-                throw e;
-            }
-            else { // req.body does not conform to Schemas.User
-                throw new server_errors_1.Server_Error(400, 'There is missing field(s) in the AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
-            }
+        // Pass user to Database to authenticate token and reset if valid
+        const result = this.database.resetRegistry(data);
+        if (!result) {
+            throw new server_errors_1.Server_Error(400, 'There is missing field(s) in the AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
         }
         res.json({ message: 'System reset successfully' });
     }
     // endpoint: '/package/:id' GET
-    // TODO test
+    // TODO validate and test
     handleGetPackageById(req, res) {
+        // Skeleton logic to retrieve a package by ID (replace with actual logic)
+        // You can access the ID using req.params.id
         /**
-          * 200
-          Return the package. Content is required.
-          
-          * 400
-          There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.
-          
-          * 404
-          Package does not exist.
-          */
+        *
+        * 200
+        Return the package. Content is required.
+        
+        * 400
+        There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.
+        
+        404
+        Package does not exist.
+        */
         const packageId = req.params.id;
         // Check if packageId is provided and is not empty
         if (!packageId) {
@@ -259,53 +309,71 @@ class PackageManagementAPI {
         return res.status(200).json(package_result);
     }
     // endpoint: '/package/:id' PUT
-    // TODO test
+    // TODO update to utilize schemas, will be more simple
     handleUpdatePackageById(req, res) {
+        // Skeleton logic to update a package by ID (replace with actual logic)
+        // You can access the ID using req.params.id and data using req.body
         /**
-          * 200
-          Version is updated.
-          
-          * 400
-          There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.
-          
-          * 404
-          Package does not exist.
-          */
-        try {
-            const packageId = req.params.id;
-            const updatedPackageData = req.body;
-            // Update the package (replace this with your actual update logic)
-            // For demonstration purposes, let's assume you have a packages database and a function updatePackageById
-            const updatedPackage = this.database.updatePackageById(packageId, updatedPackageData);
-            if (!updatedPackage) {
-                // Package does not exist
-                throw new server_errors_1.Server_Error(404, 'Package not found.');
+        * 200
+        Version is updated.
+        
+        400
+        There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.
+        
+        404
+        Package does not exist.
+        */
+        const packageId = req.params.id;
+        const updatedPackageData = req.body;
+        // Check for top-level required fields in the request body
+        const requiredTopLevelFields = ["metadata", "data"];
+        const missingTopLevelFields = requiredTopLevelFields.filter(field => !updatedPackageData[field]);
+        if (missingTopLevelFields.length > 0) {
+            throw new server_errors_1.Server_Error(400, `Missing required top-level fields: ${missingTopLevelFields.join(', ')}`);
+        }
+        // Check for required subfields within 'metadata' and 'data'
+        if (updatedPackageData.metadata) {
+            const requiredMetadataFields = ["Name", "Version", "ID"];
+            const missingMetadataFields = requiredMetadataFields.filter(field => !updatedPackageData.metadata[field]);
+            if (missingMetadataFields.length > 0) {
+                throw new server_errors_1.Server_Error(400, `Missing required 'metadata' subfields: ${missingMetadataFields.join(', ')}`);
             }
         }
-        catch (e) {
-            if (e instanceof server_errors_1.Server_Error) {
-                throw e;
+        if (updatedPackageData.data) {
+            const requiredDataFields = ["Content", "URL", "JSProgram"];
+            const missingDataFields = requiredDataFields.filter(field => !updatedPackageData.data[field]);
+            if (missingDataFields.length > 0) {
+                throw new server_errors_1.Server_Error(400, `Missing required 'data' subfields: ${missingDataFields.join(', ')}`);
             }
-            else { // req.body does not conform to Schemas.Package
-                throw new server_errors_1.Server_Error(400, 'There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
-            }
+        }
+        // Update the package (replace this with your actual update logic)
+        // For demonstration purposes, let's assume you have a packages database and a function updatePackageById
+        const updatedPackage = this.database.updatePackageById(packageId, updatedPackageData);
+        if (!updatedPackage) {
+            // Package does not exist
+            throw new server_errors_1.Server_Error(404, 'Package not found.');
         }
         // Successfully updated package
-        return res.status(200).json('Version is updated.');
+        return res.status(200).json({
+            message: 'Version is updated.',
+            updatedPackage
+        });
     }
     // endpoint: '/package/:id' DELETE
-    // TODO test
+    // TODO validate and test
     handleDeletePackageById(req, res) {
+        // Skeleton logic to delete a package by ID (replace with actual logic)
+        // You can access the ID using req.params.id
         /**
-          * 200
-          Version is deleted.
-          
-          * 400
-          There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.
-          
-          * 404
-          Package does not exist.
-          */
+        * 200
+        Version is deleted.
+        
+        400
+        There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.
+        
+        404
+        Package does not exist.
+        */
         const packageId = req.params.id;
         // Check if the package ID is provided
         if (!packageId) {
@@ -324,29 +392,46 @@ class PackageManagementAPI {
         });
     }
     // endpoint: '/package/:id/rate' GET
-    // TODO test
+    // TODO validate and test
     handleRatePackage(req, res) {
+        // Skeleton logic to rate a package by ID (replace with actual logic)
+        // You can access the ID using req.params.id
         /**
-          * 200
-          Return the rating. Only use this if each metric was computed successfully.
-
-          * 400
-          There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.
-          
-          * 404
-          Package does not exist.
-          
-          * 500
-          The package rating system choked on at least one of the metrics.
-          */
+        * 200
+        Return the rating. Only use this if each metric was computed successfully.
+        * 400
+        There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.
+        
+        404
+        Package does not exist.
+        
+        500
+        The package rating system choked on at least one of the metrics.
+        */
         const packageId = req.params.id;
+        const ratingData = req.body;
         // Check if the package ID is provided
         if (!packageId) {
             throw new server_errors_1.Server_Error(400, 'Package ID is missing or invalid.');
         }
+        // Check for required fields in the rating data
+        const requiredFields = [
+            "BusFactor",
+            "Correctness",
+            "RampUp",
+            "ResponsiveMaintainer",
+            "LicenseScore",
+            "GoodPinningPractice",
+            "PullRequest",
+            "NetScore"
+        ];
+        const missingFields = requiredFields.filter(field => typeof ratingData[field] !== 'number');
+        if (missingFields.length > 0) {
+            throw new server_errors_1.Server_Error(400, `Missing or invalid rating fields: ${missingFields.join(', ')}`);
+        }
         // Perform rating logic or database updates here
         // For demonstration purposes, let's assume you have a package ratings database and a function ratePackage
-        const ratedPackage = this.database.getPackageRatings(packageId);
+        const ratedPackage = {}; //ratePackage(packageId, ratingData);
         if (!ratedPackage) {
             // Package does not exist
             throw new server_errors_1.Server_Error(404, 'Package not found.');
@@ -355,7 +440,7 @@ class PackageManagementAPI {
         return res.status(200).json(ratedPackage);
     }
     // endpoint: '/authenticate' PUT
-    // TODO currently out of scope, will implement if we have time
+    // currently out of scope, will implement if we have time
     handleAuthenticateUser(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             throw new server_errors_1.Server_Error(501, 'This system does not support authentication.');
@@ -407,9 +492,10 @@ class PackageManagementAPI {
         });
     }
     // endpoint: '/package/byName/:name' GET
-    // TODO currently out of scope, will implement if we have time
+    // TODO validate and test
     handleGetPackageByName(req, res) {
-        throw new server_errors_1.Server_Error(501, 'This system does not support package history.');
+        // Skeleton logic to retrieve a package by name (replace with actual logic)
+        // You can access the name using req.params.name
         /**
         *
         * 200
@@ -437,16 +523,19 @@ class PackageManagementAPI {
         return res.status(200).json(packageHistory);
     }
     // endpoint: '/package/byName/:name' DELETE
-    // TODO test
+    // TODO validate and test
     handleDeletePackageByName(req, res) {
+        // Skeleton logic to delete a package by name (replace with actual logic)
+        // You can access the name using req.params.name
         /**
-         * 200
-         Package is deleted.
+        *
+        * 200
+        Package is deleted.
         
         * 400
         There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.
         
-        * 404
+        404
         Package does not exist.
         */
         const packageName = req.params.name;
@@ -456,25 +545,30 @@ class PackageManagementAPI {
         }
         // Perform database delete or other actions to delete the package by name
         // For demonstration purposes, let's assume you have a packages database and a function deletePackageByName
-        const deletedPackage = this.database.deletePackageByName(packageName);
+        const deletedPackage = false; //deletePackageByName(packageName);
         if (!deletedPackage) {
             // Package does not exist
             throw new server_errors_1.Server_Error(404, 'Package not found.');
         }
         // Successfully deleted package
-        return res.status(200).json('Package is deleted successfully.');
+        return res.status(200).json({
+            message: 'Package is deleted successfully.'
+        });
     }
     // endpoint: '/package/byRegEx' POST
-    // TODO test
+    // TODO validate and test
     handleSearchPackagesByRegex(req, res) {
+        // Skeleton logic to search packages by regex (replace with actual logic)
+        // You can access the search parameters using req.body
         /**
-         * 200
-         Return a list of packages.
+        *
+        * 200
+        Return a list of packages.
         
         * 400
         There is missing field(s) in the PackageRegEx/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.
         
-        * 404
+        404
         No package found under this regex.
         */
         const regexPattern = req.body.RegEx; // The property should match the name in the request body
@@ -484,7 +578,7 @@ class PackageManagementAPI {
         }
         // Perform a search using the regex pattern
         // For demonstration purposes, let's assume you have a packages database and a function searchPackagesByRegex
-        const searchResults = this.database.searchPackagesByRegex(regexPattern);
+        const searchResults = []; //searchPackagesByRegex(regexPattern);
         if (searchResults.length === 0) {
             // No packages found matching the regex
             throw new server_errors_1.Server_Error(404, 'No package found under this regex.');
@@ -499,7 +593,6 @@ class PackageManagementAPI {
         });
     }
 }
-const port = 3000;
 const apiServer = new PackageManagementAPI();
-logger_1.default.info(`Starting server on port ${port}`);
-apiServer.start(port);
+logger_1.default.info(`Starting server on port 3000`);
+apiServer.start(3000); // alternative port for http - https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers
