@@ -6,6 +6,8 @@ import e from 'express';
 // import dbCommunicator from '../dbCommunicator';
 import { Server_Error, AggregateError } from './server_errors'
 import { stat } from 'fs';
+import * as fs from 'fs-extra';
+import * as path from 'path';
 import logger from '../logger'
 import * as Schemas from '../schemas';
 // const jwt = require('jsonwebtoken');
@@ -215,7 +217,7 @@ class PackageManagementAPI {
 					throw new Server_Error(424, "Package Disqualified Rating");
 				}
 			}
-			// Content needs progress. Can currently Unzip but don't know how to analyze the metric scores.
+			
 			else if ("Content" in req.body) {
 				const base64: Schemas.PackageContent = req.body.Content
 				const JSprogram: string = req.body.JsProgram
@@ -225,6 +227,7 @@ class PackageManagementAPI {
 					result = await helper.APIHelpPackageURL(URL, JSprogram)
 					logger.info(`${result}`)
 				}
+
 				if ('metadata' in result) {
 					res.status(201).json(result);
 				}

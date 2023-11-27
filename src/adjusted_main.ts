@@ -8,8 +8,8 @@ ECE461Project is distributed in the hope that it will be useful, but WITHOUT ANY
 You should have received a copy of the GNU General Public License along with Foobar. If not, see https://www.gnu.org/licenses/. 
 */
 
-import * as fs from 'fs';
 import * as path from 'path';
+import * as fs from 'fs-extra';
 import axios from 'axios';
 import { calculateBusFactor, netScore, responsiveMaintainer, licenseCheck, calculateCorrectnessScore, RampUp } from './algo';
 import { getInfo, processUrls } from './parser';
@@ -236,8 +236,32 @@ export async function fetchDataAndCalculateScore(inputUrl: string) {
     
     // Log the JSON output
     console.log(jsonOutput);
+    const currentDirectory = __dirname;
+    const directoryPath = path.join(currentDirectory, 'cloned_repositories');
+    console.log(fs.existsSync(directoryPath))
+    if (fs.existsSync(directoryPath)) {
+        try {
+          // Remove the directory
+          fs.removeSync(directoryPath);
+          console.log(`Directory ${directoryPath} removed successfully.`);
+        } catch (err) {
+          console.log(`Error removing directory ${directoryPath}: ${err}`);
+        }
+    }
     return output
   } catch (error) {
+    const currentDirectory = __dirname;
+    const directoryPath = path.join(currentDirectory, 'cloned_repositories');
+    console.log(fs.existsSync(directoryPath))
+    if (fs.existsSync(directoryPath)) {
+        try {
+          // Remove the directory
+          fs.removeSync(directoryPath);
+          console.log(`Directory ${directoryPath} removed successfully.`);
+        } catch (err) {
+          console.log(`Error removing directory ${directoryPath}: ${err}`);
+        }
+      }
     winston.error(`Error processing URL ${repoUrl}: ${error}`);
     //process.exit(1); // Exit with a failure status code (1) on error
     throw new Error(`Error processing URL ${repoUrl}: ${error}`);

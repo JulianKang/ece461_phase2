@@ -10,7 +10,11 @@ You should have received a copy of the GNU General Public License along with Foo
 */
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -29,15 +33,15 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.processUrls = exports.getInfo = void 0;
-const fs = __importStar(require("fs"));
-const getInfo = (url) => {
+var fs = __importStar(require("fs"));
+var getInfo = function (url) {
     // Your logic to handle and process the URL goes here
 };
 exports.getInfo = getInfo;
-const processUrls = (filePath) => {
-    return new Promise((resolve, reject) => {
+var processUrls = function (filePath) {
+    return new Promise(function (resolve, reject) {
         // Read the file content
-        fs.readFile(filePath, 'utf8', (err, data) => {
+        fs.readFile(filePath, 'utf8', function (err, data) {
             if (err) {
                 return;
             }
@@ -45,7 +49,7 @@ const processUrls = (filePath) => {
                 return;
             }
             // Split lines and process each URL
-            const urls = data.split('\n').filter(url => url.trim() !== ''); // this will filter out any empty lines
+            var urls = data.split('\n').filter(function (url) { return url.trim() !== ''; }); // this will filter out any empty lines
             if (urls.length === 0) {
                 return;
             }
@@ -56,7 +60,7 @@ const processUrls = (filePath) => {
 exports.processUrls = processUrls;
 // Check if this module is being run directly
 if (require.main === module) {
-    const filePath = process.argv[2];
+    var filePath = process.argv[2];
     if (!filePath) {
         process.exit(1);
     }
