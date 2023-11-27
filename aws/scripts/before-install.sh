@@ -2,13 +2,12 @@
 set -xe
 
 # Delete the old  directory as needed.
-if [ -d /usr/local/codedeployresources ]; then
-    rm -rf /usr/local/codedeployresources/
-fi
 
 if [ -d /usr/local/project-code ]; then
-    rm -rf /usr/local/project-code/
+    rm -rf /home/ubuntu/apps
 fi
-
-mkdir -vp /usr/local/codedeployresources
-mkdir -vp /usr/local/project-code
+if [ -d /usr/local/project-code ]; then
+    rm -rf /var/www/build
+fi
+mkdir -vp /var/www/build
+mkdir -vp /home/ubuntu/apps

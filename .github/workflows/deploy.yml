@@ -1,65 +1,63 @@
-name: Build and Deploy
-
+name: CI/CD Pipeline
 on:
-  #workflow_dispatch: {}
   push:
-    branches: [react_app_aws]
-  pull_request:
-    branches: [react_app_aws]
-
-env:
-  applicationfolder: ece461-project
-  AWS_REGION: us-east-2
-  S3BUCKET: ece461project-webappdeploymentbucket-2lx7q4y0g218
+    branches: [ none ]
 
 jobs:
-  build:
-    name: Build and Package
+  continuous-integration:
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
     steps:
+      # Step 1: Checkout the code
       - uses: actions/checkout@v2
-        name: Checkout Repository
 
-      - uses: aws-actions/configure-aws-credentials@v1
+      # Step 2: Set up Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
-          role-to-assume: ${{ secrets.IAMROLE_GITHUB }}
-          role-session-name: GitHub-Action-Role
-          aws-region: ${{ env.AWS_REGION }}
+          node-version: '16'
 
-      - name: Set up JDK 1.8
-        uses: actions/setup-java@v1
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: npm install
+
+      # Step 4: Configure AWS credentials
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
         with:
-          java-version: 1.8
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
 
-      - name: chmod
-        run: chmod -R +x ./.github
+      # Step 5: Build Application and Run unit Test
+      - name: Build Application and Run unit Test
+        run: |
+          # Your build commands go here
+          # For example, if you use npm scripts:
+          npm run build
 
-      - name: Build and Package Maven
-        id: package
-        working-directory: ${{ env.applicationfolder }}
-        run: $GITHUB_WORKSPACE/.github/scripts/build.sh
-
-      - name: Upload Entire Repository to S3
-        run: aws s3 sync . s3://${{ env.S3BUCKET }}/project-code/
-
-  deploy:
-    needs: build
+  continuous-deployment:
     runs-on: ubuntu-latest
-    environment: Dev
-    permissions:
-      id-token: write
-      contents: read
+    needs: [continuous-integration]
+    if: github.ref == 'refs/heads/simple_endpoints'
     steps:
+      # Step 0: Checkout the code
       - uses: actions/checkout@v2
-      - uses: aws-actions/configure-aws-credentials@v1
+  
+      # Step 1: Configure AWS credentials
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
         with:
-          role-to-assume: ${{ secrets.IAMROLE_GITHUB }}
-          role-session-name: GitHub-Action-Role
-          aws-region: ${{ env.AWS_REGION }}
-      - run: |
-          echo "Deploying branch ${{ env.GITHUB_REF }} to ${{ github.event.inputs.environment }}"
-          commit_hash=`git rev-parse HEAD`
-          aws deploy create-deployment --application-name CodeDeployAppNameWithASG --deployment-group-name CodeDeployGroupName --github-location repository=$GITHUB_REPOSITORY,commitId=$commit_hash --ignore-application-stop-failures
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+  
+      # Step 2: Create CodeDeploy Deployment
+      - name: Create CodeDeploy Deployment
+        id: deploy
+        run: |
+          aws deploy create-deployment \
+            --application-name your-actual-application-name \
+            --deployment-group-name your-actual-deployment-group-name \
+            --deployment-config-name CodeDeployDefault.OneAtATime \
+            --github-location repository=${{ github.repository }},commitId=${{ github.sha }}
+          

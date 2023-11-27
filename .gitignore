@@ -7,6 +7,7 @@ coverage/
 logs/
 __pycache__/
 .nyc_output/
+dist/
 
 # files
 package-lock.json
