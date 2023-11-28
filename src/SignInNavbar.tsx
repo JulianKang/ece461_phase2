@@ -11,7 +11,7 @@ function SignInNavbar() {
             <div className="links">
                 <a href="signIn">Sign In</a>
                 <span className="separator">|</span>
-                <a href="register">Register</a>
+                <a href="register">Register User</a>
             </div>
         </div>
     );
