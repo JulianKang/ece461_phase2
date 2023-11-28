@@ -12,7 +12,9 @@ DESTINATION_FOLDER="~/project-code"
 #aws s3 sync s3://$S3_BUCKET/$S3_FOLDER $DESTINATION_FOLDER
 
 cd /home/ubuntu/apps
-
+sudo apt-get clean
+sudo rm -rf src
+sudo npm cache clean --force
 npm install
 npm run build
 scp -r build/* /var/www/build
