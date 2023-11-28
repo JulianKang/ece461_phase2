@@ -6,6 +6,7 @@ log_file="/home/ubuntu/pm2.logs"
 # Log environment variables
 env >> "$log_file"
 
+
 # Navigate to the application directory
 cd /home/ubuntu/apps
 
