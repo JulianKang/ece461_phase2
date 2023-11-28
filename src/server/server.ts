@@ -309,10 +309,10 @@ class PackageManagementAPI {
 		const package_result: Schemas.Package = {
 			metadata: {
 				Name: "Sample Package",
-				Version: "1.0.0",
+				Version: "1.0.1",
 				ID: "smplpkg"
 			},
-			data: "print('Hello World')"
+			data: "print('Hello World!')"
 		}//getPackageById(packageId);
 		
 		if (!package_result) {
