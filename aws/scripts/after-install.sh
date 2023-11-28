@@ -18,6 +18,8 @@ npm install
 npm run build
 scp -r build/* /var/www/build
 scp /home/ubuntu/environment-files/.env ./
+sudo apt-get clean
+sudo npm cache clean --force
 sudo npm install -g pm2
 tsc
 echo "complete"
