@@ -20,6 +20,7 @@ scp -r build/* /var/www/build
 scp /home/ubuntu/environment-files/.env ./
 sudo apt-get clean
 sudo npm cache clean --force
+sudo rm -rf /usr/lib/node_modules/pm2
 sudo npm install -g pm2
 tsc
 echo "complete"
