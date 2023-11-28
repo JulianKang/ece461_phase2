@@ -1,8 +1,8 @@
 #!/bin/bash
 set -xe
 
-cd /home/ubuntu/apps/ece461_phase2
+cd /home/ubuntu/apps
 
 # Start serve with the obtained public IP and desired port
 pm2 start dist/server/server.js
-sudo service nginx restart
+service nginx restart
