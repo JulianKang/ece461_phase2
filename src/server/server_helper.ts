@@ -110,7 +110,7 @@ export async function APIHelpPackageURL(url: Schemas.PackageURL, JsProgram: Sche
         }
 
         return success_response
-        //res.status(201).json(newPackage);
+
     } catch (error_out) {
         console.error('Error in fetchDataAndCalculateScore:', error_out);
         const error_response = {
