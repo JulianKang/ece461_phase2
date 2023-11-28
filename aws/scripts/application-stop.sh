@@ -20,3 +20,4 @@ if [ "$online_processes" -gt 0 ]; then
 else
     echo "No online processes to stop and delete." >> "$log_file"
 fi
+echo "complete"

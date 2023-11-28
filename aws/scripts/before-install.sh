@@ -11,3 +11,4 @@ if [ -d /var/www/build ]; then
 fi
 mkdir -vp /var/www/build
 mkdir -vp /home/ubuntu/apps
+echo "complete"
