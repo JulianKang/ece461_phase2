@@ -28,6 +28,7 @@ export async function calculateBusFactor(repositoryUrl: string, localDirectory: 
   try {
     // Clone the Git repository
     const httpsRepositoryUrl = convertToHttpsUrl(repositoryUrl);
+    
     await git.clone(httpsRepositoryUrl, localDirectory);
     // Get the list of commit log lines
     const log: LogResult<DefaultLogFields> = await git.log();
@@ -119,12 +120,21 @@ export function calculateCorrectnessScore(issues: Issue[]): number {
 
 function convertToHttpsUrl(repositoryUrl: string): string {
   // Check if the repository URL starts with 'git@github.com:'
-  if (repositoryUrl.startsWith('git@github.com:')) {
+  if (repositoryUrl.startsWith('git@github.com')) {
     // Extract the owner and repo from the SSH URL
     const parts = repositoryUrl.split(':');
     const ownerAndRepo = parts[1].replace('.git', '');
     // Construct the HTTPS URL
+    //console.log('boom')
     return `https://github.com/${ownerAndRepo}`;
+  }
+  else if (repositoryUrl.includes('git@github.com')) {
+    // Extract the owner and repo from the SSH URL
+    const parts = repositoryUrl.split('git@github.com');
+    const ownerAndRepo = parts[1]//.replace('.git', '');
+    // Construct the HTTPS URL
+    //console.log('boom')
+    return `https://github.com${ownerAndRepo}`;
   }
   // If it's not an SSH URL, return the original URL
   return repositoryUrl;
