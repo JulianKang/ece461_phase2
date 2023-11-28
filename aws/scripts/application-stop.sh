@@ -7,7 +7,7 @@ log_file="/home/ubuntu/pm2.logs"
 env >> "$log_file"
 
 # Navigate to the application directory
-cd /home/ubuntu/apps/ece461_phase2
+cd /home/ubuntu/apps
 
 # Get the number of online processes without a newline
 online_processes=$(pm2 list | grep -c 'online')
