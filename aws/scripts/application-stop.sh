@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -xe
 # Log file path
 log_file="/home/ubuntu/pm2.logs"
 

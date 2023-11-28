@@ -16,6 +16,6 @@ cd /home/ubuntu/apps
 npm install
 npm run build
 scp -r build/* /var/www/build
-scp /home/ubuntu/environment_files/.env ./
+scp /home/ubuntu/environment-files/.env ./
 sudo npm install -g pm2
 echo "complete"
