@@ -28,7 +28,7 @@ const dbConfig = {
     database: process.env.DB_NAME,
 };
 if (!dbConfig.host || !dbConfig.user || !dbConfig.password || !dbConfig.database) {
-    console.error('Missing database configuration.'); // replace with logger when we gain access to it
+    console.error('Missing database configuration ENV variables.'); // replace with logger when we gain access to it
     process.exit(1);
 }
 type QueryResult = mysql.OkPacket | mysql.RowDataPacket[] | mysql.ResultSetHeader[] | mysql.RowDataPacket[][] | mysql.OkPacket[] | mysql.ProcedureCallPacket;
@@ -76,17 +76,18 @@ class DBCommunicator {
   private authorization : string | null = null;
 
   /**
-   * Constructor for DBCommunicator.
-   * It establishes a connection to the MySQL database.
+   * Empty Constructor for DBCommunicator.
    */
-  constructor() {
-    this.connect();
-  }
+  constructor() { }
 
   /**
    * Establishes a connection to the MySQL database.
+   * public to allow for mocking in tests
    */
-  private async connect() {
+  public async connect() {
+    if (this.connection) {
+      return;
+    }
     try {
       this.connection = await mysql.createConnection(dbConfig);
       console.log('Connected to MySQL database'); // replace with logger when we gain access to it
@@ -164,8 +165,8 @@ class DBCommunicator {
 
   // creating methods to for testing purposes to allow mocking, 
   // will be overwritten by actual implementations in the future
-  async getPackageMetadata(name: Schemas.PackageName, version: Schemas.PackageVersion): Promise<Schemas.PackageMetadata | null> {
-    return null;
+  async getPackageMetadata(name: Schemas.PackageName, version: Schemas.PackageVersion): Promise<Schemas.PackageMetadata[]> {
+    return [];
   }
   async resetRegistry(user: Schemas.User): Promise<boolean> {
     return false;

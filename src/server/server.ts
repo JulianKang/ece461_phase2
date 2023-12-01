@@ -1,5 +1,7 @@
-const jwt = require('jsonwebtoken');
+// const jwt = require('jsonwebtoken');
 import express, { Request, Response, NextFunction } from 'express';
+import "express-async-errors"; 
+import { Server } from "http";
 import bodyParser from 'body-parser';
 import { Server_Error, AggregateError } from './server_errors'
 import * as Schemas from '../schemas';
@@ -7,6 +9,7 @@ import * as helper from './server_helper';
 import dbCommunicator from '../dbCommunicator';
 import logger from '../logger';
 import Evaluate = Schemas.Evaluate;
+import { error } from 'console';
 // Example Request: curl -X POST -H "Content-Type: application/json" -d 
 //'{"name": "Sample Package", "version": "1.0.0", "data": {"URL": "https://example.com/package.zip"}}' http://localhost:3000/packages
 
@@ -41,12 +44,14 @@ import Evaluate = Schemas.Evaluate;
 
 export class PackageManagementAPI {
 	private app: express.Express;
+	private server: Server | null = null;
 	private database = dbCommunicator;
 	
 	constructor() {
 		this.app = express();
 		this.app.use(bodyParser.json());
-		
+		this.database.connect();
+
 		// Middleware
 		// this.app.use(this.authenticate);
 		this.app.use(this.ErrorHandler);
@@ -92,6 +97,7 @@ export class PackageManagementAPI {
 		// Log and send the error          
 		logger.error(`${err}`); // TODO replace with actual error logging logic
 		res.status(statusCode).json({ error: errorMessage });
+		next();
 	}
 	
 	
@@ -148,22 +154,24 @@ export class PackageManagementAPI {
 			}
 			
 			// ask database and process
-			data.forEach(async (query) => {
+			await Promise.all(data.map(async (query) => {
 				// check if query is valid format
-				if(!Evaluate.isPackageQuery(query)) {
-					throw new Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
+				if (!Evaluate.isPackageQuery(query)) {
+					throw error;
 				}
-
+			
 				// Query the database for the requested packages
 				const result = await helper.queryForPackage(query);
 				dbResp.push(result);
-			});
+			}));
 		
 			res.status(200).json(dbResp);
 		} catch(e) {
 			if (e instanceof Server_Error) {
+				console.log('1')
 				throw e;
 			} else { // req.body does not conform to Schemas.PackageQuery
+				console.log('2')
 				throw new Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
 			}
 		}
@@ -603,13 +611,31 @@ export class PackageManagementAPI {
 
 	// Start the server on the specified port
 	start(port: number) {
-		this.app.listen(port, () => {
+		this.server = this.app.listen(port, () => {
 			logger.info(`Server is running on port ${port}`);
 		});
 	}
+
+	async close() {
+		if (!this.server) {
+			return;
+		}
+		this.server.close(()=>{
+			logger.info(`Server is closed`)
+		});
+
+	}
 }
+
+// import request from 'supertest';
+
 
 const port = 3000
 const apiServer = new PackageManagementAPI();
 logger.info(`Starting server on port ${port}`);
 apiServer.start(port);
+
+// const response = request(apiServer.getApp()).post('/packages').send({ Name: "package1", Version: "(1.0.0)\n(1.1.0)\n(~1.0)\n(^1.0.0)\n(1.0.0-1.2.0)\n" },);
+
+
+apiServer.close();
