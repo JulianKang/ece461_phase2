@@ -57,10 +57,10 @@ describe('Server', () => {
                 });
             });
             // There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.
+            // sending individually since entire list is invalid
             it('should return 400', async () => {
                 InvalidConstants.anyList.forEach(async (badPackageQuery) => {
                     const response = await request(app).post('/packages').send([badPackageQuery]);
-                    console.log(response.statusCode, '  ', badPackageQuery);
                     expect(response.statusCode).toBe(400);
                 });
             });

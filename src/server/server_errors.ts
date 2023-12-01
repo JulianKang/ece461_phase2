@@ -37,10 +37,14 @@ export class Server_Error extends Error {
 
 export class AggregateError extends Error {
     errors: Error[];
+    num: number = 500;
     
     constructor(errors: Error[]) {
         super('Multiple errors occurred');
         this.name = 'AggregateError';
         this.errors = errors;
+        if(errors[0] instanceof Server_Error) {
+            this.num = errors[0].num;
+        }
     }
 }
