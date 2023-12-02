@@ -71,7 +71,7 @@ export async function APIHelpPackageContent(base64: Schemas.PackageContent, JsPr
 
 export async function APIHelpPackageURL(url: Schemas.PackageURL, JsProgram: Schemas.PackageJSProgram, content?: Schemas.PackageContent): Promise<Schemas.Package> {
     try {
-        const result: { ratings: Schemas.PackageRating, url: Schemas.PackageURL } = await fetchDataAndCalculateScore(url);
+        const result: Schemas.DataFetchedFromURL = await fetchDataAndCalculateScore(url);
         const newPackageRating = result.ratings;
         const gitRemoteUrl = result.url;
         //Check to see if Scores Fulfill the threshold if not return a different return code

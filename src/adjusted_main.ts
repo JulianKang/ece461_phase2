@@ -72,7 +72,7 @@ function createOrClearDirectory(directoryPath: string) {
 }
 
 // Function to fetch the number of weekly commits and other required data
-export async function fetchDataAndCalculateScore(inputUrl: string): Promise<{ratings: Schemas.PackageRating, url: Schemas.PackageURL}> {
+export async function fetchDataAndCalculateScore(inputUrl: string): Promise<Schemas.DataFetchedFromURL> {
   let repoUrl = inputUrl;
 
   // Check if the input URL is an npm package link and try to get the corresponding GitHub repo
@@ -222,7 +222,7 @@ export async function fetchDataAndCalculateScore(inputUrl: string): Promise<{rat
     winston.info(`NET_SCORE: ${netScoreResult}`);
 
     // Return the result for NDJSON formatting
-    const output: { ratings: Schemas.PackageRating, url: Schemas.PackageURL } = {
+    const output: Schemas.DataFetchedFromURL = {
       ratings: {
         BusFactor: parseFloat(busFactorResult.toFixed(5)),
         Correctness: parseFloat(correctnessScore.toFixed(5)),
@@ -234,6 +234,8 @@ export async function fetchDataAndCalculateScore(inputUrl: string): Promise<{rat
         NetScore: parseFloat(netScoreResult.toFixed(5)), 
       }, 
       url: repoUrl,
+      content: 'TODO',
+      version: 'TODO',
     };
     
     // Serialize the output to JSON
