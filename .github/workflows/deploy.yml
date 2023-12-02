@@ -3,7 +3,7 @@ name: TypeScript Compile
 on:
   push:
     branches:
-      - simple_endpoints
+      - main
 
 jobs:
   build:
@@ -26,12 +26,14 @@ jobs:
              
 
       - name: Compile TypeScript
-        run: tsc  # Assuming you have a "build" script in your package.json that runs "tsc"
-
+        run: |
+          tsc
+          npm run build
       - name: Push Changes to Main Branch
         run: |
           git config user.email "github-actions@github.com"
           git config user.name "GitHub Actions"
           git add -f dist
+          gid add -f build
           git commit -m "Add compiled files"
-          git push origin simple_endpoints
+          git push origin main

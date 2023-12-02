@@ -647,6 +647,3 @@ logger.info(`Starting server on port ${port}`);
 apiServer.start(port);
 
 // const response = request(apiServer.getApp()).post('/packages').send({ Name: "package1", Version: "(1.0.0)\n(1.1.0)\n(~1.0)\n(^1.0.0)\n(1.0.0-1.2.0)\n" },);
-
-
-apiServer.close();
