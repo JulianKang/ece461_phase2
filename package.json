@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "react-scripts start",
-    "build": "react-scripts build"
+    "build": "react-scripts build",
+    "install-without-react": "npm install adm-zip body-parser chai-as-promised express express-async-errors fs-extra mysql2 nyc --no-save"
   },
   "repository": {
     "type": "git",

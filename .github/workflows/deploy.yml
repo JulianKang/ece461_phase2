@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:
@@ -17,23 +20,24 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18
+
       - name: Install Global Dependencies
         run: |
           npm install -g typescript
 
       - name: Install Dependencies
         run: npm install
-             
 
       - name: Compile TypeScript
         run: |
           tsc
           npm run build
+
       - name: Push Changes to Main Branch
         run: |
           git config user.email "github-actions@github.com"
           git config user.name "GitHub Actions"
           git add -f dist
-          gid add -f build
+          git add -f build
           git commit -m "Add compiled files"
           git push origin main

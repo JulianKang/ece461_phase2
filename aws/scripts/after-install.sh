@@ -14,7 +14,7 @@ DESTINATION_FOLDER="~/project-code"
 cd /home/ubuntu/apps
 sudo apt-get clean
 sudo npm cache clean --force
-npm install --omit="@types/react,@types/react-dom,react,react-dom,react-router-dom,react-scripts"
+npm run install-without-react
 scp -r build/* /var/www/build
 scp /home/ubuntu/environment-files/.env ./
 sudo apt-get clean
