@@ -16,6 +16,7 @@ import { getInfo, processUrls } from './parser';
 import * as dotenv from 'dotenv'
 import { json } from 'node:stream/consumers';
 import { exit } from 'process';
+import * as Schemas from './schemas';
 const winston = require('winston'); // Import Winston using CommonJS syntax
 winston.remove(winston.transports.Console); // Remove the default console transport
 dotenv.config();
@@ -71,7 +72,7 @@ function createOrClearDirectory(directoryPath: string) {
 }
 
 // Function to fetch the number of weekly commits and other required data
-export async function fetchDataAndCalculateScore(inputUrl: string) {
+export async function fetchDataAndCalculateScore(inputUrl: string): Promise<Schemas.PackageRating> {
   let repoUrl = inputUrl;
 
   // Check if the input URL is an npm package link and try to get the corresponding GitHub repo
@@ -221,15 +222,19 @@ export async function fetchDataAndCalculateScore(inputUrl: string) {
     winston.info(`NET_SCORE: ${netScoreResult}`);
 
     // Return the result for NDJSON formatting
-    const output = {
-      URL: repoUrl,
-      NET_SCORE: parseFloat(netScoreResult.toFixed(5)), 
-      RAMP_UP_SCORE: parseFloat(rampUpResult.toFixed(5)),
-      CORRECTNESS_SCORE: parseFloat(correctnessScore.toFixed(5)),
-      BUS_FACTOR_SCORE: parseFloat(busFactorResult.toFixed(5)),
-      RESPONSIVE_MAINTAINER_SCORE: parseFloat(responsiveMaintainerResult.toFixed(5)),
-      LICENSE_SCORE: parseFloat(licenseCheckResult.toFixed(5)),
-    };
+    const output: {ratings: Schemas.PackageURL, url: Schemas.PackageURL} = {
+      ratings: {
+        BusFactor: parseFloat(busFactorResult.toFixed(5)),
+        Correctness: parseFloat(correctnessScore.toFixed(5)),
+        RamUp: parseFloat(rampUpResult.toFixed(5)),
+        ResponsiveMaintainer: parseFloat(responsiveMaintainerResult.toFixed(5)),
+        LicenseScore: parseFloat(licenseCheckResult.toFixed(5)),
+        GoodPinningPractice: 0.5, // TODO
+        PullRequest: 0.5, // TODO
+        NetScore: parseFloat(netScoreResult.toFixed(5)), 
+      }, 
+      url: repoUrl
+  };
     
     // Serialize the output to JSON
     const jsonOutput = JSON.stringify(output);

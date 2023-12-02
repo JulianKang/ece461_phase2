@@ -70,12 +70,12 @@ export async function APIHelpPackageContent(base64: Schemas.PackageContent, JsPr
 
 export async function APIHelpPackageURL(url: Schemas.PackageURL, JsProgram: Schemas.PackageJSProgram, content?: Schemas.PackageContent): Promise<Schemas.Package> {
     try {
-        const result: Schemas.CLIOutput = await fetchDataAndCalculateScore(url);
+        const result: Schemas.PackageRating = await fetchDataAndCalculateScore(url);
         //Check to see if Scores Fulfill the threshold if not return a different return code
         // Believe they all have to be over 0.5
         const keys: string[] = Object.keys(result)
         for (const key of keys) {
-            const value = result[key as keyof Schemas.CLIOutput];
+            const value = result[key as keyof Schemas.PackageRating];
             if (typeof value === 'number' && value < 0.5) {
                 logger.info(`Package is not uploaded due to the disqualified rating. ${key} is ${value} for ${url}`)
                 throw new Server_Error(424, "Package is not uploaded due to the disqualified rating.")
@@ -84,7 +84,7 @@ export async function APIHelpPackageURL(url: Schemas.PackageURL, JsProgram: Sche
 
         // TODO logic for content
         if(!content) {
-            
+
         }
 
         // convert their metrics to PackageRating, and get two new metrics
