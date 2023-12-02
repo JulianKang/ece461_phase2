@@ -66,7 +66,7 @@ var dbConfig = {
     database: process.env.DB_NAME,
 };
 if (!dbConfig.host || !dbConfig.user || !dbConfig.password || !dbConfig.database) {
-    console.error('Missing database configuration.'); // replace with logger when we gain access to it
+    console.error('Missing database configuration ENV variables.'); // replace with logger when we gain access to it
     process.exit(1);
 }
 /* TODO List / Things to Implement/Consider:
@@ -108,16 +108,15 @@ if (!dbConfig.host || !dbConfig.user || !dbConfig.password || !dbConfig.database
  */
 var DBCommunicator = /** @class */ (function () {
     /**
-     * Constructor for DBCommunicator.
-     * It establishes a connection to the MySQL database.
+     * Empty Constructor for DBCommunicator.
      */
     function DBCommunicator() {
         this.connection = null;
         this.authorization = null;
-        this.connect();
     }
     /**
      * Establishes a connection to the MySQL database.
+     * public to allow for mocking in tests
      */
     DBCommunicator.prototype.connect = function () {
         return __awaiter(this, void 0, void 0, function () {
@@ -125,18 +124,23 @@ var DBCommunicator = /** @class */ (function () {
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
-                        _b.trys.push([0, 2, , 3]);
+                        if (this.connection) {
+                            return [2 /*return*/];
+                        }
+                        _b.label = 1;
+                    case 1:
+                        _b.trys.push([1, 3, , 4]);
                         _a = this;
                         return [4 /*yield*/, promise_1.default.createConnection(dbConfig)];
-                    case 1:
+                    case 2:
                         _a.connection = _b.sent();
                         console.log('Connected to MySQL database'); // replace with logger when we gain access to it
-                        return [3 /*break*/, 3];
-                    case 2:
+                        return [3 /*break*/, 4];
+                    case 3:
                         error_1 = _b.sent();
                         console.error('Error connecting to the database:', error_1); // replace with logger when we gain access to it
-                        return [3 /*break*/, 3];
-                    case 3: return [2 /*return*/];
+                        return [3 /*break*/, 4];
+                    case 4: return [2 /*return*/];
                 }
             });
         });
@@ -232,6 +236,64 @@ var DBCommunicator = /** @class */ (function () {
                         return [2 /*return*/, null];
                     case 7: return [2 /*return*/];
                 }
+            });
+        });
+    };
+    // creating methods to for testing purposes to allow mocking, 
+    // will be overwritten by actual implementations in the future
+    DBCommunicator.prototype.getPackageMetadata = function (name, version) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                return [2 /*return*/, []];
+            });
+        });
+    };
+    DBCommunicator.prototype.resetRegistry = function (user) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                return [2 /*return*/, false];
+            });
+        });
+    };
+    DBCommunicator.prototype.getPackageById = function (id) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                return [2 /*return*/, null];
+            });
+        });
+    };
+    DBCommunicator.prototype.updatePackageById = function (id, packageData) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                return [2 /*return*/, false];
+            });
+        });
+    };
+    DBCommunicator.prototype.deletePackageById = function (id) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                return [2 /*return*/, false];
+            });
+        });
+    };
+    DBCommunicator.prototype.getPackageRatings = function (id) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                return [2 /*return*/, null];
+            });
+        });
+    };
+    DBCommunicator.prototype.deletePackageByName = function (name) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                return [2 /*return*/, false];
+            });
+        });
+    };
+    DBCommunicator.prototype.searchPackagesByRegex = function (regex) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                return [2 /*return*/, []];
             });
         });
     };

@@ -147,12 +147,21 @@ function calculateCorrectnessScore(issues) {
 exports.calculateCorrectnessScore = calculateCorrectnessScore;
 function convertToHttpsUrl(repositoryUrl) {
     // Check if the repository URL starts with 'git@github.com:'
-    if (repositoryUrl.startsWith('git@github.com:')) {
+    if (repositoryUrl.startsWith('git@github.com')) {
         // Extract the owner and repo from the SSH URL
         var parts = repositoryUrl.split(':');
         var ownerAndRepo = parts[1].replace('.git', '');
         // Construct the HTTPS URL
+        //console.log('boom')
         return "https://github.com/".concat(ownerAndRepo);
+    }
+    else if (repositoryUrl.includes('git@github.com')) {
+        // Extract the owner and repo from the SSH URL
+        var parts = repositoryUrl.split('git@github.com');
+        var ownerAndRepo = parts[1]; //.replace('.git', '');
+        // Construct the HTTPS URL
+        //console.log('boom')
+        return "https://github.com".concat(ownerAndRepo);
     }
     // If it's not an SSH URL, return the original URL
     return repositoryUrl;

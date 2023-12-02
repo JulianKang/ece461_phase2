@@ -63,22 +63,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.queryForPackage = exports.getUserAPIKey = exports.APIHelpPackageURL = exports.APIHelpPackageContent = void 0;
-/*************************************************
- *
- * Ideas:
- * 1. DataBase Communicator Object?
- * 2. Handle all API Computations. API should only handle responses nothing else.
- * 3.
- *
- * ************************************************** */
-var fs = __importStar(require("fs"));
-// import DBCommunicator from '../dbCommunicator';
-var adjusted_main_1 = require("../adjusted_main");
-var SE = __importStar(require("./server_errors"));
-var logger_1 = __importDefault(require("../logger"));
-var console_1 = require("console");
 var Buffer = require('buffer').Buffer;
 var AdmZip = require('adm-zip');
+var fs = __importStar(require("fs"));
+var console_1 = require("console");
+var adjusted_main_1 = require("../adjusted_main");
+var server_errors_1 = require("./server_errors");
+var dbCommunicator_1 = __importDefault(require("../dbCommunicator"));
+var logger_1 = __importDefault(require("../logger"));
 function APIHelpPackageContent(base64, JsProgram) {
     var zipBuffer = Buffer.from(base64, 'base64');
     var unzipDir = './src/cloned_repositories';
@@ -118,27 +110,41 @@ function APIHelpPackageContent(base64, JsProgram) {
         fs.rmSync(unzipDir, { recursive: true });
         //logger.info('ZIP file extraction complete.');
         //logger.info(gitRemoteUrl)
-        return gitRemoteUrl;
+        // TODO
+        return {
+            metadata: {
+                Name: "Underscore",
+                Version: "1.0.0",
+                ID: "underscore"
+            },
+            data: "Base64 of zipfile"
+        };
+        // return gitRemoteUrl
     }
     catch (error) {
         logger_1.default.error("".concat(error));
-        return gitRemoteUrl;
+        // TODO
+        return {
+            metadata: {
+                Name: "Underscore",
+                Version: "1.0.0",
+                ID: "underscore"
+            },
+            data: "Base64 of zipfile"
+        };
+        // return gitRemoteUrl
     }
 }
 exports.APIHelpPackageContent = APIHelpPackageContent;
 function APIHelpPackageURL(url, JsProgram) {
     return __awaiter(this, void 0, void 0, function () {
-        var error_response, result, keys, _i, keys_1, key, value, package_exists, success_response, error_out_1, error_response_1;
+        var result, keys, _i, keys_1, key, value, package_exists, success_response, error_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    error_response = { error: 'Package is not uploaded due to the disqualified rating.' };
-                    console.log(url);
-                    _a.label = 1;
-                case 1:
-                    _a.trys.push([1, 3, , 4]);
+                    _a.trys.push([0, 2, , 3]);
                     return [4 /*yield*/, (0, adjusted_main_1.fetchDataAndCalculateScore)(url)];
-                case 2:
+                case 1:
                     result = _a.sent();
                     keys = Object.keys(result);
                     for (_i = 0, keys_1 = keys; _i < keys_1.length; _i++) {
@@ -146,13 +152,13 @@ function APIHelpPackageURL(url, JsProgram) {
                         value = result[key];
                         if (typeof value === 'number' && value < 0) {
                             //logger.info(value)
-                            return [2 /*return*/, error_response];
+                            throw new server_errors_1.Server_Error(424, "Package is not uploaded due to the disqualified rating.");
                         }
                     }
                     package_exists = false //DataBase.ScanForPacakge(url)
                     ;
                     if (package_exists) {
-                        return [2 /*return*/, { error: 'package already exists' }];
+                        throw new server_errors_1.Server_Error(409, "Package already exists");
                     }
                     else {
                         //DataBase.AddPackage(url, metrics, ...)
@@ -165,15 +171,14 @@ function APIHelpPackageURL(url, JsProgram) {
                         },
                         data: "Base64 of zipfile"
                     };
-                    return [2 /*return*/, success_response];
-                case 3:
-                    error_out_1 = _a.sent();
-                    console.error('Error in fetchDataAndCalculateScore:', error_out_1);
-                    error_response_1 = {
-                        error: "Invalid package format. Please ensure the package meets the required format."
-                    };
-                    return [2 /*return*/, error_response_1];
-                case 4: return [2 /*return*/];
+                    return [2 /*return*/, success_response
+                        //res.status(201).json(newPackage);
+                    ];
+                case 2:
+                    error_1 = _a.sent();
+                    // propogate error
+                    throw new server_errors_1.Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
+                case 3: return [2 /*return*/];
             }
         });
     });
@@ -181,19 +186,26 @@ function APIHelpPackageURL(url, JsProgram) {
 exports.APIHelpPackageURL = APIHelpPackageURL;
 function getUserAPIKey(username, password) {
     return __awaiter(this, void 0, void 0, function () {
-        var authenication;
+        var admin, authenication;
         return __generator(this, function (_a) {
-            authenication = 'abc123' //await DBCommunicator.authenticateUser(username, password);
-            ;
-            if (!authenication) {
-                return [2 /*return*/, false];
+            switch (_a.label) {
+                case 0:
+                    admin = username === "ece30861defaultadminuser" && password === "correcthorsebatterystaple123(!__+@**(A'\"`;DROP TABLE packages;";
+                    if (admin) {
+                        return [2 /*return*/, true];
+                    }
+                    return [4 /*yield*/, dbCommunicator_1.default.authenticateUser(username, password)];
+                case 1:
+                    authenication = _a.sent();
+                    if (!authenication) {
+                        return [2 /*return*/, false];
+                    }
+                    return [2 /*return*/, authenication];
             }
-            return [2 /*return*/, authenication];
         });
     });
 }
 exports.getUserAPIKey = getUserAPIKey;
-// TODO explicitly define the typings and set return once DBCommunicator is implemented for package search
 /*
     example input
     {
@@ -205,33 +217,43 @@ function queryForPackage(Input) {
     return __awaiter(this, void 0, void 0, function () {
         var versionRegex, lines, versions, foundPackages, _i, versions_1, version, packageData;
         return __generator(this, function (_a) {
-            versionRegex = /\(([^)]+)\)/;
-            lines = Input.Version.split('\n');
-            versions = lines.map(function (line) {
-                try {
-                    var match = line.match(versionRegex);
-                    if (!match) {
-                        throw console_1.error;
-                    }
-                    return match[1];
-                }
-                catch (error) {
-                    throw new SE.Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
-                }
-            });
-            foundPackages = [];
-            for (_i = 0, versions_1 = versions; _i < versions_1.length; _i++) {
-                version = versions_1[_i];
-                packageData = {
-                    Name: Input.Name,
-                    Version: version,
-                    ID: 'id'
-                };
-                if (packageData) {
-                    foundPackages.push(packageData);
-                }
+            switch (_a.label) {
+                case 0:
+                    versionRegex = /\(([^)]+)\)/;
+                    lines = Input.Version.split('\n');
+                    versions = lines.map(function (line) {
+                        try {
+                            var match = line.match(versionRegex);
+                            if (!match) {
+                                throw console_1.error;
+                            }
+                            return match[1];
+                        }
+                        catch (error) {
+                            throw new server_errors_1.Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
+                        }
+                    });
+                    foundPackages = [];
+                    _i = 0, versions_1 = versions;
+                    _a.label = 1;
+                case 1:
+                    if (!(_i < versions_1.length)) return [3 /*break*/, 4];
+                    version = versions_1[_i];
+                    return [4 /*yield*/, dbCommunicator_1.default.getPackageMetadata(Input.Name, version)];
+                case 2:
+                    packageData = _a.sent();
+                    foundPackages.push.apply(foundPackages, packageData);
+                    _a.label = 3;
+                case 3:
+                    _i++;
+                    return [3 /*break*/, 1];
+                case 4:
+                    // make unique list
+                    foundPackages = foundPackages.filter(function (item, index) {
+                        return foundPackages.findIndex(function (obj) { return obj.Name === item.Name && obj.Version === item.Version; }) === index;
+                    });
+                    return [2 /*return*/, foundPackages];
             }
-            return [2 /*return*/, foundPackages];
         });
     });
 }

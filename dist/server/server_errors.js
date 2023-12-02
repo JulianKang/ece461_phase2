@@ -56,8 +56,12 @@ var AggregateError = /** @class */ (function (_super) {
     __extends(AggregateError, _super);
     function AggregateError(errors) {
         var _this = _super.call(this, 'Multiple errors occurred') || this;
+        _this.num = 500;
         _this.name = 'AggregateError';
         _this.errors = errors;
+        if (errors[0] instanceof Server_Error) {
+            _this.num = errors[0].num;
+        }
         return _this;
     }
     return AggregateError;
