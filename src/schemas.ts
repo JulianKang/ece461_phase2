@@ -71,6 +71,7 @@ export interface Package {
 export interface User {
     name: string;
     isAdmin: boolean;
+    // xAuthToken: string;
 }
 
 // inteface to allow for expansion of user authentication info
