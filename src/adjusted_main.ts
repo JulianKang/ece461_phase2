@@ -72,7 +72,7 @@ function createOrClearDirectory(directoryPath: string) {
 }
 
 // Function to fetch the number of weekly commits and other required data
-export async function fetchDataAndCalculateScore(inputUrl: string): Promise<Schemas.PackageRating> {
+export async function fetchDataAndCalculateScore(inputUrl: string): Promise<{ratings: Schemas.PackageRating, url: Schemas.PackageURL}> {
   let repoUrl = inputUrl;
 
   // Check if the input URL is an npm package link and try to get the corresponding GitHub repo
