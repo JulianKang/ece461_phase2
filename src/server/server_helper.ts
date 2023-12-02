@@ -161,12 +161,15 @@ export async function queryForPackage(Input: Schemas.PackageQuery): Promise<Sche
             throw new Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
         }
     });
-    
+    // "1.2.3", "1.2.3-2.1.0", "^1.2.3", "~1.2.0"
     // query DB for package based on name and each requested version
     let foundPackages: Schemas.PackageMetadata[] = [];
     for (const version of versions) {
         const packageData = await dbCommunicator.getPackageMetadata(Input.Name, version);  
         foundPackages.push(...packageData);
+        if(foundPackages.length > 100) {
+            throw new Server_Error(413, "Too many packages returned");
+        }
     }
 
     // make unique list
