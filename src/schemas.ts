@@ -17,7 +17,7 @@ export interface CLIOutput {
 export interface DataFetchedFromURL {
     ratings: PackageRating;
     url: PackageURL;
-    content: PackageContent;
+    content?: PackageContent;
     version: PackageVersion;
 }
 
