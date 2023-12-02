@@ -14,6 +14,12 @@ export interface CLIOutput {
     [key: string]: number | string;
 }
 
+export interface DataFetchedFromURL {
+    ratings: PackageRating;
+    url: PackageURL;
+    content: PackageContent;
+    version: PackageVersion;
+}
 
 ////////////////////////////////////
 //////////ENDPOINT SCHEMAS//////////

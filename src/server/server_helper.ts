@@ -8,6 +8,7 @@ import dbCommunicator from '../dbCommunicator';
 import logger from '../logger';
 import * as Schemas from '../schemas';
 import Evaluate = Schemas.Evaluate;
+import { get } from 'http';
 
 export async function APIHelpPackageContent(base64: Schemas.PackageContent, JsProgram: Schemas.PackageJSProgram): Promise<Schemas.Package> {
     const zipBuffer: Buffer = Buffer.from(base64, 'base64');
@@ -71,28 +72,41 @@ export async function APIHelpPackageContent(base64: Schemas.PackageContent, JsPr
 export async function APIHelpPackageURL(url: Schemas.PackageURL, JsProgram: Schemas.PackageJSProgram, content?: Schemas.PackageContent): Promise<Schemas.Package> {
     try {
         const result: { ratings: Schemas.PackageRating, url: Schemas.PackageURL } = await fetchDataAndCalculateScore(url);
-        const ratings = result.ratings;
+        const newPackageRating = result.ratings;
         const gitRemoteUrl = result.url;
         //Check to see if Scores Fulfill the threshold if not return a different return code
         // Believe they all have to be over 0.5
-        const keys: string[] = Object.keys(ratings)
+        const keys: string[] = Object.keys(newPackageRating)
         for (const key of keys) {
-            const value = ratings[key as keyof Schemas.PackageRating];
+            const value = newPackageRating[key as keyof Schemas.PackageRating];
             if (typeof value === 'number' && value < 0.5) {
                 logger.info(`Package is not uploaded due to the disqualified rating. ${key} is ${value} for ${url}`)
                 throw new Server_Error(424, "Package is not uploaded due to the disqualified rating.")
             }
         }
 
-        // TODO logic for content
+        // TODO logic for content to be updated
+        let newPackageData: Schemas.PackageData;
         if(!content) {
-
+            newPackageData = {
+                URL: gitRemoteUrl,
+                JSProgram: JsProgram
+            };
+        } else {
+            newPackageData = {
+                Content: content,
+                URL: gitRemoteUrl,
+                JSProgram: JsProgram
+            
+            };
         }
+        // Prep the Package
 
-        // convert their metrics to PackageRating, and get two new metrics
-        let newPackageRating: Schemas.PackageRating;
-        let newPackage: Schemas.Package;
-        // TODO Put in logic to store package in database and download as zipfile
+        const newPackageMetadata: Schemas.PackageMetadata = getPackageMetadataFromURL(gitRemoteUrl);
+        const newPackage: Schemas.Package = {
+            metadata: newPackageMetadata,
+            data: newPackageData,
+        };
 
 
         // Store in database
