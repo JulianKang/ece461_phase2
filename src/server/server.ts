@@ -206,12 +206,14 @@ export class PackageManagementAPI {
 			const newPackage: Schemas.PackageData = req.body.data // url or base64
 			let result: Schemas.Package;
 
-			if (!newPackage) {
+			if (!newPackage || !Evaluate.isPackageData(newPackage) || (newPackage.URL && newPackage.Content) || !Evaluate.isPackageJSProgram(newPackage.JSProgram)) {
 				throw new Server_Error(400, 'There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid.');
-			} else if (/* is a url, TODO insert logic to check */ true) {
-				result = await helper.APIHelpPackageURL(newPackage, 'no js program?')
-			} else { // how to handle base64????
-				result = /* await  */helper.APIHelpPackageContent(newPackage, 'no js program')
+			} else if (newPackage.URL) {
+				result = await helper.APIHelpPackageURL(newPackage.URL, newPackage.JSProgram);
+			} else if (newPackage.Content) {
+				result = await helper.APIHelpPackageContent(newPackage.Content, newPackage.JSProgram);
+			} else {
+				throw new Server_Error(400, 'There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid.');
 			}
 
 			res.status(201).json(result);

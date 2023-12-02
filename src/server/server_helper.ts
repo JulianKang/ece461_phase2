@@ -4,19 +4,19 @@ import * as fs from 'fs';
 import { error } from 'console';
 import { fetchDataAndCalculateScore } from '../adjusted_main'
 import { Server_Error } from './server_errors'
-import * as Schemas from '../schemas';
 import dbCommunicator from '../dbCommunicator';
 import logger from '../logger';
+import * as Schemas from '../schemas';
+import Evaluate = Schemas.Evaluate;
 
-export function APIHelpPackageContent(base64: Schemas.PackageContent, JsProgram: Schemas.PackageJSProgram): Schemas.Package {
+export async function APIHelpPackageContent(base64: Schemas.PackageContent, JsProgram: Schemas.PackageJSProgram): Promise<Schemas.Package> {
     const zipBuffer: Buffer = Buffer.from(base64, 'base64');
     const unzipDir = './src/cloned_repositories';
 
     if (!fs.existsSync(unzipDir)) {
         fs.mkdirSync(unzipDir);
     }
-    let gitRemoteUrl: string = '';
-    let githubUrl = null;
+    let gitRemoteUrl: Schemas.PackageURL;
 
     try {
         const zip = new AdmZip(zipBuffer);
@@ -55,34 +55,20 @@ export function APIHelpPackageContent(base64: Schemas.PackageContent, JsProgram:
         //logger.info('ZIP file extraction complete.');
         //logger.info(gitRemoteUrl)
 
-        // TODO
-        return {
-            metadata: {
-                Name: "Underscore",
-                Version: "1.0.0",
-                ID: "underscore"
-            },
-            data: "Base64 of zipfile"
+        if(!Evaluate.isPackageURL(gitRemoteUrl) || !Evaluate.isPackageJSProgram(JsProgram)) {
+            throw new Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
         }
 
-        // return gitRemoteUrl
+        return await APIHelpPackageURL(gitRemoteUrl, JsProgram, base64);
     } catch (error) {
-        logger.error(`${error}`)
-        
-        // TODO
-        return {
-            metadata: {
-                Name: "Underscore",
-                Version: "1.0.0",
-                ID: "underscore"
-            },
-            data: "Base64 of zipfile"
+        if(error instanceof Server_Error) {
+            throw error;
         }
-        // return gitRemoteUrl
+        throw new Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
     }
 }
 
-export async function APIHelpPackageURL(url: Schemas.PackageURL, JsProgram: Schemas.PackageJSProgram): Promise<Schemas.Package> {
+export async function APIHelpPackageURL(url: Schemas.PackageURL, JsProgram: Schemas.PackageJSProgram, content?: Schemas.PackageContent): Promise<Schemas.Package> {
     try {
         const result: Schemas.CLIOutput = await fetchDataAndCalculateScore(url);
         //Check to see if Scores Fulfill the threshold if not return a different return code
@@ -90,35 +76,38 @@ export async function APIHelpPackageURL(url: Schemas.PackageURL, JsProgram: Sche
         const keys: string[] = Object.keys(result)
         for (const key of keys) {
             const value = result[key as keyof Schemas.CLIOutput];
-            if (typeof value === 'number' && value < 0) {
-                //logger.info(value)
+            if (typeof value === 'number' && value < 0.5) {
+                logger.info(`Package is not uploaded due to the disqualified rating. ${key} is ${value} for ${url}`)
                 throw new Server_Error(424, "Package is not uploaded due to the disqualified rating.")
             }
         }
 
-        const package_exists = false//DataBase.ScanForPacakge(url)
-        if (package_exists) {
-            throw new Server_Error(409, "Package already exists")
-        }
-        else {
-            //DataBase.AddPackage(url, metrics, ...)
-        }
-        // TODO Put in logic to store package in database and download as zipfile
-        //Check if already in database too should be something like:
-        // upload = DataBaseManager.InsertFromUrl(url, result)
-        // upload includes data for success_response or error
-        // if error in upload: {return alread_exists_response} else{} do whats below
-        const success_response: Schemas.Package = { //temp success_response, would really want to return data base object
-            metadata: {
-                Name: "Underscore",
-                Version: "1.0.0",
-                ID: "underscore"
-            },
-            data: "Base64 of zipfile"
+        // TODO logic for content
+        if(!content) {
+            
         }
 
-        return success_response
-        //res.status(201).json(newPackage);
+        // convert their metrics to PackageRating, and get two new metrics
+        let newPackageRating: Schemas.PackageRating;
+        let newPackage: Schemas.Package;
+        // TODO Put in logic to store package in database and download as zipfile
+
+
+        // Store in database
+        const db_response_package: number = await dbCommunicator.injestPackage(newPackage);
+        if(db_response_package == -1) {
+            throw new Server_Error(409, "Package already exists")
+        } else if(db_response_package == 0) {
+            throw new Server_Error(500, "Internal Server Error")
+        }
+
+        const db_response_ratings: boolean = await dbCommunicator.injestPackageRatings(newPackageRating, newPackage.metadata.ID);
+
+        if(!db_response_ratings) {
+            throw new Server_Error(500, "Internal Server Error")
+        }
+
+        return newPackage;
     } catch (error) {
         // propogate error
         throw new Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
