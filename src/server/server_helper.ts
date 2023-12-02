@@ -10,6 +10,18 @@ import * as Schemas from '../schemas';
 import Evaluate = Schemas.Evaluate;
 import { get } from 'http';
 
+function getPackageMetadataFromURL(url: Schemas.PackageURL, version: Schemas.PackageVersion): Schemas.PackageMetadata {
+    let packageMetadata: Schemas.PackageMetadata = {
+        Name: url.split('/')[url.split('/').length - 1],
+        Version: version,
+        ID: null,
+    };
+
+    packageMetadata.ID = packageMetadata.Name.toLowerCase() + '_' + packageMetadata.Version;
+
+    return packageMetadata;
+}
+
 export async function APIHelpPackageContent(base64: Schemas.PackageContent, JsProgram: Schemas.PackageJSProgram): Promise<Schemas.Package> {
     const zipBuffer: Buffer = Buffer.from(base64, 'base64');
     const unzipDir = './src/cloned_repositories';
@@ -17,7 +29,7 @@ export async function APIHelpPackageContent(base64: Schemas.PackageContent, JsPr
     if (!fs.existsSync(unzipDir)) {
         fs.mkdirSync(unzipDir);
     }
-    let gitRemoteUrl: Schemas.PackageURL;
+    let gitRemoteUrl: Schemas.PackageURL = '';
 
     try {
         const zip = new AdmZip(zipBuffer);
@@ -55,7 +67,9 @@ export async function APIHelpPackageContent(base64: Schemas.PackageContent, JsPr
         fs.rmSync(unzipDir, { recursive: true });
         //logger.info('ZIP file extraction complete.');
         //logger.info(gitRemoteUrl)
-
+        if(!gitRemoteUrl) {
+            throw new Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
+        }
         if(!Evaluate.isPackageURL(gitRemoteUrl) || !Evaluate.isPackageJSProgram(JsProgram)) {
             throw new Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
         }
@@ -73,7 +87,6 @@ export async function APIHelpPackageURL(url: Schemas.PackageURL, JsProgram: Sche
     try {
         const result: Schemas.DataFetchedFromURL = await fetchDataAndCalculateScore(url);
         const newPackageRating = result.ratings;
-        const gitRemoteUrl = result.url;
         //Check to see if Scores Fulfill the threshold if not return a different return code
         // Believe they all have to be over 0.5
         const keys: string[] = Object.keys(newPackageRating)
@@ -86,28 +99,19 @@ export async function APIHelpPackageURL(url: Schemas.PackageURL, JsProgram: Sche
         }
 
         // TODO logic for content to be updated
-        let newPackageData: Schemas.PackageData;
-        if(!content) {
-            newPackageData = {
-                URL: gitRemoteUrl,
-                JSProgram: JsProgram
-            };
-        } else {
-            newPackageData = {
-                Content: content,
-                URL: gitRemoteUrl,
-                JSProgram: JsProgram
-            
-            };
-        }
+        let newPackageData: Schemas.PackageData= {
+            Content: content,
+            URL: result.url,
+            JSProgram: JsProgram
+        
+        };
         // Prep the Package
 
-        const newPackageMetadata: Schemas.PackageMetadata = getPackageMetadataFromURL(gitRemoteUrl);
+        const newPackageMetadata: Schemas.PackageMetadata = getPackageMetadataFromURL(result.url, result.version);
         const newPackage: Schemas.Package = {
             metadata: newPackageMetadata,
             data: newPackageData,
         };
-
 
         // Store in database
         const db_response_package: number = await dbCommunicator.injestPackage(newPackage);
@@ -117,6 +121,9 @@ export async function APIHelpPackageURL(url: Schemas.PackageURL, JsProgram: Sche
             throw new Server_Error(500, "Internal Server Error")
         }
 
+        if(!newPackage.metadata.ID) { 
+            throw new Server_Error(500, "Internal Server Error")
+        }
         const db_response_ratings: boolean = await dbCommunicator.injestPackageRatings(newPackageRating, newPackage.metadata.ID);
 
         if(!db_response_ratings) {
@@ -126,10 +133,14 @@ export async function APIHelpPackageURL(url: Schemas.PackageURL, JsProgram: Sche
         return newPackage;
     } catch (error) {
         // propogate error
+        if(error instanceof Server_Error) {
+            throw error;
+        }
         throw new Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
     }
 }
 
+// not used currently
 export async function getUserAPIKey(username: string, password: string): Promise<string | boolean> {
     const admin = username === "ece30861defaultadminuser" && password === "correcthorsebatterystaple123(!__+@**(A'\"`;DROP TABLE packages;";
     if(admin){

@@ -365,6 +365,7 @@ export class PackageManagementAPI {
 	
 	// endpoint: '/package/:id' DELETE
 	// TODO test
+	// not baseline
 	private async handleDeletePackageById(req: Request, res: Response, next: NextFunction): Promise<void> {
 		/**
 		  * 200	
@@ -454,6 +455,7 @@ export class PackageManagementAPI {
 	
 	// endpoint: '/authenticate' PUT
 	// TODO currently out of scope, will implement if we have time
+	// not baseline
 	private async handleAuthenticateUser(req: Request, res: Response, next: NextFunction): Promise<void> {
 		next(new Server_Error(501, 'This system does not support authentication.'));
 		return;
@@ -509,6 +511,7 @@ export class PackageManagementAPI {
 
 	// endpoint: '/package/byName/:name' GET
 	// TODO currently out of scope, will implement if we have time
+	// not baseline
 	private async handleGetPackageByName(req: Request, res: Response, next: NextFunction): Promise<void> {
 		next(new Server_Error(501, 'This system does not support package history.'));
 		return
@@ -546,6 +549,7 @@ export class PackageManagementAPI {
 
 	// endpoint: '/package/byName/:name' DELETE
 	// TODO test
+	// not baseline
 	private async handleDeletePackageByName(req: Request, res: Response, next: NextFunction): Promise<void> {
 		/**
 		 * 200	
