@@ -1,24 +1,15 @@
-/*************************************************
- * 
- * Ideas:
- * 1. DataBase Communicator Object?
- * 2. Handle all API Computations. API should only handle responses nothing else.
- * 3. 
- * 
- * ************************************************** */
-import * as fs from 'fs';
-import path from 'path';
-// import DBCommunicator from '../dbCommunicator';
-import { fetchDataAndCalculateScore } from '../adjusted_main'
-import * as SE from './server_errors'
-import logger from '../logger';
-import * as Schemas from '../schemas';
-import { error } from 'console';
 const { Buffer } = require('buffer');
 const AdmZip = require('adm-zip');
+import * as fs from 'fs';
+import { error } from 'console';
+import { fetchDataAndCalculateScore } from '../adjusted_main'
+import { Server_Error } from './server_errors'
+import * as Schemas from '../schemas';
+import dbCommunicator from '../dbCommunicator';
+import logger from '../logger';
 
 
-export function APIHelpPackageContent(base64: Schemas.PackageContent, JsProgram: Schemas.PackageJSProgram) {
+export function APIHelpPackageContent(base64: Schemas.PackageContent, JsProgram: Schemas.PackageJSProgram): Schemas.Package {
     const zipBuffer: Buffer = Buffer.from(base64, 'base64');
     const unzipDir = './src/cloned_repositories';
 
@@ -65,16 +56,34 @@ export function APIHelpPackageContent(base64: Schemas.PackageContent, JsProgram:
         //logger.info('ZIP file extraction complete.');
         //logger.info(gitRemoteUrl)
 
-        return gitRemoteUrl
+        // TODO
+        return {
+            metadata: {
+                Name: "Underscore",
+                Version: "1.0.0",
+                ID: "underscore"
+            },
+            data: "Base64 of zipfile"
+        }
+
+        // return gitRemoteUrl
     } catch (error) {
         logger.error(`${error}`)
-        return gitRemoteUrl
+        
+        // TODO
+        return {
+            metadata: {
+                Name: "Underscore",
+                Version: "1.0.0",
+                ID: "underscore"
+            },
+            data: "Base64 of zipfile"
+        }
+        // return gitRemoteUrl
     }
 }
 
-export async function APIHelpPackageURL(url: Schemas.PackageURL, JsProgram: Schemas.PackageJSProgram) {
-    const error_response: object = { error: 'Package is not uploaded due to the disqualified rating.' }
-    console.log(url)
+export async function APIHelpPackageURL(url: Schemas.PackageURL, JsProgram: Schemas.PackageJSProgram): Promise<Schemas.Package> {
     try {
         const result: Schemas.CLIOutput = await fetchDataAndCalculateScore(url);
         //Check to see if Scores Fulfill the threshold if not return a different return code
@@ -84,13 +93,13 @@ export async function APIHelpPackageURL(url: Schemas.PackageURL, JsProgram: Sche
             const value = result[key as keyof Schemas.CLIOutput];
             if (typeof value === 'number' && value < 0) {
                 //logger.info(value)
-                return error_response
+                throw new Server_Error(424, "Package is not uploaded due to the disqualified rating.")
             }
         }
 
         const package_exists = false//DataBase.ScanForPacakge(url)
         if (package_exists) {
-            return { error: 'package already exists' }
+            throw new Server_Error(409, "Package already exists")
         }
         else {
             //DataBase.AddPackage(url, metrics, ...)
@@ -110,23 +119,20 @@ export async function APIHelpPackageURL(url: Schemas.PackageURL, JsProgram: Sche
         }
 
         return success_response
-
-    } catch (error_out) {
-        console.error('Error in fetchDataAndCalculateScore:', error_out);
-        const error_response = {
-            error: "Invalid package format. Please ensure the package meets the required format."
-        }
-        return error_response
+        //res.status(201).json(newPackage);
+    } catch (error) {
+        // propogate error
+        throw new Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
     }
 }
 
 export async function getUserAPIKey(username: string, password: string): Promise<string | boolean> {
-    // const admin = username === "ece30861defaultadminuser" && password === "correcthorsebatterystaple123(!__+@**(A'\"`;DROP TABLE packages;";
-    // if(admin){
-    //     return true
-    // }
+    const admin = username === "ece30861defaultadminuser" && password === "correcthorsebatterystaple123(!__+@**(A'\"`;DROP TABLE packages;";
+    if(admin){
+        return true
+    }
 
-    let authenication = 'abc123' //await DBCommunicator.authenticateUser(username, password);
+    let authenication = await dbCommunicator.authenticateUser(username, password);
     if (!authenication) {
         return false;
     }
@@ -134,7 +140,6 @@ export async function getUserAPIKey(username: string, password: string): Promise
     return authenication;
 }
 
-// TODO explicitly define the typings and set return once DBCommunicator is implemented for package search
 /*   
     example input
     {
@@ -154,23 +159,21 @@ export async function queryForPackage(Input: Schemas.PackageQuery): Promise<Sche
             }
             return match[1];
         } catch (error) {
-            throw new SE.Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
+            throw new Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
         }
     });
-
+    
     // query DB for package based on name and each requested version
     let foundPackages: Schemas.PackageMetadata[] = [];
     for (const version of versions) {
-        // const packageData = await DBCommunicator.getPackage(Input.Name, version); 
-        const packageData: Schemas.PackageMetadata = { // SWITCH to  DBCommunicator.getPackage once implemented
-            Name: Input.Name,
-            Version: version,
-            ID: 'id'
-        }   
-        if (packageData) {
-            foundPackages.push(packageData);
-        }
+        const packageData = await dbCommunicator.getPackageMetadata(Input.Name, version);  
+        foundPackages.push(...packageData);
     }
 
+    // make unique list
+    foundPackages = foundPackages.filter((item, index) => {
+        return foundPackages.findIndex(obj => obj.Name === item.Name && obj.Version === item.Version) === index;
+    });
+    
     return foundPackages;
 }

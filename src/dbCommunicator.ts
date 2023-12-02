@@ -5,6 +5,7 @@
 import mysql from 'mysql2/promise';
 import 'dotenv/config';
 import { type } from 'node:os';
+import * as Schemas from './schemas';
 
 /** 
  * An enum for the different user types.
@@ -27,7 +28,7 @@ const dbConfig = {
     database: process.env.DB_NAME,
 };
 if (!dbConfig.host || !dbConfig.user || !dbConfig.password || !dbConfig.database) {
-    console.error('Missing database configuration.'); // replace with logger when we gain access to it
+    console.error('Missing database configuration ENV variables.'); // replace with logger when we gain access to it
     process.exit(1);
 }
 type QueryResult = mysql.OkPacket | mysql.RowDataPacket[] | mysql.ResultSetHeader[] | mysql.RowDataPacket[][] | mysql.OkPacket[] | mysql.ProcedureCallPacket;
@@ -75,17 +76,18 @@ class DBCommunicator {
   private authorization : string | null = null;
 
   /**
-   * Constructor for DBCommunicator.
-   * It establishes a connection to the MySQL database.
+   * Empty Constructor for DBCommunicator.
    */
-  constructor() {
-    this.connect();
-  }
+  constructor() { }
 
   /**
    * Establishes a connection to the MySQL database.
+   * public to allow for mocking in tests
    */
-  private async connect() {
+  public async connect() {
+    if (this.connection) {
+      return;
+    }
     try {
       this.connection = await mysql.createConnection(dbConfig);
       console.log('Connected to MySQL database'); // replace with logger when we gain access to it
@@ -159,6 +161,33 @@ class DBCommunicator {
       console.error('Database query error:', error); // replace with logger when we gain access to it
       return null;
     }
+  }
+
+  // creating methods to for testing purposes to allow mocking, 
+  // will be overwritten by actual implementations in the future
+  async getPackageMetadata(name: Schemas.PackageName, version: Schemas.PackageVersion): Promise<Schemas.PackageMetadata[]> {
+    return [];
+  }
+  async resetRegistry(user: Schemas.User): Promise<boolean> {
+    return false;
+  }
+  async getPackageById(id: Schemas.PackageID): Promise<Schemas.Package | null> {
+    return null;
+  }
+  async updatePackageById(id: Schemas.PackageID, packageData: Schemas.Package): Promise<boolean> {
+    return false;
+  }
+  async deletePackageById(id: Schemas.PackageID): Promise<boolean> {
+    return false;
+  }
+  async getPackageRatings(id: Schemas.PackageID): Promise<Schemas.PackageRating | null> {
+    return null;
+  }
+  async deletePackageByName(name: Schemas.PackageName): Promise<boolean> {
+    return false;
+  }
+  async searchPackagesByRegex(regex: Schemas.PackageRegEx): Promise<Schemas.PackageMetadata[]> {
+    return [];
   }
 
   /**
