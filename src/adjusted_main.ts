@@ -222,26 +222,26 @@ export async function fetchDataAndCalculateScore(inputUrl: string): Promise<Sche
     winston.info(`NET_SCORE: ${netScoreResult}`);
 
     // Return the result for NDJSON formatting
-    const output: {ratings: Schemas.PackageURL, url: Schemas.PackageURL} = {
+    const output: { ratings: Schemas.PackageRating, url: Schemas.PackageURL } = {
       ratings: {
         BusFactor: parseFloat(busFactorResult.toFixed(5)),
         Correctness: parseFloat(correctnessScore.toFixed(5)),
-        RamUp: parseFloat(rampUpResult.toFixed(5)),
+        RampUp: parseFloat(rampUpResult.toFixed(5)),
         ResponsiveMaintainer: parseFloat(responsiveMaintainerResult.toFixed(5)),
         LicenseScore: parseFloat(licenseCheckResult.toFixed(5)),
         GoodPinningPractice: 0.5, // TODO
         PullRequest: 0.5, // TODO
         NetScore: parseFloat(netScoreResult.toFixed(5)), 
       }, 
-      url: repoUrl
-  };
+      url: repoUrl,
+    };
     
     // Serialize the output to JSON
     const jsonOutput = JSON.stringify(output);
     
     // Log the JSON output
     console.log(jsonOutput);
-    return output
+    return output // @ben, add type to schemas maybe?, we can talk about this
   } catch (error) {
     winston.error(`Error processing URL ${repoUrl}: ${error}`);
     //process.exit(1); // Exit with a failure status code (1) on error
