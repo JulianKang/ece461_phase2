@@ -5,7 +5,7 @@
 import mysql from 'mysql2/promise';
 import 'dotenv/config';
 import { type } from 'node:os';
-import * as Schemas from './schemas';
+import * as Schemas from '../src/schemas';
 
 /** 
  * An enum for the different user types.
@@ -28,7 +28,7 @@ const dbConfig = {
     database: process.env.DB_NAME,
 };
 if (!dbConfig.host || !dbConfig.user || !dbConfig.password || !dbConfig.database) {
-    console.error('Missing database configuration ENV variables.'); // replace with logger when we gain access to it
+    console.error('Missing database configuration.'); // replace with logger when we gain access to it
     process.exit(1);
 }
 type QueryResult = mysql.OkPacket | mysql.RowDataPacket[] | mysql.ResultSetHeader[] | mysql.RowDataPacket[][] | mysql.OkPacket[] | mysql.ProcedureCallPacket;
@@ -76,24 +76,200 @@ class DBCommunicator {
   private authorization : string | null = null;
 
   /**
-   * Empty Constructor for DBCommunicator.
+   * Constructor for DBCommunicator.
+   * It establishes a connection to the MySQL database.
    */
-  constructor() { }
+  constructor() {
+    this.connect();
+  }
 
   /**
    * Establishes a connection to the MySQL database.
-   * public to allow for mocking in tests
    */
-  public async connect() {
-    if (this.connection) {
-      return;
-    }
+  private async connect() {
     try {
       this.connection = await mysql.createConnection(dbConfig);
       console.log('Connected to MySQL database'); // replace with logger when we gain access to it
     } catch (error) {
       console.error('Error connecting to the database:', error); // replace with logger when we gain access to it
     }
+  }
+
+  //TODO: Figure out versions; TEST
+
+  public async resetRegistry(): Promise<boolean> {
+    const sql = "DELETE * FROM packages";
+    const result : QueryResult | null = await this.query(sql);
+    if (result == null || !Array.isArray(result) || result.length === 0) {
+      return false;
+    }
+    return true;
+  }
+
+  public async searchPackagesByRegex(regex: Schemas.PackageRegEx): Promise<Schemas.PackageMetadata[]> {
+    const sql = "SELECT name, version, package_id FROM packages WHERE name REGEX ? OR description REGEX ?";
+    const values = [regex, regex];
+    const result : QueryResult | null = await this.query(sql, values);
+    if (result == null || !Array.isArray(result) || result.length === 0) {
+      return [];
+    }
+
+    let packageMetaList: Schemas.PackageMetadata[] = [];
+
+    for(let i = 0; i < result.length; i++){
+      const packageID: Schemas.PackageID = (result[i] as mysql.RowDataPacket).package_id;
+      const packageName: Schemas.PackageID = (result[i] as mysql.RowDataPacket).name;
+      const packageMeta: Schemas.PackageMetadata = {
+        Name: packageName,
+        Version: (result[i] as mysql.RowDataPacket).package_version,
+        ID: packageID
+      }
+
+      packageMetaList.push(packageMeta);
+    }
+
+    return packageMetaList;
+  }
+
+  public async injestPackage(newPackage: Schemas.Package, newDescription: string | null): Promise<number> {
+    const sql = "INSERT INTO packages (name, package_id, version, zip, js_program, url, description) VALUES(?, ?, ?, ?, ?, ?)";
+    const values = [newPackage.metadata.Name, newPackage.metadata.ID, newPackage.metadata.Version, newPackage.data.Content, newPackage.data.JSProgram, newPackage.data.URL, newDescription]; 
+    const result : QueryResult | null = await this.query(sql, values);
+    if (result == null || !Array.isArray(result) || result.length === 0) {
+      return 0; //ANY ERROR
+    }
+    return -1; //PACKAGE EXISTS
+    return 1;
+
+  }
+
+  public async updatePackageById(newPackage: Schemas.Package): Promise<boolean> {
+    let sql;
+    let values;
+    if(Schemas.Evaluate.isPackageURL(newPackage.data.URL)){
+      sql = "UPDATE packages SET url = ? FROM packages WHERE package_id = ? AND name = ? AND version = ?";
+      values = [newPackage.data.URL, newPackage.metadata.ID, newPackage.metadata.Name, newPackage.metadata.Version];
+    }
+    else if(Schemas.Evaluate.isPackageContent(newPackage.data.Content)){
+      sql = "UPDATE packages SET content = ? FROM packages WHERE package_id = ? AND name = ? AND version = ?";
+      values = [newPackage.data.Content, newPackage.metadata.ID, newPackage.metadata.Name, newPackage.metadata.Version];
+    }
+    else {
+      return false;
+    }
+    const result : QueryResult | null = await this.query(sql, values);
+    if (result == null || !Array.isArray(result) || result.length === 0) {
+      return false;
+    }
+    return true;
+  }
+
+  public async getPackageMetadata(packageName: Schemas.PackageName, packageVersion: string): Promise<Schemas.PackageMetadata[]> {
+    //ADD HANDLING FOR DIFFERENT VERSION TYPES!!!!!
+    let sql;
+    const values = [packageName, packageVersion]; 
+    if(packageName == "*"){
+      sql = "SELECT * FROM packages";
+    }
+    else{
+      sql = "SELECT package_id, version FROM packages WHERE name = ? AND version = ?";
+    }
+    const result : QueryResult | null = await this.query(sql, values);
+    if (result == null || !Array.isArray(result) || result.length === 0) {
+      return [];
+    }
+    
+    let packageMetaList: Schemas.PackageMetadata[] = [];
+
+    for(let i = 0; i < result.length; i++){
+      const packageID: Schemas.PackageID = (result[i] as mysql.RowDataPacket).package_id;
+      const packageMeta: Schemas.PackageMetadata = {
+        Name: packageName,
+        Version: (result[i] as mysql.RowDataPacket).version,
+        ID: packageID
+      }
+
+      packageMetaList.push(packageMeta);
+    }
+  
+    return packageMetaList;
+  }
+
+  public async getPackageById(packageID: Schemas.PackageID): Promise<Schemas.Package | null> {
+    const sql = "SELECT name, package_version, zip, js_program, url FROM packages WHERE package_id = ?";
+    const values = [packageID]; 
+    const result : QueryResult | null = await this.query(sql, values);
+    if (result == null || !Array.isArray(result) || result.length === 0) {
+      return null;
+    }
+
+    const packageName: Schemas.PackageName = (result[0] as mysql.RowDataPacket).name;
+    const packageMeta: Schemas.PackageMetadata = {
+      Name: packageName,
+      Version: (result[0] as mysql.RowDataPacket).package_version,
+      ID: packageID
+    };
+    const packageData: Schemas.PackageData = {
+      Content: (result[0] as mysql.RowDataPacket).zip,
+      URL: (result[0] as mysql.RowDataPacket).url,
+      JSProgram: (result[0] as mysql.RowDataPacket).js_program
+    }
+    const getPackage: Schemas.Package = {
+      metadata: packageMeta,
+      data: packageData
+    }
+    return getPackage;
+  }
+
+  public async deletePackageById(packageID: Schemas.PackageID): Promise<boolean> {
+    const sql = "DELETE FROM packages WHERE package_id = ?";
+    const values = [packageID]; 
+    const result : QueryResult | null = await this.query(sql, values);
+    if (result == null || !Array.isArray(result) || result.length === 0) {
+      return false;
+    }
+    return true;
+  }
+
+  public async deletePackageByName(packageName: Schemas.PackageName): Promise<boolean> {
+    const sql = "DELETE FROM packages WHERE name = ?";
+    const values = [packageName]; 
+    const result : QueryResult | null = await this.query(sql, values);
+    if (result == null || !Array.isArray(result) || result.length === 0) {
+      return false;
+    }
+    return true;
+  }
+
+  public async getPackageRatings(packageID: Schemas.PackageID): Promise<Schemas.PackageRating | null> {
+    const sql = "SELECT bus_factor, correctness, ramp_up, responsive_maintainer, license_score, good_pinning_practice, pull_request, net_score FROM packages WHERE package_id = ?";
+    const values = [packageID]; 
+    const result : QueryResult | null = await this.query(sql, values);
+    if (result == null || !Array.isArray(result) || result.length === 0) {
+      return null;
+    }
+    const metrics: Schemas.PackageRating =  {
+      BusFactor: (result[0] as mysql.RowDataPacket).bus_factor,
+      Correctness: (result[0] as mysql.RowDataPacket).correctness,
+      RampUp: (result[0] as mysql.RowDataPacket).ramp_up,
+      ResponsiveMaintainer: (result[0] as mysql.RowDataPacket).responsive_maintainer,
+      LicenseScore: (result[0] as mysql.RowDataPacket).license_score,
+      GoodPinningPractice: (result[0] as mysql.RowDataPacket).good_pinning_practice,
+      PullRequest: (result[0] as mysql.RowDataPacket).pull_request,
+      NetScore: (result[0] as mysql.RowDataPacket).net_score
+    };
+
+    return metrics;
+  }
+
+  public async injestPackageRatings(packageID: Schemas.PackageID, metrics: Schemas.PackageRating): Promise<boolean> {
+    const sql = "UPDATE packages SET bus_factor = ?, correctness = ?, ramp_up = ?, responsive_maintainer = ?, license_score = ?, good_pinning_practice = ?, pull_request = ?, net_score = ? FROM packages WHERE package_id = ?";
+    const values = [metrics.BusFactor, metrics.Correctness, metrics.RampUp, metrics.ResponsiveMaintainer, metrics.LicenseScore, metrics.GoodPinningPractice, metrics.PullRequest, metrics.NetScore, packageID]; 
+    const result : QueryResult | null = await this.query(sql, values);
+    if (result == null || !Array.isArray(result) || result.length === 0) {
+      return false;
+    }
+    return true;
   }
   /**
    * Checks if a user is allowed to execute a given SQL query on the connected database.
@@ -102,6 +278,7 @@ class DBCommunicator {
    * @param query - The SQL query wanted to execute.
    * @returns A promise that resolves with the a boolean of access permission or false on error.
    */
+  /*
   private async checkPermission(userRoleId: number, queryType: string, query: string): Promise<boolean> {
     const sql = 'SELECT COUNT(*) as count FROM permissions WHERE role_id = ? AND (query_type = ? OR (query_type IS NULL AND query = ?))';
     const values = [userRoleId, queryType, query];
@@ -111,7 +288,7 @@ class DBCommunicator {
     }
     // Query the permissions table to check if the role has permission for the given query type and/or specific query
     return (result as any)[0].count > 0;
-  }
+  }*/
 
   /**
    * Authenticates a user with the given username and password.
@@ -140,54 +317,17 @@ class DBCommunicator {
     }
 
     try {
-      //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      const userRoleId = 1;/* Get user's role ID from the database */ 
-      //^THIS NEEDS TO CHANGE CANNOT BE HARD CODED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
       const queryWords = sql.split(' ');
       const queryTypeToCheck = queryWords[0].toUpperCase();
 
-      const hasPermission = await this.checkPermission(userRoleId, queryTypeToCheck, sql);
-
-      if (hasPermission) {
-        const [rows, fields] = await this.connection.execute(sql, values);
-        return rows;
-      } else {
-        console.log('No permission for query: ', sql); // replace with logger when we gain access to it
-        return null;
-      }
+      const [rows, fields] = await this.connection.execute(sql, values);
+      return rows;
       
     } catch (error) {
       console.error('Database query error:', error); // replace with logger when we gain access to it
       return null;
     }
-  }
-
-  // creating methods to for testing purposes to allow mocking, 
-  // will be overwritten by actual implementations in the future
-  async getPackageMetadata(name: Schemas.PackageName, version: Schemas.PackageVersion): Promise<Schemas.PackageMetadata[]> {
-    return [];
-  }
-  async resetRegistry(user: Schemas.User): Promise<boolean> {
-    return false;
-  }
-  async getPackageById(id: Schemas.PackageID): Promise<Schemas.Package | null> {
-    return null;
-  }
-  async updatePackageById(id: Schemas.PackageID, packageData: Schemas.Package): Promise<boolean> {
-    return false;
-  }
-  async deletePackageById(id: Schemas.PackageID): Promise<boolean> {
-    return false;
-  }
-  async getPackageRatings(id: Schemas.PackageID): Promise<Schemas.PackageRating | null> {
-    return null;
-  }
-  async deletePackageByName(name: Schemas.PackageName): Promise<boolean> {
-    return false;
-  }
-  async searchPackagesByRegex(regex: Schemas.PackageRegEx): Promise<Schemas.PackageMetadata[]> {
-    return [];
   }
 
   /**
