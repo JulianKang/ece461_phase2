@@ -105,7 +105,7 @@ export class PackageManagementAPI {
 	// curently not working???? idk y
 	private async authenticate(req: Request, res: Response, next: NextFunction): Promise<void> {
 		// Check the request path to skip authentication for specific routes
-		if (req.path === '/authenticate' || req.path === '/') {
+		if (req.path == '/authenticate' || req.path == '/') {
 			next(); // Skip authentication for the /authenticate route
 			return;
 		}
@@ -132,6 +132,7 @@ export class PackageManagementAPI {
 	// endpoint: '/' GET
 	private handleDefault(req: Request, res: Response) {
 		res.send('Welcome to the package management API!');
+		res.status(200)
 	}
 	
 	// endpoint: '/packages' POST
@@ -603,7 +604,7 @@ export class PackageManagementAPI {
 		* 404	
 		No package found under this regex.
 		*/
-		if (!Evaluate.isPackageRegEx(req.body.RegEx)) {
+		if (!Evaluate.isPackageRegEx(req.body.data)) {
 			if (!req.body.RegEx) {
 				next(new Server_Error(400, 'Regular expression pattern is missing.'));
 			} else {
@@ -612,7 +613,7 @@ export class PackageManagementAPI {
 		}
 
 		// RegEx is valid format
-		const regexPattern: Schemas.PackageRegEx = req.body.RegEx; // The property should match the name in the request body
+		const regexPattern: Schemas.PackageRegEx = req.body.data; // The property should match the name in the request body
 		
 		// Perform a search using the regex pattern
 		// For demonstration purposes, let's assume you have a packages database and a function searchPackagesByRegex

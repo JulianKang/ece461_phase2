@@ -19,6 +19,7 @@ export interface DataFetchedFromURL {
     url: PackageURL;
     content?: PackageContent;
     version: PackageVersion;
+    reademe: string;
 }
 
 ////////////////////////////////////
@@ -183,7 +184,7 @@ export namespace Evaluate {
     }
 
     export function isPackageData(obj: any): obj is PackageData { // "union" type 
-        return obj && (isPackageContent(obj) || isPackageURL(obj) || isPackageJSProgram(obj));
+        return obj && (isPackageContent(obj.Content) || isPackageURL(obj.URL) || isPackageJSProgram(obj.JSProgram));
     }
 
     export function isPackage(obj: any): obj is Package{

@@ -114,7 +114,7 @@ export async function APIHelpPackageURL(url: Schemas.PackageURL, JsProgram: Sche
         };
 
         // Store in database
-        const db_response_package: number = await dbCommunicator.injestPackage(newPackage);
+        const db_response_package: number = await dbCommunicator.injestPackage(newPackage, result.reademe);
         if(db_response_package == -1) {
             throw new Server_Error(409, "Package already exists")
         } else if(db_response_package == 0) {
