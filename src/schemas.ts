@@ -14,6 +14,12 @@ export interface CLIOutput {
     [key: string]: number | string;
 }
 
+export interface DataFetchedFromURL {
+    ratings: PackageRating;
+    url: PackageURL;
+    content?: PackageContent;
+    version: PackageVersion;
+}
 
 ////////////////////////////////////
 //////////ENDPOINT SCHEMAS//////////
@@ -51,7 +57,11 @@ export type SemverRange = string;
 //     On package upload, either Content or URL should be set (should this be handled on frontend? --nate). If both are set, returns 400.
 //     On package update, exactly one field should be set.
 //     On download, the Content field should be set.
-export type PackageData = PackageContent | PackageURL | PackageJSProgram;
+export interface PackageData {
+    Content?: PackageContent; 
+    URL?: PackageURL; 
+    JSProgram?: PackageJSProgram;
+}
 
 // The "Name" and "Version" are used as a unique identifier pair when uploading a package.
 // The "ID" is used as an internal identifier for interacting with existing packages.
@@ -71,6 +81,7 @@ export interface Package {
 export interface User {
     name: string;
     isAdmin: boolean;
+    // xAuthToken: string;
 }
 
 // inteface to allow for expansion of user authentication info
@@ -171,7 +182,7 @@ export namespace Evaluate {
         return obj && isPackageName(obj.Name) && (isPackageID(obj.ID) || obj.ID === null) && isPackageVersion(obj.Version);
     }
 
-    export function isPackageData(obj: any): obj is PackageData { // technically a union type not an interface
+    export function isPackageData(obj: any): obj is PackageData { // "union" type 
         return obj && (isPackageContent(obj) || isPackageURL(obj) || isPackageJSProgram(obj));
     }
 

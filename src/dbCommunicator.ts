@@ -165,6 +165,12 @@ class DBCommunicator {
 
   // creating methods to for testing purposes to allow mocking, 
   // will be overwritten by actual implementations in the future
+  async injestPackage(packageData: Schemas.Package): Promise<number> {
+    return 0;
+  }
+  async injestPackageRatings(packageRating: Schemas.PackageRating, packageID: Schemas.PackageID): Promise<boolean> {
+    return false;
+  }
   async getPackageMetadata(name: Schemas.PackageName, version: Schemas.PackageVersion): Promise<Schemas.PackageMetadata[]> {
     return [];
   }
