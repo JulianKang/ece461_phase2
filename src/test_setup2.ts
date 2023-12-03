@@ -14,98 +14,42 @@ const newDatabaseName = 'ece461db';
 
 // Individual SQL statements
 const commands = [
-  // Drop and create database
-  `DROP DATABASE IF EXISTS ece461db;`,
-  `CREATE DATABASE ece461db;`,
-  `USE ece461db;`,
-  
-  // @block Create Tables
-  `CREATE TABLE \`users\` (
-      \`id\` INT NOT NULL AUTO_INCREMENT,
-      \`username\` VARCHAR(255) NOT NULL UNIQUE,
-      \`password\` VARCHAR(255) NOT NULL,
-      \`user_type\` INT NOT NULL,
-      \`api_key\` VARCHAR(255) NOT NULL,
-      \`api_timestamp\` DATETIME NOT NULL,
-      PRIMARY KEY (\`id\`)
-  ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;`,
 
-  `CREATE TABLE \`user_histories\` (
-      \`id\` INT NOT NULL AUTO_INCREMENT,
-      \`user_id\` INT NOT NULL,
-      \`package_id\` INT NOT NULL,
-      \`use_date\` DATETIME NOT NULL,
-      \`use_type\` VARCHAR(255) NOT NULL,
-      PRIMARY KEY (\`id\`)
-  ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;`,
+  `USE ece461db;`,
+  `DROP TABLE packages;`,
+  `DROP TABLE users;`,
+  `DROP TABLE user_histories;`,
+  `DROP TABLE permissions;`,
+  `DROP TABLE roles;`,
 
   `CREATE TABLE \`packages\` (
-      \`id\` INT NOT NULL AUTO_INCREMENT,
-      \`name\` VARCHAR(255) NOT NULL,
-      \`description\` TEXT NOT NULL,
-      \`size\` INT NOT NULL,
-      \`user_id\` INT NOT NULL,
-      \`upload_date\` DATETIME NOT NULL,
-      \`zip\` LONGBLOB NOT NULL,
-      \`stars\` FLOAT NOT NULL,
-      \`sensitivity\` VARCHAR(255) NOT NULL,
-      \`download_count\` INT NOT NULL DEFAULT 0,
-      PRIMARY KEY (\`id\`)
+	  \`id\` INT NOT NULL AUTO_INCREMENT,
+	  \`name\` VARCHAR(255) NOT NULL,
+	  \`package_id\` VARCHAR(255) NOT NULL,
+	  \`version\` VARCHAR(255) NOT NULL,
+	  \`description\` TEXT,
+	  \`bus_factor\` FLOAT,
+	  \`correctness\` FLOAT ,
+	  \`ramp_up\` FLOAT,
+	  \`responsive_maintainer\` FLOAT,
+	  \`license_score\` FLOAT,
+	  \`good_pinning_practice\` FLOAT,
+	  \`pull_request\` FLOAT,
+	  \`net_score\` FLOAT,
+	  \`zip\` LONGBLOB NOT NULL,
+	  \`url\` TEXT,
+	  \`js_program\` TEXT,
+	  PRIMARY KEY (`id`)
   ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;`,
-
-  `CREATE TABLE \`roles\` (
-      \`role_id\` INT AUTO_INCREMENT PRIMARY KEY,
-      \`role_name\` VARCHAR(255) NOT NULL
-  ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;`,
-
-  `CREATE TABLE \`permissions\` (
-      \`permission_id\` INT AUTO_INCREMENT PRIMARY KEY,
-      \`role_id\` INT,
-      \`query_type\` ENUM('SELECT', 'INSERT', 'UPDATE', 'DELETE'),
-      \`query\` VARCHAR(1000)
-  ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;`,
-
-  // Block Create Foreign Keys
-  `ALTER TABLE \`user_histories\` ADD FOREIGN KEY (\`user_id\`) REFERENCES \`users\`(\`id\`);`,
-  `ALTER TABLE \`user_histories\` ADD FOREIGN KEY (\`package_id\`) REFERENCES \`packages\`(\`id\`);`,
-  `ALTER TABLE \`users\` ADD FOREIGN KEY (\`user_type\`) REFERENCES \`roles\`(\`role_id\`);`,
-  `ALTER TABLE \`permissions\` ADD FOREIGN KEY (\`role_id\`) REFERENCES \`roles\`(\`role_id\`);`,
-  `ALTER TABLE \`packages\` ADD FOREIGN KEY (\`user_id\`) REFERENCES \`users\`(\`id\`);`,
-
-  // @block Insert Data USER
-  `INSERT INTO roles (role_name) VALUES ('admin');`,
-  `INSERT INTO roles (role_name) VALUES ('user');`,
-  `INSERT INTO ece461db.users (
-      username,
-      password,
-      user_type,
-      api_key,
-      api_timestamp
-    )
-  VALUES (
-      'nbielans',
-      'password123',
-      '1',
-      'asdsad',
-      NOW()
-    );`,
-
-  // @block Insert Data PACKAGE
-  `INSERT INTO ece461db.packages (name, description, size, user_id, upload_date, zip, stars, sensitivity, download_count)
-  VALUES ('Test Package', 'This is a test package', 100, 1, NOW(), 'test.zip', 0, 'low', 100);`,
-
-  `SET @package_id = LAST_INSERT_ID();`,
-
-  // Creating user_history for associated upload
-  `INSERT INTO ece461db.user_histories (user_id, package_id, use_date, use_type)
-  VALUES (1, @package_id, NOW(), 'upload');`,
-
-  // @block Insert Data PERMISSIONS
-  `INSERT INTO ece461db.permissions (role_id, query_type, query)
-  VALUES (1, 'SELECT', 'SELECT * FROM users');`,
   
-  `INSERT INTO ece461db.permissions (role_id, query_type, query)
-  VALUES (2, 'SELECT', 'SELECT * FROM packages');`
+  `INSERT INTO ece461db.packages 
+  (name, package_id, version, description, 
+  bus_factor, correctness, ramp_up, responsive_maintainer, 
+  license_score, good_pinning_practice, pull_request, net_score, 
+  zip, url, js_program) VALUES ('test', 'test1.0.0', '1.0.0', 'testing this package', 
+  '0.4', '0.5', '0.6', '0.7', '0.8', '0.9', '0.1', '0.2', 
+  'test.zip', 'test.com', 'test.js');`
+
 ];
 
 
