@@ -17,6 +17,7 @@ import * as dotenv from 'dotenv'
 import { json } from 'node:stream/consumers';
 import { exit } from 'process';
 const winston = require('winston'); // Import Winston using CommonJS syntax
+const AdmZip = require('adm-zip');
 winston.remove(winston.transports.Console); // Remove the default console transport
 dotenv.config();
 
@@ -233,19 +234,44 @@ export async function fetchDataAndCalculateScore(inputUrl: string) {
     
     // Serialize the output to JSON
     const jsonOutput = JSON.stringify(output);
-    
+    /**
+    const parts = repositoryUrl.split('/');
+    const owner = parts[parts.length - 2];
+    const repo = parts[parts.length - 1];
+     */
     // Log the JSON output
+    const parts = repoUrl.split('/');
+    const repo = parts[parts.length - 1];
     console.log(jsonOutput);
     const currentDirectory = __dirname;
     const directoryPath = path.join(currentDirectory, 'cloned_repositories');
     console.log(fs.existsSync(directoryPath))
+    const zipFilePath = path.join(currentDirectory, `${repo}.zip`);
+    console.log(fs.existsSync(directoryPath));
+
     if (fs.existsSync(directoryPath)) {
         try {
-          // Remove the directory
-          fs.removeSync(directoryPath);
-          console.log(`Directory ${directoryPath} removed successfully.`);
+            // Create a new instance of AdmZip
+            const zip: typeof AdmZip = new AdmZip();
+
+            // Add the entire directory to the zip file
+            addFolderToZip(directoryPath, zip);
+    
+            // Write the zip file to disk
+            zip.writeZip(zipFilePath);
+    
+            console.log(`Zip file created successfully at: ${zipFilePath}`);
+    
+            // Now you can remove the directory
+            try {
+                fs.rmdirSync(directoryPath, { recursive: true });
+                console.log(`Directory ${directoryPath} removed successfully.`);
+            } catch (err) {
+                console.log(`Error removing directory ${directoryPath}: ${err}`);
+            }
         } catch (err) {
-          console.log(`Error removing directory ${directoryPath}: ${err}`);
+            console.log(`Error creating zip file: ${err}`);
+            fs.rmdirSync(directoryPath, { recursive: true });
         }
     }
     return output
@@ -266,6 +292,36 @@ export async function fetchDataAndCalculateScore(inputUrl: string) {
     //process.exit(1); // Exit with a failure status code (1) on error
     throw new Error(`Error processing URL ${repoUrl}: ${error}`);
     
+  }
+}
+
+function addFolderToZip(folderPath: string, zip: typeof AdmZip): void {
+  const files: string[] = fs.readdirSync(folderPath);
+  files.forEach((file: string) => {
+      const filePath: string = path.join(folderPath, file);
+      const stats: fs.Stats = fs.lstatSync(filePath);
+
+      if (stats.isDirectory()) {
+          addFolderToZip(filePath, zip);
+      } else if (stats.isFile()) {
+          zip.addLocalFile(filePath);
+      }
+      // Ignore symbolic links
+  });
+}
+
+function removeDirectory(dirPath: string): void {
+  if (fs.existsSync(dirPath)) {
+      fs.readdirSync(dirPath).forEach((entry: string) => {
+          const entryPath: string = path.join(dirPath, entry);
+          if (fs.lstatSync(entryPath).isDirectory()) {
+              removeDirectory(entryPath);
+          } else {
+              fs.unlinkSync(entryPath);
+          }
+      });
+      fs.rmdirSync(dirPath);
+      console.log(`Directory ${dirPath} removed successfully.`);
   }
 }
 

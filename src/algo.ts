@@ -9,6 +9,8 @@ You should have received a copy of the GNU General Public License along with Foo
 */
 
 import simpleGit, { SimpleGit, LogResult, DefaultLogFields } from 'simple-git';
+import * as path from 'path';
+import * as fs from 'fs';
 
 interface Contributor {
   name: string;
@@ -138,4 +140,52 @@ function convertToHttpsUrl(repositoryUrl: string): string {
   }
   // If it's not an SSH URL, return the original URL
   return repositoryUrl;
+}
+
+async function getRepoDependencies(git: SimpleGit): Promise<string[]> {
+  const packageJsonPath = path.join(git.cwd(), 'package.json');
+
+  try {
+      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+      const dependencies = Object.keys(packageJson.dependencies || {});
+      return dependencies;
+  } catch (error: Error) {
+      console.error(`Error reading package.json: ${error.message}`);
+      return [];
+  }
+}
+
+async function calculatePinnedDependencies(git: SimpleGit, targetVersion: string): Promise<number> {
+  try {
+      const dependencies = await getRepoDependencies(git);
+      
+      if (dependencies.length === 0) {
+          return 1.0; // If there are no dependencies, return 1.0
+      }
+
+      const pinnedDependencies = dependencies.filter(dep => {
+          const version = dep.split('@')[1];
+          return version && version.startsWith(targetVersion);
+      });
+
+      return pinnedDependencies.length / dependencies.length;
+  } catch (error) {
+      console.error(error);
+      return 0;
+  }
+}
+
+async function calculateCodeReviewFraction(git: SimpleGit): Promise<number> {
+  try {
+      const response: Response<string> = await git.raw(['log', '--merges', '--grep=^Merge pull request']);
+      const pullRequests = response.body;
+
+      const allPullRequests = pullRequests.split('\n');
+      const reviewedPullRequests = allPullRequests.filter(pr: any => pr.includes('Reviewed-by:'));
+
+      return reviewedPullRequests.length / allPullRequests.length;
+  } catch (error) {
+      console.error(error);
+      return 0;
+  }
 }
