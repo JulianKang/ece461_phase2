@@ -257,12 +257,12 @@ export async function fetchDataAndCalculateScore(inputUrl: string): Promise<Sche
     const repo = parts[parts.length - 1];
      
     // Log the JSON output
-    console.log(jsonOutput);
+    logger.info(jsonOutput);
     const currentDirectory = __dirname;
     const directoryPath = path.join(currentDirectory, 'cloned_repositories');
-    console.log(fs.existsSync(directoryPath))
+    logger.info(fs.existsSync(directoryPath))
     const zipFilePath = path.join(currentDirectory, `${repo}.zip`);
-    console.log(fs.existsSync(directoryPath));
+    logger.info(fs.existsSync(directoryPath));
 
     if (fs.existsSync(directoryPath)) {
         try {
@@ -275,23 +275,22 @@ export async function fetchDataAndCalculateScore(inputUrl: string): Promise<Sche
             // Write the zip file to disk
             zip.writeZip(zipFilePath);
     
-            console.log(`Zip file created successfully at: ${zipFilePath}`);
+            logger.info(`Zip file created successfully at: ${zipFilePath}`);
     
             // Now you can remove the directory
             try {
                 fs.rmdirSync(directoryPath, { recursive: true });
-                console.log(`Directory ${directoryPath} removed successfully.`);
+                logger.info(`Directory ${directoryPath} removed successfully.`);
             } catch (err) {
-                console.log(`Error removing directory ${directoryPath}: ${err}`);
+                logger.info(`Error removing directory ${directoryPath}: ${err}`);
             }
         } catch (err) {
-            console.log(`Error creating zip file: ${err}`);
+            logger.info(`Error creating zip file: ${err}`);
             fs.rmdirSync(directoryPath, { recursive: true });
         }
     }*/
     const currentDirectory = __dirname;
     const directoryPath = path.join(currentDirectory, 'cloned_repositories');
-    //console.log(fs.existsSync(directoryPath))
     const zipFilePath = path.join(currentDirectory, `${repo}.zip`);
     let base64Zip = ''
     if (fs.existsSync(directoryPath)) {
@@ -308,19 +307,19 @@ export async function fetchDataAndCalculateScore(inputUrl: string): Promise<Sche
           // Convert the buffer to a base64-encoded string
           base64Zip = zipBuffer.toString('base64');
   
-          console.log(`Base64-encoded zip file created successfully.`);
+          logger.info(`Base64-encoded zip file created successfully.`);
   
           // Now you can remove the directory
           try {
               fs.rmdirSync(directoryPath, { recursive: true });
-              console.log(`Directory ${directoryPath} removed successfully.`);
+              logger.info(`Directory ${directoryPath} removed successfully.`);
           } catch (err) {
-              console.log(`Error removing directory ${directoryPath}: ${err}`);
+              logger.info(`Error removing directory ${directoryPath}: ${err}`);
           }
   
           // Return the base64-encoded string
       } catch (err) {
-          console.log(`Error creating zip file: ${err}`);
+          logger.info(`Error creating zip file: ${err}`);
           fs.rmdirSync(directoryPath, { recursive: true });
           // Return an appropriate value or handle the error as needed
       }
@@ -338,8 +337,9 @@ export async function fetchDataAndCalculateScore(inputUrl: string): Promise<Sche
         NetScore: parseFloat(netScoreResult.toFixed(5)), 
       }, 
       url: repoUrl,
-      content: 'TODO',
+      content: base64Zip,
       version: version,
+      reademe: readmeText
     };
     
     // Serialize the output to JSON
@@ -350,20 +350,17 @@ export async function fetchDataAndCalculateScore(inputUrl: string): Promise<Sche
     const repo = parts[parts.length - 1];
      */
     // Log the JSON output
-    console.log(jsonOutput);
-    return output
     return output
   } catch (error) {
     const currentDirectory = __dirname;
     const directoryPath = path.join(currentDirectory, 'cloned_repositories');
-    console.log(fs.existsSync(directoryPath))
     if (fs.existsSync(directoryPath)) {
         try {
           // Remove the directory
           fs.removeSync(directoryPath);
-          console.log(`Directory ${directoryPath} removed successfully.`);
+          logger.info(`Directory ${directoryPath} removed successfully.`);
         } catch (err) {
-          console.log(`Error removing directory ${directoryPath}: ${err}`);
+          logger.info(`Error removing directory ${directoryPath}: ${err}`);
         }
       }
     winston.error(`Error processing URL ${repoUrl}: ${error}`);
@@ -399,7 +396,7 @@ function removeDirectory(dirPath: string): void {
           }
       });
       fs.rmdirSync(dirPath);
-      console.log(`Directory ${dirPath} removed successfully.`);
+      logger.info(`Directory ${dirPath} removed successfully.`);
   }
 }
 

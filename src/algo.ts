@@ -12,8 +12,8 @@ import simpleGit, { SimpleGit, LogResult, DefaultLogFields } from 'simple-git';
 import * as path from 'path';
 import * as fs from 'fs';
 import axios, { AxiosResponse } from 'axios';
-
-
+import logger from './logger'
+const logLevel = parseInt(process.env.LOG_LEVEL as string); 
 interface Contributor {
   name: string;
   commitCount: number;
@@ -70,7 +70,7 @@ export async function calculateBusFactor(repositoryUrl: string, localDirectory: 
 
     return busFactor;
   } catch (error) {
-    console.error(`Error: ${error}`);
+    logger.error(`Error: ${error}`);
     throw error; // Re-throw the error if needed
   }
 }
@@ -116,7 +116,7 @@ async function queryGithubapi(queryendpoint: string): Promise<AxiosResponse<any[
       } else if (response.status === 403) {
         // Implement exponential backoff for 403 responses.
         if (!retries) {
-          console.error(`Rate limit exceeded. Applying exponential backoff.`);
+          logger.error(`Rate limit exceeded. Applying exponential backoff.`);
         }
         retries++;
         const maxRetryDelay = 60000; // Maximum delay between retries (in milliseconds).
@@ -127,7 +127,7 @@ async function queryGithubapi(queryendpoint: string): Promise<AxiosResponse<any[
 
     return response;
   } catch (error) {
-    console.error(`${error}`);
+    logger.error(`${error}`);
     return null;
   }
 }
@@ -144,7 +144,7 @@ export async function RampUp(owner: string, repo:string): Promise<number>{//week
     const response = await queryGithubapi(queryendpoint);
 
     if (!response || !Array.isArray(response.data)) {
-      console.error(`GitHub API failed to return Ramp Up (contributor) information for repository: ${owner}/${repo}`);
+      logger.error(`GitHub API failed to return Ramp Up (contributor) information for repository: ${owner}/${repo}`);
       return 0;
     }
 
@@ -176,7 +176,7 @@ export async function RampUp(owner: string, repo:string): Promise<number>{//week
     const rampUp = averageWeeks ? Math.min(1, thresholdRampUp / averageWeeks) : 0;
     return parseFloat(rampUp.toFixed(5));
   } catch (error: any) {
-    console.error(`Error fetching contributor information from GitHub API: ${error.message}`);
+    logger.error(`Error fetching contributor information from GitHub API: ${error.message}`);
     return 0;
   }
 }
@@ -211,7 +211,7 @@ function convertToHttpsUrl(repositoryUrl: string): string {
     const parts = repositoryUrl.split(':');
     const ownerAndRepo = parts[1].replace('.git', '');
     // Construct the HTTPS URL
-    //console.log('boom')
+    //logger.info('boom')
     return `https://github.com/${ownerAndRepo}`;
   }
   else if (repositoryUrl.includes('git@github.com')) {
@@ -219,7 +219,7 @@ function convertToHttpsUrl(repositoryUrl: string): string {
     const parts = repositoryUrl.split('git@github.com');
     const ownerAndRepo = parts[1]//.replace('.git', '');
     // Construct the HTTPS URL
-    //console.log('boom')
+    //logger.info('boom')
     return `https://github.com${ownerAndRepo}`;
   }
   // If it's not an SSH URL, return the original URL
@@ -236,7 +236,7 @@ async function getRepoDependencies(): Promise<string[]> {
     });
     return dependencies;
   } catch (error: any) {
-    console.error(`Error reading package.json: ${error.message}`);
+    logger.error(`Error reading package.json: ${error.message}`);
     return [];
   }
 }
@@ -248,20 +248,20 @@ export async function calculatePinnedDependencies(): Promise<number> {
     if (dependencies.length === 0) {
       return 1.0; // If there are no dependencies, return 1.0
     }
-    //console.log(dependencies)
+    //logger.info(dependencies)
     const pinnedDependencies = dependencies.filter(dep => {
       const version = dep.split('@')[1];
-      //console.log(version)
-      //console.log(version.match(/(\d+)\.(\d+)/))
+      //logger.info(version)
+      //logger.info(version.match(/(\d+)\.(\d+)/))
       return version && version.match(/(\d+)\.(\d+)/) !== null; // Check if the version follows the major.minor format
     });
-    //console.log(pinnedDependencies)
+    //logger.info(pinnedDependencies)
     // Calculate the fraction of dependencies with major+minor version versus total dependencies
     const fraction = pinnedDependencies.length / dependencies.length;
 
     return fraction;
   } catch (error) {
-    console.error(error);
+    logger.error(`${error}`);
     return 1; // You may want to handle errors more appropriately based on your use case
   }
 }
@@ -269,7 +269,7 @@ export async function calculatePinnedDependencies(): Promise<number> {
 
 /*export async function calculateCodeReviewFraction(localDirectory: string): Promise<number> {
   try {
-    console.log(localDirectory);
+    logger.info(localDirectory);
     const git: SimpleGit = simpleGit({ baseDir: localDirectory });
 
     // Get the number of merged pull requests
@@ -286,13 +286,13 @@ export async function calculatePinnedDependencies(): Promise<number> {
     }
 
     // Calculate the code review fraction
-    console.log(mergedPullRequests)
-    console.log(totalCommits)
+    logger.info(mergedPullRequests)
+    logger.info(totalCommits)
     const codeReviewFraction = mergedPullRequests / totalCommits;
 
     return codeReviewFraction;
   } catch (error) {
-    console.error(error);
+    logger.error(error);
     return 0;
   }
 }*/
@@ -304,7 +304,7 @@ export async function calculatePinnedDependencies(): Promise<number> {
 
     // Get the pull requests
     const pullRequestsResponse = await axios.get(`https://api.github.com/repos/${owner}/${repo}/pulls?state=closed&per_page=100`, { headers });
-    console.log(pullRequestsResponse)
+    logger.info(pullRequestsResponse)
     // Filter pull requests based on the merged_at property
     const mergedPullRequests = pullRequestsResponse.data.filter(
       (pr: any) => pr.merged_at !== null
@@ -329,7 +329,7 @@ export async function calculatePinnedDependencies(): Promise<number> {
 
     return codeReviewFraction;
   } catch (error) {
-    console.error(error);
+    logger.error(error);
     return 0;
   }
 }*/
@@ -376,15 +376,15 @@ export async function calculateCodeReviewFraction(owner: string, repo: string): 
     
     // Count the number of commits associated with pull requests
     const commitsFromPRCount = commitNodes.filter((commitNode: any) => commitNode.associatedPullRequests.totalCount > 0).length;
-    //console.log(commitsFromPRCount)
+    //logger.info(commitsFromPRCount)
     // Calculate the proportion of commits from pull requests
     const proportionFromPR = commitsFromPRCount / commitNodes.length;
 
-    //console.log(`Proportion of commits from pull requests: ${proportionFromPR}`);
+    //logger.info(`Proportion of commits from pull requests: ${proportionFromPR}`);
     
     return proportionFromPR;
   } catch (error) {
-    console.error(error);
+    logger.error(`${error}`);
     return 0;
   }
 }
@@ -399,20 +399,20 @@ export async function getGitHubPackageVersion(owner: string, repo: string): Prom
 
     // Check if there are tags available
     if (tagsResponse.data.length === 0) {
-      console.log('No tags found for the repository.');
+      logger.info('No tags found for the repository.');
       return '1.0';
     }
 
     // Get the latest tag
     const latestTag = tagsResponse.data[0].name || '1.0';
 
-    //console.log('Latest tag:', latestTag);
+    //logger.info('Latest tag:', latestTag);
 
     return latestTag;
   } catch (error: any) {
-    console.error('Error fetching GitHub package version:', error.message);
-    //console.log(owner)
-    //console.log(repo)
+    logger.error(`Error fetching GitHub package version: ${error.message}`);
+    //logger.info(owner)
+    //logger.info(repo)
     return '1.0';
   }
 }
