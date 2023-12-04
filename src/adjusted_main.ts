@@ -246,6 +246,7 @@ export async function fetchDataAndCalculateScore(inputUrl: string): Promise<Sche
       url: repoUrl,
       content: 'TODO',
       version: 'TODO',
+      reademe: readmeText,
     };
     
     // Serialize the output to JSON

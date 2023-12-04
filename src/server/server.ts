@@ -108,7 +108,7 @@ export class PackageManagementAPI {
 	// curently not working???? idk y
 	private async authenticate(req: Request, res: Response, next: NextFunction): Promise<void> {
 		// Check the request path to skip authentication for specific routes
-		if (req.path === '/authenticate' || req.path === '/') {
+		if (req.path == '/authenticate' || req.path == '/') {
 			next(); // Skip authentication for the /authenticate route
 			return;
 		}
@@ -135,6 +135,7 @@ export class PackageManagementAPI {
 	// endpoint: '/' GET
 	private handleDefault(req: Request, res: Response) {
 		res.send('Welcome to the package management API!');
+		res.status(200)
 	}
 	
 	// endpoint: '/packages' POST
@@ -185,7 +186,6 @@ export class PackageManagementAPI {
 	}
 	
 	// zendpoint: '/package' POST
-	// TODO validate helpers and test
 	private async handleCreatePackage(req: Request, res: Response, next: NextFunction): Promise<void> {
 		/**
 		  * 201	
@@ -277,7 +277,6 @@ export class PackageManagementAPI {
 	}
 	
 	// endpoint: '/package/:id' GET
-	// TODO test
 	private async handleGetPackageById(req: Request, res: Response, next: NextFunction): Promise<void> {
 		/**
 		  * 200	
@@ -289,13 +288,11 @@ export class PackageManagementAPI {
 		  * 404	
 		  Package does not exist.
 		  */
-
+		if (!req.params.id) {
+			next(new Server_Error(400, 'Package ID is missing or invalid.'));
+		}
 		if (!Evaluate.isPackageID(req.params.id)) {
-			if (!req.params.id) {
-				next(new Server_Error(400, 'Package ID is missing or invalid.'));
-			} else {
-				next(new Server_Error(400, 'There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.'));
-			}
+			next(new Server_Error(400, 'There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.'));
 		}
 
 		// ID is valid format
@@ -427,21 +424,15 @@ export class PackageManagementAPI {
 		  * 500	
 		  The package rating system choked on at least one of the metrics.
 		  */
+		if (!req.params.id) {
+			next(new Server_Error(400, 'Package ID is missing or invalid.'));
+		}
 		if (!Evaluate.isPackageID(req.params.id)) {
-			if (!req.params.id) {
-				next(new Server_Error(400, 'Package ID is missing or invalid.'));
-			} else {
-				next(new Server_Error(400, 'There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.'));
-			}
+			next(new Server_Error(400, 'There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.'));
 		}
 
 		// ID is valid format
 		const packageId: Schemas.PackageID = req.params.id;
-		
-		// Check if the package ID is provided
-		if (!packageId) {
-			next(new Server_Error(400, 'Package ID is missing or invalid.'));
-		}
 		
 		// Perform rating logic or database updates here
 		// For demonstration purposes, let's assume you have a package ratings database and a function ratePackage
@@ -606,7 +597,7 @@ export class PackageManagementAPI {
 		* 404	
 		No package found under this regex.
 		*/
-		if (!Evaluate.isPackageRegEx(req.body.RegEx)) {
+		if (!Evaluate.isPackageRegEx(req.body.data)) {
 			if (!req.body.RegEx) {
 				next(new Server_Error(400, 'Regular expression pattern is missing.'));
 			} else {
@@ -615,7 +606,7 @@ export class PackageManagementAPI {
 		}
 
 		// RegEx is valid format
-		const regexPattern: Schemas.PackageRegEx = req.body.RegEx; // The property should match the name in the request body
+		const regexPattern: Schemas.PackageRegEx = req.body.data; // The property should match the name in the request body
 		
 		// Perform a search using the regex pattern
 		// For demonstration purposes, let's assume you have a packages database and a function searchPackagesByRegex
@@ -651,7 +642,7 @@ export class PackageManagementAPI {
 // import request from 'supertest';
 
 
-const port = 3000
+const port = 8080
 const apiServer = new PackageManagementAPI();
 logger.info(`Starting server on port ${port}`);
 apiServer.start(port);
