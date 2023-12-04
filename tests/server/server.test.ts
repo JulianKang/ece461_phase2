@@ -39,7 +39,7 @@ let app: express.Application;
 describe('Server', () => {
     beforeAll(() => {
         apiServer = new PackageManagementAPI();
-        apiServer.start(3000);
+        apiServer.start(8080);
         app = apiServer.getApp();
     });
 
@@ -128,7 +128,6 @@ describe('Server', () => {
 
         });
 
-
         describe('/package/byRegEx', () => {
             it('should return 200', async () => {
                 ValidConstants.RegEx.forEach(async (curr) => {
@@ -174,21 +173,50 @@ describe('Server', () => {
                     expect(Evaluate.isPackage(response.body)).toBeTruthy();
                 });
             });
+            //  i can't figure out a way to test this, always returns 404
+            // for '', ' ', null, undefined
+            // TODO not prioritizing this rn 
             it.skip('should return 400', async () => {
-                InvalidConstants.anyList.forEach(async (curr) => {
-                    const response = await request(app).get(`/package/${curr}`)
-                                                       .send({user: normalUser});
-                    expect(response.statusCode).toBe(400);
-                });
+                const curr = '';
+                const response = await request(app).get(`/package/${curr}`)
+                                                   .send({user: normalUser});
+                expect(response.statusCode).toBe(400);
             });
             it('should return 404', async () => {
-
+                InvalidConstants.NonPackageIDs.forEach(async (curr) => {
+                    const response = await request(app).get(`/package/${curr}`)
+                                                       .send({user: normalUser});
+                    expect(response.statusCode).toBe(404);
+                });
             });
         });
 
         
-        describe.skip('/package/:id/rate', () => {
-
+        describe('/package/:id/rate', () => {
+            it('should return 200', async () => {
+                ValidConstants.PackageIDs.forEach(async (curr) => {
+                    const response = await request(app).get(`/package/${curr}/rate`)
+                                                       .send({user: normalUser});
+                    expect(response.statusCode).toBe(200);
+                    expect(Evaluate.isPackageRating(response.body)).toBeTruthy();
+                });
+            });
+            // same problem as '/package/:id' above
+            it.skip('should return 400', async () => {
+                ['', ' ', undefined, null].forEach(async (curr) => {
+                    const response = await request(app).get(`/package/${curr}/rate`)
+                                                       .send({user: normalUser});
+                    // console.log("curr: '", curr, "' response: ", response.body)
+                    expect(response.statusCode).toBe(400);
+                });
+            });
+            it('should return 404', async () => {
+                InvalidConstants.NonPackageIDs.forEach(async (curr) => {
+                    const response = await request(app).get(`/package/${curr}/rate`)
+                                                       .send({user: normalUser});
+                    expect(response.statusCode).toBe(404);
+                });
+            });
         });
 
         

@@ -86,6 +86,7 @@ export namespace ValidConstants {
     
 // NOT COMPREHENSIVE LIST, JUST WHAT WE ARE TESTING
 export namespace InvalidConstants {
+    export const NonPackageIDs: Schemas.PackageID[] = ["p1-101", "p1-111", "p2-101", "p3-201"];
     export const UnsuccessfulRegEx: Schemas.PackageRegEx[] = ["regex4", "regex5", "regex6"];
     export const anyList: any[] = [1, 2, {}, {Name: "name", Garbage: "garbage"}, {Name: "name", Version: "1.0.0)\n"}, [], null, undefined, true, false, "string", "package11", "package12", "package13", "package4"];
     export const UnsuccessfulPackageQuerys: Schemas.PackageQuery[] = [
@@ -157,7 +158,20 @@ export namespace MockedDBCommunicator {
     }
 
     export async function getPackageRatings(id: Schemas.PackageID): Promise<Schemas.PackageRating | null> {
-        return null;
+        if(!(ValidConstants.PackageIDs.some(x => x===id))) {
+            return null;
+        }
+
+        return {
+            BusFactor: 0.5,
+            Correctness: 0.5,
+            RampUp: 0.5,
+            ResponsiveMaintainer: 0.5,
+            LicenseScore: 0.5,
+            GoodPinningPractice: 0.5,
+            PullRequest: 0.5,
+            NetScore: 0.5,            
+        }
     }
 
     export async function deletePackageByName(name: Schemas.PackageName): Promise<boolean> {
