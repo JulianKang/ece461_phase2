@@ -11,12 +11,13 @@ You should have received a copy of the GNU General Public License along with Foo
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import axios from 'axios';
-import { calculateBusFactor, netScore, responsiveMaintainer, licenseCheck, calculateCorrectnessScore, RampUp } from './algo';
+import { calculateBusFactor, netScore, responsiveMaintainer, licenseCheck, calculateCorrectnessScore, RampUp,  calculatePinnedDependencies, calculateCodeReviewFraction, getGitHubPackageVersion} from './algo';
 import { getInfo, processUrls } from './parser';
 import * as dotenv from 'dotenv'
 import { json } from 'node:stream/consumers';
 import { exit } from 'process';
 import * as Schemas from './schemas';
+import logger from './logger';
 const winston = require('winston'); // Import Winston using CommonJS syntax
 const AdmZip = require('adm-zip');
 winston.remove(winston.transports.Console); // Remove the default console transport
@@ -61,7 +62,7 @@ function createOrClearDirectory(directoryPath: string) {
       if (fs.lstatSync(filePath).isDirectory()) {
         // Recursively remove directories
         createOrClearDirectory(filePath);
-        fs.rmdirSync(filePath);
+        fs.rm(filePath, { recursive: true })
       } else {
         // Delete files
         fs.unlinkSync(filePath);
@@ -186,8 +187,10 @@ export async function fetchDataAndCalculateScore(inputUrl: string): Promise<Sche
         break;
       }
     }
-
-    const rampUpResult = RampUp(weeklyCommitCount);
+    const parts = repoUrl.split('/');
+    const repo = parts[parts.length - 1];
+    const owner = parts[parts.length -2];
+    const rampUpResult = await RampUp(owner, repo);
     // Fetch and process issues data
     const issues = await fetchAndProcessIssues(repoUrl);
 
@@ -199,9 +202,13 @@ export async function fetchDataAndCalculateScore(inputUrl: string): Promise<Sche
       localRepositoryDirectory // Replace with the local directory path
     );
 
+
+    const DependencyFraction = await calculatePinnedDependencies();
+    const PullRequestFraction = await calculateCodeReviewFraction(owner,repo);
     const responsiveMaintainerResult = responsiveMaintainer(
       lastCommitDate.getTime()
     );
+    const version = await getGitHubPackageVersion(owner, repo);
 
     const licenseCheckResult = licenseCheck(readmeText);
     
@@ -218,20 +225,22 @@ export async function fetchDataAndCalculateScore(inputUrl: string): Promise<Sche
       busFactorResult,
       responsiveMaintainerResult,
       correctnessScore, // Include the correctness score
-      rampUpResult // Use the retrieved weeklyCommits value
-    );
+      rampUpResult, // Use the retrieved weeklyCommits value
+      DependencyFraction,
+      PullRequestFraction
+      );
     winston.info(`NET_SCORE: ${netScoreResult}`);
-
+  
     // Return the result for NDJSON formatting
-    const output: Schemas.DataFetchedFromURL = {
+/*    const output: Schemas.DataFetchedFromURL = {
       ratings: {
         BusFactor: parseFloat(busFactorResult.toFixed(5)),
         Correctness: parseFloat(correctnessScore.toFixed(5)),
         RampUp: parseFloat(rampUpResult.toFixed(5)),
         ResponsiveMaintainer: parseFloat(responsiveMaintainerResult.toFixed(5)),
         LicenseScore: parseFloat(licenseCheckResult.toFixed(5)),
-        GoodPinningPractice: 0.5, // TODO
-        PullRequest: 0.5, // TODO
+        GoodPinningPractice: DependencyFraction, // TODO
+        PullRequest: PullRequestFraction, // TODO
         NetScore: parseFloat(netScoreResult.toFixed(5)), 
       }, 
       url: repoUrl,
@@ -245,10 +254,8 @@ export async function fetchDataAndCalculateScore(inputUrl: string): Promise<Sche
     const parts = repositoryUrl.split('/');
     const owner = parts[parts.length - 2];
     const repo = parts[parts.length - 1];
-     */
+     
     // Log the JSON output
-    const parts = repoUrl.split('/');
-    const repo = parts[parts.length - 1];
     console.log(jsonOutput);
     const currentDirectory = __dirname;
     const directoryPath = path.join(currentDirectory, 'cloned_repositories');
@@ -280,7 +287,70 @@ export async function fetchDataAndCalculateScore(inputUrl: string): Promise<Sche
             console.log(`Error creating zip file: ${err}`);
             fs.rmdirSync(directoryPath, { recursive: true });
         }
-    }
+    }*/
+    const currentDirectory = __dirname;
+    const directoryPath = path.join(currentDirectory, 'cloned_repositories');
+    //console.log(fs.existsSync(directoryPath))
+    const zipFilePath = path.join(currentDirectory, `${repo}.zip`);
+    let base64Zip = ''
+    if (fs.existsSync(directoryPath)) {
+      try {
+          // Create a new instance of AdmZip
+          const zip: typeof AdmZip = new AdmZip();
+  
+          // Add the entire directory to the zip file
+          addFolderToZip(directoryPath, zip);
+  
+          // Get the zip file as a buffer
+          const zipBuffer = zip.toBuffer();
+  
+          // Convert the buffer to a base64-encoded string
+          base64Zip = zipBuffer.toString('base64');
+  
+          console.log(`Base64-encoded zip file created successfully.`);
+  
+          // Now you can remove the directory
+          try {
+              fs.rmdirSync(directoryPath, { recursive: true });
+              console.log(`Directory ${directoryPath} removed successfully.`);
+          } catch (err) {
+              console.log(`Error removing directory ${directoryPath}: ${err}`);
+          }
+  
+          // Return the base64-encoded string
+      } catch (err) {
+          console.log(`Error creating zip file: ${err}`);
+          fs.rmdirSync(directoryPath, { recursive: true });
+          // Return an appropriate value or handle the error as needed
+      }
+    }  
+
+    const output: Schemas.DataFetchedFromURL = {
+      ratings: {
+        BusFactor: parseFloat(busFactorResult.toFixed(5)),
+        Correctness: parseFloat(correctnessScore.toFixed(5)),
+        RampUp: parseFloat(rampUpResult.toFixed(5)),
+        ResponsiveMaintainer: parseFloat(responsiveMaintainerResult.toFixed(5)),
+        LicenseScore: parseFloat(licenseCheckResult.toFixed(5)),
+        GoodPinningPractice: DependencyFraction, // TODO
+        PullRequest: PullRequestFraction, // TODO
+        NetScore: parseFloat(netScoreResult.toFixed(5)), 
+      }, 
+      url: repoUrl,
+      content: 'TODO',
+      version: version,
+    };
+    
+    // Serialize the output to JSON
+    const jsonOutput = JSON.stringify(output);
+    /**
+    const parts = repositoryUrl.split('/');
+    const owner = parts[parts.length - 2];
+    const repo = parts[parts.length - 1];
+     */
+    // Log the JSON output
+    console.log(jsonOutput);
+    return output
     return output
   } catch (error) {
     const currentDirectory = __dirname;
