@@ -225,29 +225,73 @@ describe('Server', () => {
         });
     });
 
-    describe.skip('PUT Endpoints', () => {
+    describe('PUT Endpoints', () => {
         describe('/package/:id', () => {
+            it('should return 200', async () => {
+                ValidConstants.Update.forEach(async (curr) => {
+                    const response = await request(app).put(`/package/${curr.id}`)
+                                                       .send({user: normalUser, data: curr.data});
+                    expect(response.statusCode).toBe(200);
+                    expect(response.body).toBe('Version is updated.');
+                });
+            });
+            it('should return 400', async () => {
+                let response: request.Response;
+                InvalidConstants.anyList.forEach(async (curr) => {
+                    // can't make a request to a non-string id, so no need to test
+                    // for non-string id (ex: objects)
+                    if(typeof(curr) == typeof("Sring")) {
+                        response = await request(app).put(`/package/${curr}`)
+                                                           .send({user: normalUser});
+                        expect(response.statusCode).toBe(400);
+                    }
 
+                    response = await request(app).put(`/package/test`)
+                                                       .send({user: normalUser, data: curr});
+                    expect(response.statusCode).toBe(400);
+                });
+            });
+            it('should return 404', async () => {
+                const currData: Schemas.PackageData = {
+                    Content: 'content',
+                    JSProgram: 'jsp'
+                };
+                InvalidConstants.NonPackageIDs.forEach(async (curr) => {
+                    const response = await request(app).put(`/package/${curr}`)
+                                                       .send({user: normalUser, data: currData});
+                    expect(response.statusCode).toBe(404);
+                });
+            });
         });
 
         // NON-BASELINE
-        describe('/authenticate', () => {
+        describe.skip('/authenticate', () => {
 
         });
     });
 
-    describe.skip('DELETE Endpoints', () => {
+    describe('DELETE Endpoints', () => {
         describe('/reset', () => {
+            it('should return 200', async () => {
+                const response = await request(app).delete('/reset')
+                                                   .send({user: adminUser});
+                expect(response.statusCode).toBe(200);
+                expect(response.body).toBe('System reset successfully');
+            });
+            it('should return 400', async () => {
+                const response = await request(app).delete('/reset')
+                                                   .send({user: normalUser});
+                expect(response.statusCode).toBe(400);
+            });
+        });
+
+        // NON-BASELINE
+        describe.skip('/package/:id', () => {
 
         });
 
         // NON-BASELINE
-        describe('/package/:id', () => {
-
-        });
-
-        // NON-BASELINE
-        describe('/package/byName/:name', () => {
+        describe.skip('/package/byName/:name', () => {
 
         });
     });

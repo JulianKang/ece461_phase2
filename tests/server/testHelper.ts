@@ -6,6 +6,36 @@ import * as Schemas from "../../src/schemas";
 
 // NOT COMPREHENSIVE LIST, JUST WHAT WE ARE TESTING
 export namespace ValidConstants {
+    export const Update: {id: Schemas.PackageID, data: Schemas.PackageData}[] = [
+        {
+            id: "p1-100",
+            data: {
+                Content: 'package1_ZIP1',
+                JSProgram: 'jsp1100'
+            }
+        },
+        {
+            id: "p1-110",
+            data: {
+                Content: 'package1_ZIP2',
+                JSProgram: 'jsp1110'
+            }
+        },
+        {
+            id: "p2-100",
+            data: {
+                Content: 'package2_ZIP1',
+                JSProgram: 'jsp2100'
+            }
+        },
+        {
+            id: "p3-200",
+            data: {
+                Content: 'package3_ZIP1',
+                JSProgram: 'jsp3200'
+            }
+        }
+    ];
     export const RegEx: Schemas.PackageRegEx[] = ["regex1", "regex2", "regex3"];
     export const Create: Schemas.PackageData[] = [
         {
@@ -128,7 +158,7 @@ export namespace MockedDBCommunicator {
     }
 
     export async function resetRegistry(user: Schemas.User): Promise<boolean> {
-        return false;
+        return user.isAdmin;
     }
 
     export async function getPackageById(id: Schemas.PackageID): Promise<Schemas.Package | null> {
@@ -150,7 +180,11 @@ export namespace MockedDBCommunicator {
     }
 
     export async function updatePackageById(id: Schemas.PackageID, packageData: Schemas.Package): Promise<boolean> {
-        return false;
+        if(!(ValidConstants.PackageIDs.some(x => x===id))) {
+            return false;
+        }
+
+        return true;
     }
 
     export async function deletePackageById(id: Schemas.PackageID): Promise<boolean> {

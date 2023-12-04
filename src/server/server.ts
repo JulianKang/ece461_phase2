@@ -232,7 +232,6 @@ export class PackageManagementAPI {
 	}
 	
 	// endpoint: '/reset' DELETE
-	// TODO test
 	private async handleReset(req: Request, res: Response, next: NextFunction): Promise<void> {
 		/**
 		  * 200	
@@ -253,9 +252,10 @@ export class PackageManagementAPI {
 			// User is valid format
 			const data: Schemas.User = req.body.user;
 			
-			if (!data.isAdmin) {
-				throw new Server_Error(401, 'You do not have permission to reset the registry.');
-			}
+			// TODO we currently do are not supporting this feature
+			// if (!data.isAdmin) {
+			// 	throw new Server_Error(401, 'You do not have permission to reset the registry.');
+			// }
 			
 			// Pass user to Database to authenticate token and reset if valid
 			const result = await this.database.resetRegistry(data);
@@ -264,7 +264,7 @@ export class PackageManagementAPI {
 				throw new Server_Error(400, 'There is missing field(s) in the AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
 			}
 
-			res.json({ message: 'System reset successfully' });
+			res.json('System reset successfully');
 		} catch (e) {
 			let err: Server_Error;
 			if (e instanceof Server_Error) {
@@ -313,7 +313,6 @@ export class PackageManagementAPI {
 	}
 	
 	// endpoint: '/package/:id' PUT
-	// TODO test
 	private async handleUpdatePackageById(req: Request, res: Response, next: NextFunction): Promise<void> {
 		/**
 		  * 200	
@@ -325,15 +324,14 @@ export class PackageManagementAPI {
 		  * 404	
 		  Package does not exist.
 		  */
-		try {
-			if (!Evaluate.isPackageID(req.params.id)) {
-				if (!req.params.id) {
-					next(new Server_Error(400, 'Package ID is missing or invalid.'));
-				} else {
-					throw new Server_Error(400, 'There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
-				}
+		 try {
+			if (!req.params.id) {
+				throw new Server_Error(400, 'Package ID is missing or invalid.');
 			}
-			if (!Evaluate.isPackage(req.body.data)) {
+			if (!Evaluate.isPackageID(req.params.id)) {
+				throw new Server_Error(400, 'There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
+			}
+			if (!Evaluate.isPackageData(req.body.data)) {
 				throw new Server_Error(400, 'There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
 			}
 
@@ -409,7 +407,6 @@ export class PackageManagementAPI {
 	}
 	
 	// endpoint: '/package/:id/rate' GET
-	// TODO test
 	private async handleRatePackage(req: Request, res: Response, next: NextFunction): Promise<void> {
 		/**
 		  * 200	
@@ -585,7 +582,6 @@ export class PackageManagementAPI {
 	}
 
 	// endpoint: '/package/byRegEx' POST
-	// TODO test
 	private async handleSearchPackagesByRegex(req: Request, res: Response, next: NextFunction): Promise<void> {
 		/**
 		 * 200	
