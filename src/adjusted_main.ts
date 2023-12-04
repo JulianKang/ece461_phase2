@@ -332,8 +332,8 @@ export async function fetchDataAndCalculateScore(inputUrl: string): Promise<Sche
         RampUp: parseFloat(rampUpResult.toFixed(5)),
         ResponsiveMaintainer: parseFloat(responsiveMaintainerResult.toFixed(5)),
         LicenseScore: parseFloat(licenseCheckResult.toFixed(5)),
-        GoodPinningPractice: DependencyFraction, // TODO
-        PullRequest: PullRequestFraction, // TODO
+        GoodPinningPractice: parseFloat(DependencyFraction.toFixed(5)),
+        PullRequest: parseFloat(PullRequestFraction.toFixed(5)), // TODO
         NetScore: parseFloat(netScoreResult.toFixed(5)), 
       }, 
       url: repoUrl,
