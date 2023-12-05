@@ -88,7 +88,7 @@ class DBCommunicator {
   /**
    * Establishes a connection to the MySQL database.
    */
-  private async connect() {
+  public async connect() {
     try {
       this.connection = await mysql.createConnection(dbConfig);
       logger.info('Connected to MySQL database'); // replace with logger when we gain access to it
