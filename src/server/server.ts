@@ -369,6 +369,8 @@ export class PackageManagementAPI {
 	// TODO test
 	// not baseline
 	private async handleDeletePackageById(req: Request, res: Response, next: NextFunction): Promise<void> {
+		next(new Server_Error(501, 'This system does not support Delete by ID.'));
+		return;
 		/**
 		  * 200	
 		  Version is deleted.
@@ -546,6 +548,8 @@ export class PackageManagementAPI {
 	// TODO test
 	// not baseline
 	private async handleDeletePackageByName(req: Request, res: Response, next: NextFunction): Promise<void> {
+		next(new Server_Error(501, 'This system does not support Delete by Name.'));
+		return;
 		/**
 		 * 200	
 		 Package is deleted.
