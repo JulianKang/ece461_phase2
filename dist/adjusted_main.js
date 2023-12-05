@@ -78,7 +78,9 @@ var axios_1 = __importDefault(require("axios"));
 var algo_1 = require("./algo");
 var parser_1 = require("./parser");
 var dotenv = __importStar(require("dotenv"));
+var logger_1 = __importDefault(require("./logger"));
 var winston = require('winston'); // Import Winston using CommonJS syntax
+var AdmZip = require('adm-zip');
 winston.remove(winston.transports.Console); // Remove the default console transport
 dotenv.config();
 // Check if GITHUB_TOKEN is set and provide a default value if not
@@ -112,7 +114,7 @@ function createOrClearDirectory(directoryPath) {
             if (fs.lstatSync(filePath).isDirectory()) {
                 // Recursively remove directories
                 createOrClearDirectory(filePath);
-                fs.rmdirSync(filePath);
+                fs.rm(filePath, { recursive: true });
             }
             else {
                 // Delete files
@@ -127,7 +129,7 @@ function createOrClearDirectory(directoryPath) {
 // Function to fetch the number of weekly commits and other required data
 function fetchDataAndCalculateScore(inputUrl) {
     return __awaiter(this, void 0, void 0, function () {
-        var repoUrl, packageName, githubRepo, githubToken, headers, graphqlEndpoint, parsedURL, queries, response, data, lastCommitDate, readmeText, oneWeekAgo, weeklyCommitCount, _i, _a, commit, commitDate, rampUpResult, issues, correctnessScore, busFactorResult, responsiveMaintainerResult, licenseCheckResult, netScoreResult, output, jsonOutput, currentDirectory, directoryPath, error_1, currentDirectory, directoryPath;
+        var repoUrl, packageName, githubRepo, githubToken, headers, graphqlEndpoint, parsedURL, queries, response, data, lastCommitDate, readmeText, oneWeekAgo, weeklyCommitCount, _i, _a, commit, commitDate, parts, repo, owner, rampUpResult, issues, correctnessScore, busFactorResult, DependencyFraction, PullRequestFraction, responsiveMaintainerResult, version, licenseCheckResult, netScoreResult, currentDirectory, directoryPath, zipFilePath, base64Zip, zip, zipBuffer, output, jsonOutput, error_1, currentDirectory, directoryPath;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -167,7 +169,7 @@ function fetchDataAndCalculateScore(inputUrl) {
                     queries = "query {\n    repository(owner: \"".concat(parsedURL.owner, "\", name: \"").concat(parsedURL.repoName, "\") {\n      defaultBranchRef {\n        target {\n          ... on Commit {\n            history(first: 1) {\n              edges {\n                node {\n                  committedDate\n                }\n              }\n            }\n          }\n        }\n      }\n      ObjectReadme: object(expression: \"HEAD:Readme.md\") {\n        ... on Blob {\n          text\n        }\n      }\n      ObjectREADME: object(expression: \"HEAD:README.md\") {\n        ... on Blob {\n          text\n        }\n      }\n    }\n  }");
                     _b.label = 4;
                 case 4:
-                    _b.trys.push([4, 8, , 9]);
+                    _b.trys.push([4, 12, , 13]);
                     return [4 /*yield*/, axios_1.default.post(graphqlEndpoint, { query: queries }, { headers: headers })];
                 case 5:
                     response = _b.sent();
@@ -200,17 +202,31 @@ function fetchDataAndCalculateScore(inputUrl) {
                             break;
                         }
                     }
-                    rampUpResult = (0, algo_1.RampUp)(weeklyCommitCount);
-                    return [4 /*yield*/, fetchAndProcessIssues(repoUrl)];
+                    parts = repoUrl.split('/');
+                    repo = parts[parts.length - 1];
+                    owner = parts[parts.length - 2];
+                    return [4 /*yield*/, (0, algo_1.RampUp)(owner, repo)];
                 case 6:
+                    rampUpResult = _b.sent();
+                    return [4 /*yield*/, fetchAndProcessIssues(repoUrl)];
+                case 7:
                     issues = _b.sent();
                     correctnessScore = (0, algo_1.calculateCorrectnessScore)(issues);
                     return [4 /*yield*/, (0, algo_1.calculateBusFactor)(repoUrl, // Replace with the actual repository URL
                         localRepositoryDirectory // Replace with the local directory path
                         )];
-                case 7:
+                case 8:
                     busFactorResult = _b.sent();
+                    return [4 /*yield*/, (0, algo_1.calculatePinnedDependencies)()];
+                case 9:
+                    DependencyFraction = _b.sent();
+                    return [4 /*yield*/, (0, algo_1.calculateCodeReviewFraction)(owner, repo)];
+                case 10:
+                    PullRequestFraction = _b.sent();
                     responsiveMaintainerResult = (0, algo_1.responsiveMaintainer)(lastCommitDate.getTime());
+                    return [4 /*yield*/, (0, algo_1.getGitHubPackageVersion)(owner, repo)];
+                case 11:
+                    version = _b.sent();
                     licenseCheckResult = (0, algo_1.licenseCheck)(readmeText);
                     winston.debug("Weekly Commit Count: ".concat(weeklyCommitCount));
                     winston.debug("Ramp Up Score: ".concat(rampUpResult));
@@ -219,59 +235,114 @@ function fetchDataAndCalculateScore(inputUrl) {
                     winston.debug("Responsive Maintainer Score: ".concat(responsiveMaintainerResult));
                     winston.debug("License Score: ".concat(licenseCheckResult));
                     netScoreResult = (0, algo_1.netScore)(licenseCheckResult, busFactorResult, responsiveMaintainerResult, correctnessScore, // Include the correctness score
-                    rampUpResult // Use the retrieved weeklyCommits value
-                    );
+                    rampUpResult, // Use the retrieved weeklyCommits value
+                    DependencyFraction, PullRequestFraction);
                     winston.info("NET_SCORE: ".concat(netScoreResult));
-                    output = {
-                        URL: repoUrl,
-                        NET_SCORE: parseFloat(netScoreResult.toFixed(5)),
-                        RAMP_UP_SCORE: parseFloat(rampUpResult.toFixed(5)),
-                        CORRECTNESS_SCORE: parseFloat(correctnessScore.toFixed(5)),
-                        BUS_FACTOR_SCORE: parseFloat(busFactorResult.toFixed(5)),
-                        RESPONSIVE_MAINTAINER_SCORE: parseFloat(responsiveMaintainerResult.toFixed(5)),
-                        LICENSE_SCORE: parseFloat(licenseCheckResult.toFixed(5)),
-                    };
-                    jsonOutput = JSON.stringify(output);
-                    // Log the JSON output
-                    console.log(jsonOutput);
                     currentDirectory = __dirname;
                     directoryPath = path.join(currentDirectory, 'cloned_repositories');
-                    console.log(fs.existsSync(directoryPath));
+                    zipFilePath = path.join(currentDirectory, "".concat(repo, ".zip"));
+                    base64Zip = '';
                     if (fs.existsSync(directoryPath)) {
                         try {
-                            // Remove the directory
-                            fs.removeSync(directoryPath);
-                            console.log("Directory ".concat(directoryPath, " removed successfully."));
+                            zip = new AdmZip();
+                            // Add the entire directory to the zip file
+                            addFolderToZip(directoryPath, zip);
+                            zipBuffer = zip.toBuffer();
+                            // Convert the buffer to a base64-encoded string
+                            base64Zip = zipBuffer.toString('base64');
+                            logger_1.default.info("Base64-encoded zip file created successfully.");
+                            // Now you can remove the directory
+                            try {
+                                fs.rmdirSync(directoryPath, { recursive: true });
+                                logger_1.default.info("Directory ".concat(directoryPath, " removed successfully."));
+                            }
+                            catch (err) {
+                                logger_1.default.info("Error removing directory ".concat(directoryPath, ": ").concat(err));
+                            }
+                            // Return the base64-encoded string
                         }
                         catch (err) {
-                            console.log("Error removing directory ".concat(directoryPath, ": ").concat(err));
+                            logger_1.default.info("Error creating zip file: ".concat(err));
+                            fs.rmdirSync(directoryPath, { recursive: true });
+                            // Return an appropriate value or handle the error as needed
                         }
                     }
+                    output = {
+                        ratings: {
+                            BusFactor: parseFloat(busFactorResult.toFixed(5)),
+                            Correctness: parseFloat(correctnessScore.toFixed(5)),
+                            RampUp: parseFloat(rampUpResult.toFixed(5)),
+                            ResponsiveMaintainer: parseFloat(responsiveMaintainerResult.toFixed(5)),
+                            LicenseScore: parseFloat(licenseCheckResult.toFixed(5)),
+                            GoodPinningPractice: parseFloat(DependencyFraction.toFixed(5)),
+                            PullRequest: parseFloat(PullRequestFraction.toFixed(5)), // TODO
+                            NetScore: parseFloat(netScoreResult.toFixed(5)),
+                        },
+                        url: repoUrl,
+                        content: base64Zip,
+                        version: version,
+                        reademe: readmeText
+                    };
+                    jsonOutput = JSON.stringify(output);
+                    /**
+                    const parts = repositoryUrl.split('/');
+                    const owner = parts[parts.length - 2];
+                    const repo = parts[parts.length - 1];
+                     */
+                    // Log the JSON output
                     return [2 /*return*/, output];
-                case 8:
+                case 12:
                     error_1 = _b.sent();
                     currentDirectory = __dirname;
                     directoryPath = path.join(currentDirectory, 'cloned_repositories');
-                    console.log(fs.existsSync(directoryPath));
                     if (fs.existsSync(directoryPath)) {
                         try {
                             // Remove the directory
                             fs.removeSync(directoryPath);
-                            console.log("Directory ".concat(directoryPath, " removed successfully."));
+                            logger_1.default.info("Directory ".concat(directoryPath, " removed successfully."));
                         }
                         catch (err) {
-                            console.log("Error removing directory ".concat(directoryPath, ": ").concat(err));
+                            logger_1.default.info("Error removing directory ".concat(directoryPath, ": ").concat(err));
                         }
                     }
                     winston.error("Error processing URL ".concat(repoUrl, ": ").concat(error_1));
                     //process.exit(1); // Exit with a failure status code (1) on error
                     throw new Error("Error processing URL ".concat(repoUrl, ": ").concat(error_1));
-                case 9: return [2 /*return*/];
+                case 13: return [2 /*return*/];
             }
         });
     });
 }
 exports.fetchDataAndCalculateScore = fetchDataAndCalculateScore;
+function addFolderToZip(folderPath, zip) {
+    var files = fs.readdirSync(folderPath);
+    files.forEach(function (file) {
+        var filePath = path.join(folderPath, file);
+        var stats = fs.lstatSync(filePath);
+        if (stats.isDirectory()) {
+            addFolderToZip(filePath, zip);
+        }
+        else if (stats.isFile()) {
+            zip.addLocalFile(filePath);
+        }
+        // Ignore symbolic links
+    });
+}
+function removeDirectory(dirPath) {
+    if (fs.existsSync(dirPath)) {
+        fs.readdirSync(dirPath).forEach(function (entry) {
+            var entryPath = path.join(dirPath, entry);
+            if (fs.lstatSync(entryPath).isDirectory()) {
+                removeDirectory(entryPath);
+            }
+            else {
+                fs.unlinkSync(entryPath);
+            }
+        });
+        fs.rmdirSync(dirPath);
+        logger_1.default.info("Directory ".concat(dirPath, " removed successfully."));
+    }
+}
 function processAndCalculateScoresForUrls(filePath, outputStream) {
     return __awaiter(this, void 0, void 0, function () {
         var urls, _i, urls_1, repoUrl, result, error_2;

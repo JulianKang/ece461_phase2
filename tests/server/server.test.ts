@@ -231,9 +231,9 @@ describe('Server', () => {
     describe('PUT Endpoints', () => {
         describe('/package/:id', () => {
             it('should return 200', async () => {
-                ValidConstants.Update.forEach(async (curr) => {
-                    const response = await request(app).put(`/package/${curr.id}`)
-                                                       .send({user: normalUser, data: curr.data});
+                ValidConstants.Packages.forEach(async (curr) => {
+                    const response = await request(app).put(`/package/${curr.metadata.ID}`)
+                                                       .send({user: normalUser, data: curr});
                     expect(response.statusCode).toBe(200);
                     expect(response.body).toBe('Version is updated.');
                 });
@@ -257,13 +257,20 @@ describe('Server', () => {
                 });
             });
             it('should return 404', async () => {
-                const currData: Schemas.PackageData = {
-                    Content: 'content',
-                    JSProgram: 'jsp'
-                };
+                // let currPackage: Schemas.Package = 
                 InvalidConstants.NonPackageIDs.forEach(async (curr) => {
                     const response = await request(app).put(`/package/${curr}`)
-                                                       .send({user: normalUser, data: currData});
+                                                       .send({user: normalUser, data: {
+                                                        metadata: {
+                                                            Name: "package",
+                                                            Version: "1.0.0",
+                                                            ID: `${curr}` 
+                                                        },
+                                                        data: {
+                                                            Content: "content",
+                                                            JSProgram: "jsp"
+                                                        }
+                                                    }});
                     expect(response.statusCode).toBe(404);
                 });
             });
