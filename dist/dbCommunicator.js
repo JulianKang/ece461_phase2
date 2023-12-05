@@ -269,20 +269,45 @@ var DBCommunicator = /** @class */ (function () {
     };
     DBCommunicator.prototype.getPackageMetadata = function (packageName, packageVersion) {
         return __awaiter(this, void 0, void 0, function () {
-            var sql, values, result, packageMetaList, i, packageID, newPackageName, packageMeta;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
+            var sql, values, _a, major, minor, patch, _b, major, minor, patch, _c, starMajor, startMinor, startPatch, endMajor, endMinor, endPatch, result, packageMetaList, i, packageID, newPackageName, packageMeta;
+            return __generator(this, function (_d) {
+                switch (_d.label) {
                     case 0:
-                        values = [packageName, packageVersion];
-                        if (packageName == "*") {
+                        if (packageVersion.includes("~")) {
+                            sql = "SELECT * FROM packages WHERE name = ? AND CAST(SUBSTRING_INDEX(version, '.', 1) AS UNSIGNED) = ? AND CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(version, '.', -2), '.', 1) AS UNSIGNED) = ? AND CAST(SUBSTRING_INDEX(version, '.', -1) AS UNSIGNED) >= ?;";
+                            _a = packageVersion
+                                .replace(/[^\d.^-]/g, '') // Remove non-numeric, ^, ~ characters
+                                .split('.')
+                                .map(Number), major = _a[0], minor = _a[1], patch = _a[2];
+                            values = [packageName, major, minor, patch];
+                        }
+                        else if (packageVersion.includes("^")) {
+                            sql = "SELECT * FROM packages WHERE name = ? AND \n      (\n          CAST(SUBSTRING_INDEX(version, '.', 1) AS UNSIGNED) * 10000 +\n          CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(version, '.', -2), '.', 1) AS UNSIGNED) * 100 +\n          CAST(SUBSTRING_INDEX(version, '.', -1) AS UNSIGNED)\n      ) >=\n          CAST(? AS SIGNED) * 10000 +\n          CAST(? AS SIGNED) * 100 +\n          CAST(? AS SIGNED);";
+                            _b = packageVersion
+                                .replace(/[^\d.~-]/g, '') // Remove non-numeric, ^, ~ characters
+                                .split('.')
+                                .map(Number), major = _b[0], minor = _b[1], patch = _b[2];
+                            values = [packageName, major, minor, patch];
+                        }
+                        else if (packageVersion.includes("-")) {
+                            sql = "SELECT * FROM packages WHERE name = ? AND \n              (\n                  CAST(SUBSTRING_INDEX(version, '.', 1) AS UNSIGNED) * 10000 +\n                  CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(version, '.', -2), '.', 1) AS UNSIGNED) * 100 +\n                  CAST(SUBSTRING_INDEX(version, '.', -1) AS UNSIGNED)\n              ) BETWEEN\n                  CAST(? AS SIGNED) * 10000 +\n                  CAST(? AS SIGNED) * 100 +\n                  CAST(? AS SIGNED)\n              AND\n                  CAST(? AS SIGNED) * 10000 +\n                  CAST(? AS SIGNED) * 100 +\n                  CAST(? AS SIGNED);";
+                            _c = packageVersion
+                                .replace(/[^\d.~^]/g, '.') // Remove non-numeric, ^, ~ characters
+                                .split('.')
+                                .map(Number), starMajor = _c[0], startMinor = _c[1], startPatch = _c[2], endMajor = _c[3], endMinor = _c[4], endPatch = _c[5];
+                            values = [packageName, starMajor, startMinor, startPatch, endMajor, endMinor, endPatch];
+                        }
+                        else if (packageName == "*") {
                             sql = "SELECT name, package_id, version FROM packages;";
+                            values = [packageName, packageVersion];
                         }
                         else {
                             sql = "SELECT name, package_id, version FROM packages WHERE name = ? AND version = ?;";
+                            values = [packageName, packageVersion];
                         }
                         return [4 /*yield*/, this.query(sql, values)];
                     case 1:
-                        result = _a.sent();
+                        result = _d.sent();
                         if (result == null || !Array.isArray(result) || result.length === 0 || typeof (result) == "number") {
                             return [2 /*return*/, []];
                         }
