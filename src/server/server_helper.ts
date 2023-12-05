@@ -1,5 +1,3 @@
-const { Buffer } = require('buffer');
-const AdmZip = require('adm-zip');
 import * as fs from 'fs';
 import { error } from 'console';
 import { fetchDataAndCalculateScore } from '../adjusted_main'
@@ -8,7 +6,8 @@ import dbCommunicator from '../dbCommunicator';
 import logger from '../logger';
 import * as Schemas from '../schemas';
 import Evaluate = Schemas.Evaluate;
-import { get } from 'http';
+const { Buffer } = require('buffer');
+const AdmZip = require('adm-zip');
 
 function getPackageMetadataFromURL(url: Schemas.PackageURL, version: Schemas.PackageVersion): Schemas.PackageMetadata {
     let packageMetadata: Schemas.PackageMetadata = {
@@ -115,9 +114,9 @@ export async function APIHelpPackageURL(url: Schemas.PackageURL, JsProgram: Sche
 
         // Store in database
         const db_response_package: number = await dbCommunicator.injestPackage(newPackage, result.reademe);
-        if(db_response_package == -1) {
+        if(db_response_package === -1) {
             throw new Server_Error(409, "Package already exists")
-        } else if(db_response_package == 0) {
+        } else if(db_response_package === 0) {
             throw new Server_Error(500, "Internal Server Error")
         }
 
