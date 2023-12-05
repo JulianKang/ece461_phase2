@@ -642,13 +642,3 @@ export class PackageManagementAPI {
 
 	}
 }
-
-// import request from 'supertest';
-
-// commented out from testing, put in its own file for deployment TODO
-// const port = 3000
-// const apiServer = new PackageManagementAPI();
-// logger.info(`Starting server on port ${port}`);
-// apiServer.start(port);
-
-// const response = request(apiServer.getApp()).post('/packages').send({ Name: "package1", Version: "(1.0.0)\n(1.1.0)\n(~1.0)\n(^1.0.0)\n(1.0.0-1.2.0)\n" },);
