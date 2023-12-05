@@ -3,10 +3,10 @@
  */
 
 import mysql from 'mysql2/promise';
-import logger from '../src/logger';
+import logger from './logger';
 import 'dotenv/config';
 import { type } from 'node:os';
-import * as Schemas from '../src/schemas';
+import * as Schemas from './schemas';
 //require('mysql2/node_modules/iconv-lite').encodingExists('foo');
 
 /** 
