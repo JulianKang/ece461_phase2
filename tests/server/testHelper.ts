@@ -6,6 +6,55 @@ import * as Schemas from "../../src/schemas";
 
 // NOT COMPREHENSIVE LIST, JUST WHAT WE ARE TESTING
 export namespace ValidConstants {
+    export const Update: {id: Schemas.PackageID, data: Schemas.PackageData}[] = [
+        {
+            id: "p1-100",
+            data: {
+                Content: 'package1_ZIP1',
+                JSProgram: 'jsp1100'
+            }
+        },
+        {
+            id: "p1-110",
+            data: {
+                Content: 'package1_ZIP2',
+                JSProgram: 'jsp1110'
+            }
+        },
+        {
+            id: "p2-100",
+            data: {
+                Content: 'package2_ZIP1',
+                JSProgram: 'jsp2100'
+            }
+        },
+        {
+            id: "p3-200",
+            data: {
+                Content: 'package3_ZIP1',
+                JSProgram: 'jsp3200'
+            }
+        }
+    ];
+    export const RegEx: Schemas.PackageRegEx[] = ["regex1", "regex2", "regex3"];
+    export const Create: Schemas.PackageData[] = [
+        {
+            Content: 'package1_ZIP1',
+            JSProgram: 'jsp1100'
+        },
+        {
+            Content: 'package1_ZIP2',
+            JSProgram: 'jsp1110'
+        },
+        {
+            URL: 'package2_URL1',
+            JSProgram: 'jsp2100'
+        },
+        {
+            URL: 'package3_URL1',
+            JSProgram: 'jsp3200'
+        }
+    ];
     export const Packages: Schemas.Package[] = [
         {
             metadata: {
@@ -13,7 +62,11 @@ export namespace ValidConstants {
                 Version: "1.0.0",
                 ID: 'p1-100'
             },
-            data: 'package1_ZIP1',
+            data: {
+                Content: 'package1_ZIP1',
+                URL: 'package1_URL1',
+                JSProgram: 'jsp1100'
+            }
         },
         {
             metadata: {
@@ -21,7 +74,11 @@ export namespace ValidConstants {
                 Version: "1.1.0",
                 ID: 'p1-110'
             },
-            data: 'package1_ZIP2',
+            data: {
+                Content: 'package1_ZIP2',
+                URL: 'package1_URL2',
+                JSProgram: 'jsp1110'
+            }
         },
         {
             metadata: {
@@ -29,7 +86,11 @@ export namespace ValidConstants {
                 Version: "1.0.0",
                 ID: 'p2-100'
             },
-            data: 'package2_JSP1',
+            data: {
+                Content: 'package2_ZIP1',
+                URL: 'package2_URL1',
+                JSProgram: 'jsp2100'
+            }
         },
         {
             metadata: {
@@ -37,7 +98,11 @@ export namespace ValidConstants {
                 Version: "2.0.0",
                 ID: 'p3-200'
             },
-            data: 'package3_URL1',
+            data: {
+                Content: 'package3_ZIP1',
+                URL: 'package3_URL1',
+                JSProgram: 'jsp3200'
+            }
         },
     ]
     export const PackageNames: Schemas.PackageName[] = ["package1", "package2", "package3"];
@@ -51,6 +116,8 @@ export namespace ValidConstants {
     
 // NOT COMPREHENSIVE LIST, JUST WHAT WE ARE TESTING
 export namespace InvalidConstants {
+    export const NonPackageIDs: Schemas.PackageID[] = ["p1-101", "p1-111", "p2-101", "p3-201"];
+    export const UnsuccessfulRegEx: Schemas.PackageRegEx[] = ["regex4", "regex5", "regex6"];
     export const anyList: any[] = [1, 2, {}, {Name: "name", Garbage: "garbage"}, {Name: "name", Version: "1.0.0)\n"}, [], null, undefined, true, false, "string", "package11", "package12", "package13", "package4"];
     export const UnsuccessfulPackageQuerys: Schemas.PackageQuery[] = [
         { Name: "package1", Version: "(1.0.1)\n(1.5.0)\n(~4.0)\n(^3.0.0)\n(1.3.0-1.4.4)" },
@@ -75,15 +142,15 @@ export namespace MockedDBCommunicator {
             return [];
         }
 
-        if(name == "package2") {
+        if(name === "package2") {
             return [ValidConstants.Packages[2].metadata];
-        } else if(name == "package3") {
+        } else if(name === "package3") {
             return [ValidConstants.Packages[3].metadata];
         }
 
-        if(version == "1.0.0") {
+        if(version === "1.0.0") {
             return [ValidConstants.Packages[0].metadata];
-        } else if(version == "1.1.0") {
+        } else if(version === "1.1.0") {
             return [ValidConstants.Packages[1].metadata];
         }
 
@@ -91,15 +158,33 @@ export namespace MockedDBCommunicator {
     }
 
     export async function resetRegistry(user: Schemas.User): Promise<boolean> {
-        return false;
+        return user.isAdmin;
     }
 
     export async function getPackageById(id: Schemas.PackageID): Promise<Schemas.Package | null> {
+        if(!(ValidConstants.PackageIDs.some(x => x===id))) {
+            return null;
+        }
+
+        if(id === ValidConstants.PackageIDs[0]) {
+            return ValidConstants.Packages[0];
+        } else if(id === ValidConstants.PackageIDs[1]) {
+            return ValidConstants.Packages[1];
+        } else if(id === ValidConstants.PackageIDs[2]) {
+            return ValidConstants.Packages[2];
+        } else if(id === ValidConstants.PackageIDs[3]) {
+            return ValidConstants.Packages[3];
+        }
+        
         return null;
     }
 
     export async function updatePackageById(id: Schemas.PackageID, packageData: Schemas.Package): Promise<boolean> {
-        return false;
+        if(!(ValidConstants.PackageIDs.some(x => x===id))) {
+            return false;
+        }
+
+        return true;
     }
 
     export async function deletePackageById(id: Schemas.PackageID): Promise<boolean> {
@@ -107,7 +192,20 @@ export namespace MockedDBCommunicator {
     }
 
     export async function getPackageRatings(id: Schemas.PackageID): Promise<Schemas.PackageRating | null> {
-        return null;
+        if(!(ValidConstants.PackageIDs.some(x => x===id))) {
+            return null;
+        }
+
+        return {
+            BusFactor: 0.5,
+            Correctness: 0.5,
+            RampUp: 0.5,
+            ResponsiveMaintainer: 0.5,
+            LicenseScore: 0.5,
+            GoodPinningPractice: 0.5,
+            PullRequest: 0.5,
+            NetScore: 0.5,            
+        }
     }
 
     export async function deletePackageByName(name: Schemas.PackageName): Promise<boolean> {
@@ -115,6 +213,9 @@ export namespace MockedDBCommunicator {
     }
 
     export async function searchPackagesByRegex(regex: Schemas.PackageRegEx): Promise<Schemas.PackageMetadata[]> {
-        return [];
+        if(!(ValidConstants.RegEx.some(x => x===regex))) {
+            return [];
+        }
+        return ValidConstants.Packages.map((x) => x.metadata);
     }
 }

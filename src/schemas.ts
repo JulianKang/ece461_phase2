@@ -14,6 +14,13 @@ export interface CLIOutput {
     [key: string]: number | string;
 }
 
+export interface DataFetchedFromURL {
+    ratings: PackageRating;
+    url: PackageURL;
+    content?: PackageContent;
+    version: PackageVersion;
+    reademe: string;
+}
 
 ////////////////////////////////////
 //////////ENDPOINT SCHEMAS//////////
@@ -177,7 +184,7 @@ export namespace Evaluate {
     }
 
     export function isPackageData(obj: any): obj is PackageData { // "union" type 
-        return obj && (isPackageContent(obj) || isPackageURL(obj) || isPackageJSProgram(obj));
+        return obj && (isPackageContent(obj.Content) || isPackageURL(obj.URL) || isPackageJSProgram(obj.JSProgram));
     }
 
     export function isPackage(obj: any): obj is Package{

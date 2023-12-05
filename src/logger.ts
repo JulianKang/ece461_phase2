@@ -106,7 +106,6 @@ class Logger {
    * @param {string} message - The information message to log.
    */
   info(message: string): void {
-    console.log(message);
     if (this.logLevel >= LogLevel.Info) {
       this.loggerMain.info(message);
     }

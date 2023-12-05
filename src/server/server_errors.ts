@@ -31,6 +31,8 @@ export class Server_Error extends Error {
         super(message);
         this.name = num.toString();
         this.num = num
+
+        Object.setPrototypeOf(this, Server_Error.prototype);
     }
 
 }
@@ -46,5 +48,7 @@ export class AggregateError extends Error {
         if(errors[0] instanceof Server_Error) {
             this.num = errors[0].num;
         }
+        Object.setPrototypeOf(this, AggregateError.prototype);
+
     }
 }
