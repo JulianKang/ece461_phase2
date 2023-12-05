@@ -343,7 +343,7 @@ export class PackageManagementAPI {
 			
 			// Update the package (replace this with your actual update logic)
 			// For demonstration purposes, let's assume you have a packages database and a function updatePackageById
-			const updatedPackage: boolean = await this.database.updatePackageById(packageId, updatedPackageData);
+			const updatedPackage: boolean = await this.database.updatePackageById(updatedPackageData);
 			
 			if (!updatedPackage) {
 				// Package does not exist
