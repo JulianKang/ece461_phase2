@@ -172,12 +172,62 @@ class DBCommunicator {
   public async getPackageMetadata(packageName: Schemas.PackageName, packageVersion: string): Promise<Schemas.PackageMetadata[]> {
     //ADD HANDLING FOR DIFFERENT VERSION TYPES!!!!!
     let sql;
-    const values = [packageName, packageVersion]; 
-    if(packageName == "*"){
+    let values;
+
+    if(packageVersion.includes("~")){
+      sql = "SELECT * FROM packages WHERE name = ? AND CAST(SUBSTRING_INDEX(version, '.', 1) AS UNSIGNED) = ? AND CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(version, '.', -2), '.', 1) AS UNSIGNED) = ? AND CAST(SUBSTRING_INDEX(version, '.', -1) AS UNSIGNED) >= ?;"
+      const [major, minor, patch] = packageVersion
+        .replace(/[^\d.^-]/g, '') // Remove non-numeric, ^, ~ characters
+        .split('.')
+        .map(Number);
+      values = [packageName, major, minor, patch]
+    }
+    else if(packageVersion.includes("^")){
+      sql = `SELECT * FROM packages WHERE name = ? AND 
+      (
+          CAST(SUBSTRING_INDEX(version, '.', 1) AS UNSIGNED) * 10000 +
+          CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(version, '.', -2), '.', 1) AS UNSIGNED) * 100 +
+          CAST(SUBSTRING_INDEX(version, '.', -1) AS UNSIGNED)
+      ) >=
+          CAST(? AS SIGNED) * 10000 +
+          CAST(? AS SIGNED) * 100 +
+          CAST(? AS SIGNED);`
+          
+      const [major, minor, patch] = packageVersion
+        .replace(/[^\d.~-]/g, '') // Remove non-numeric, ^, ~ characters
+        .split('.')
+        .map(Number);
+      values = [packageName, major, minor, patch];
+    }
+    else if(packageVersion.includes("-")){
+      sql = `SELECT * FROM packages WHERE name = ? AND 
+              (
+                  CAST(SUBSTRING_INDEX(version, '.', 1) AS UNSIGNED) * 10000 +
+                  CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(version, '.', -2), '.', 1) AS UNSIGNED) * 100 +
+                  CAST(SUBSTRING_INDEX(version, '.', -1) AS UNSIGNED)
+              ) BETWEEN
+                  CAST(? AS SIGNED) * 10000 +
+                  CAST(? AS SIGNED) * 100 +
+                  CAST(? AS SIGNED)
+              AND
+                  CAST(? AS SIGNED) * 10000 +
+                  CAST(? AS SIGNED) * 100 +
+                  CAST(? AS SIGNED);`
+      
+      /*CAST(SUBSTRING_INDEX(version, '.', 1) AS UNSIGNED) BETWEEN ? AND ? AND CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(version, '.', -2), '.', 1) AS UNSIGNED) BETWEEN ? AND ? AND CAST(SUBSTRING_INDEX(version, '.', -1) AS UNSIGNED) BETWEEN ? AND ?;*/
+      const [starMajor, startMinor, startPatch, endMajor, endMinor, endPatch] = packageVersion
+        .replace(/[^\d.~^]/g, '.') // Remove non-numeric, ^, ~ characters
+        .split('.')
+        .map(Number);
+      values = [packageName, starMajor, startMinor, startPatch, endMajor, endMinor, endPatch];
+    }
+    else if(packageName == "*"){
       sql = "SELECT name, package_id, version FROM packages;";
+      values = [packageName, packageVersion]
     }
     else{
       sql = "SELECT name, package_id, version FROM packages WHERE name = ? AND version = ?;";
+      values = [packageName, packageVersion]
     }
     const result : QueryResult | null | number = await this.query(sql, values);
     if (result == null || !Array.isArray(result) || result.length === 0 || typeof(result) == "number") {
