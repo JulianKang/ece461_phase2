@@ -94,7 +94,7 @@ export class PackageManagementAPI {
 					(err instanceof AggregateError) ? err.num : // TODO replace with more appropriate error code, or add .num to AggregateError
 					500; // default to 500
 		
-		// Log and send the error          
+		// Log and send the error   
 		logger.error(`Code:${statusCode} -> Message: ${err}`); // TODO replace with actual error logging logic
 		res.status(statusCode).json({ error: errorMessage });
 		next();
@@ -148,6 +148,7 @@ export class PackageManagementAPI {
 		  Too many packages returned.
 		  */
 		try {
+			// console.log(req.body.data)
 			const data: Schemas.PackageQuery[] = req.body.data;
 			let dbResp: Schemas.PackageMetadata[][] = [];
 
@@ -162,7 +163,7 @@ export class PackageManagementAPI {
 			await Promise.all(data.map(async (query) => {
 				// check if query is valid format
 				if (!Evaluate.isPackageQuery(query)) {
-					throw error;
+					throw new Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
 				}
 			
 				// Query the database for the requested packages
@@ -172,6 +173,9 @@ export class PackageManagementAPI {
 		
 			res.status(200).json(dbResp);
 		} catch(e) {
+			// if(!(e instanceof Server_Error)) {
+			// 	console.log(typeof(e))
+			// }	
 			let err: Server_Error;
 			if (!(e instanceof Server_Error)) {
 				err = new Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
@@ -634,10 +638,10 @@ export class PackageManagementAPI {
 
 // import request from 'supertest';
 
-
-const port = 3000
-const apiServer = new PackageManagementAPI();
-logger.info(`Starting server on port ${port}`);
-apiServer.start(port);
+// commented out from testing, put in its own file for deployment TODO
+// const port = 3000
+// const apiServer = new PackageManagementAPI();
+// logger.info(`Starting server on port ${port}`);
+// apiServer.start(port);
 
 // const response = request(apiServer.getApp()).post('/packages').send({ Name: "package1", Version: "(1.0.0)\n(1.1.0)\n(~1.0)\n(^1.0.0)\n(1.0.0-1.2.0)\n" },);
