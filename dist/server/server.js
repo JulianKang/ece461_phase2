@@ -73,7 +73,6 @@ var Schemas = __importStar(require("../schemas"));
 var helper = __importStar(require("./server_helper"));
 var dbCommunicator_1 = __importDefault(require("../dbCommunicator"));
 var Evaluate = Schemas.Evaluate;
-var console_1 = require("console");
 // Example Request: curl -X POST -H "Content-Type: application/json" -d 
 //'{"name": "Sample Package", "version": "1.0.0", "data": {"URL": "https://example.com/package.zip"}}' http://localhost:3000/packages
 /**
@@ -111,7 +110,7 @@ var PackageManagementAPI = /** @class */ (function () {
         this.app.use(body_parser_1.default.json());
         this.database.connect();
         // authenticate middleware
-        // this.app.use(this.authenticate);
+        this.app.use(this.authenticate);
         // Define routes
         this.app.get('/', this.handleDefault.bind(this));
         this.app.post('/packages', this.handleSearchPackages.bind(this));
@@ -145,7 +144,7 @@ var PackageManagementAPI = /** @class */ (function () {
         statusCode = (err instanceof server_errors_1.Server_Error) ? err.num :
             (err instanceof server_errors_1.AggregateError) ? err.num : // TODO replace with more appropriate error code, or add .num to AggregateError
                 500; // default to 500
-        // Log and send the error          
+        // Log and send the error   
         logger_1.default.error("Code:".concat(statusCode, " -> Message: ").concat(err)); // TODO replace with actual error logging logic
         res.status(statusCode).json({ error: errorMessage });
         next();
@@ -153,18 +152,28 @@ var PackageManagementAPI = /** @class */ (function () {
     // Middleware for authentication (placeholder)
     // curently not working???? idk y
     PackageManagementAPI.prototype.authenticate = function (req, res, next) {
-        // Check the request path to skip authentication for specific routes
-        if (req.path === '/authenticate') {
-            next(); // Skip authentication for the /authenticate route
-        }
-        // Skeleton authentication logic (replace with actual logic)
-        // For example, you can check for a valid token here
-        // let userAPIKey = helper.getUserAPIKey(req.body.User.name, req.body.Secret.password);
-        //Should we pass a userPermission to the function called?
-        if (true) {
-            next(); // Authentication successful
-        }
-        throw new server_errors_1.Server_Error(401, 'Authentication failed');
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                // Check the request path to skip authentication for specific routes
+                if (req.path === '/authenticate' || req.path === '/') {
+                    next(); // Skip authentication for the /authenticate route
+                    return [2 /*return*/];
+                }
+                // Skeleton authentication logic (replace with actual logic)
+                // For example, you can check for a valid token here
+                if (!Evaluate.isUser(req.body.user)) {
+                    next(new server_errors_1.Server_Error(400, 'There is missing field(s) in the AuthenticationRequest or it is formed improperly.'));
+                    return [2 /*return*/];
+                }
+                // boolean isAuthentificated = await database.isAuthentificated(req.body.user.name, req.body.user.authentification);
+                //Should we pass a userPermission to the function called?
+                if (true) {
+                    next(); // Authentication successful
+                    return [2 /*return*/];
+                }
+                throw new server_errors_1.Server_Error(401, 'Authentication failed');
+            });
+        });
     };
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////// ENDPOINTS /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -172,9 +181,9 @@ var PackageManagementAPI = /** @class */ (function () {
     // endpoint: '/' GET
     PackageManagementAPI.prototype.handleDefault = function (req, res) {
         res.send('Welcome to the package management API!');
+        res.status(200);
     };
     // endpoint: '/packages' POST
-    // TODO test
     PackageManagementAPI.prototype.handleSearchPackages = function (req, res, next) {
         return __awaiter(this, void 0, void 0, function () {
             var data, dbResp_1, e_1, err;
@@ -183,13 +192,16 @@ var PackageManagementAPI = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         _a.trys.push([0, 2, , 3]);
-                        data = req.body;
+                        data = req.body.data;
                         dbResp_1 = [];
                         if (!Array.isArray(data)) {
                             throw new server_errors_1.Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
                         }
                         if (data.length > 100) {
                             throw new server_errors_1.Server_Error(413, "Too many packages returned."); // don't actually know what to do for this error
+                        }
+                        if (data.length === 0) {
+                            throw new server_errors_1.Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
                         }
                         // ask database and process
                         return [4 /*yield*/, Promise.all(data.map(function (query) { return __awaiter(_this, void 0, void 0, function () {
@@ -199,7 +211,7 @@ var PackageManagementAPI = /** @class */ (function () {
                                         case 0:
                                             // check if query is valid format
                                             if (!Evaluate.isPackageQuery(query)) {
-                                                throw console_1.error;
+                                                throw new server_errors_1.Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
                                             }
                                             return [4 /*yield*/, helper.queryForPackage(query)];
                                         case 1:
@@ -231,35 +243,38 @@ var PackageManagementAPI = /** @class */ (function () {
         });
     };
     // zendpoint: '/package' POST
-    // TODO validate helpers and test
     PackageManagementAPI.prototype.handleCreatePackage = function (req, res, next) {
         return __awaiter(this, void 0, void 0, function () {
             var newPackage, result, e_2, err;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        _a.trys.push([0, 5, , 6]);
-                        if (!Evaluate.isPackageData(req.body)) {
+                        _a.trys.push([0, 7, , 8]);
+                        if (!Evaluate.isPackageData(req.body.data)) {
                             throw new server_errors_1.Server_Error(400, "There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid.");
                         }
-                        newPackage = req.body // url or base64
+                        newPackage = req.body.data // url or base64
                         ;
                         result = void 0;
-                        if (!!newPackage) return [3 /*break*/, 1];
+                        if (!(!newPackage || !Evaluate.isPackageData(newPackage) || (newPackage.URL && newPackage.Content) || !Evaluate.isPackageJSProgram(newPackage.JSProgram))) return [3 /*break*/, 1];
                         throw new server_errors_1.Server_Error(400, 'There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid.');
                     case 1:
-                        if (!true) return [3 /*break*/, 3];
-                        return [4 /*yield*/, helper.APIHelpPackageURL(newPackage, 'no js program?')];
+                        if (!newPackage.URL) return [3 /*break*/, 3];
+                        return [4 /*yield*/, helper.APIHelpPackageURL(newPackage.URL, newPackage.JSProgram)];
                     case 2:
                         result = _a.sent();
-                        return [3 /*break*/, 4];
-                    case 3:
-                        result = /* await  */ helper.APIHelpPackageContent(newPackage, 'no js program');
-                        _a.label = 4;
-                    case 4:
-                        res.status(201).json(result);
                         return [3 /*break*/, 6];
-                    case 5:
+                    case 3:
+                        if (!newPackage.Content) return [3 /*break*/, 5];
+                        return [4 /*yield*/, helper.APIHelpPackageContent(newPackage.Content, newPackage.JSProgram)];
+                    case 4:
+                        result = _a.sent();
+                        return [3 /*break*/, 6];
+                    case 5: throw new server_errors_1.Server_Error(400, 'There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid.');
+                    case 6:
+                        res.status(201).json(result);
+                        return [3 /*break*/, 8];
+                    case 7:
                         e_2 = _a.sent();
                         err = void 0;
                         if (e_2 instanceof server_errors_1.Server_Error) {
@@ -269,14 +284,13 @@ var PackageManagementAPI = /** @class */ (function () {
                             err = new server_errors_1.Server_Error(400, 'There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid.');
                         }
                         next(err);
-                        return [3 /*break*/, 6];
-                    case 6: return [2 /*return*/];
+                        return [3 /*break*/, 8];
+                    case 8: return [2 /*return*/];
                 }
             });
         });
     };
     // endpoint: '/reset' DELETE
-    // TODO test
     PackageManagementAPI.prototype.handleReset = function (req, res, next) {
         return __awaiter(this, void 0, void 0, function () {
             var data, result, e_3, err;
@@ -284,20 +298,17 @@ var PackageManagementAPI = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         _a.trys.push([0, 2, , 3]);
-                        if (!Evaluate.isUser(req.body.User)) {
+                        if (!Evaluate.isUser(req.body.user)) {
                             throw new server_errors_1.Server_Error(400, 'There is missing field(s) in the AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
                         }
-                        data = req.body.User;
-                        if (!data.isAdmin) {
-                            throw new server_errors_1.Server_Error(401, 'You do not have permission to reset the registry.');
-                        }
-                        return [4 /*yield*/, this.database.resetRegistry(data)];
+                        data = req.body.user;
+                        return [4 /*yield*/, this.database.resetRegistry()];
                     case 1:
                         result = _a.sent();
                         if (!result) {
                             throw new server_errors_1.Server_Error(400, 'There is missing field(s) in the AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
                         }
-                        res.json({ message: 'System reset successfully' });
+                        res.json('System reset successfully');
                         return [3 /*break*/, 3];
                     case 2:
                         e_3 = _a.sent();
@@ -316,7 +327,6 @@ var PackageManagementAPI = /** @class */ (function () {
         });
     };
     // endpoint: '/package/:id' GET
-    // TODO test
     PackageManagementAPI.prototype.handleGetPackageById = function (req, res, next) {
         return __awaiter(this, void 0, void 0, function () {
             var packageId, package_result;
@@ -333,13 +343,11 @@ var PackageManagementAPI = /** @class */ (function () {
                           * 404
                           Package does not exist.
                           */
+                        if (!req.params.id) {
+                            next(new server_errors_1.Server_Error(400, 'Package ID is missing or invalid.'));
+                        }
                         if (!Evaluate.isPackageID(req.params.id)) {
-                            if (!req.params.id) {
-                                next(new server_errors_1.Server_Error(400, 'Package ID is missing or invalid.'));
-                            }
-                            else {
-                                next(new server_errors_1.Server_Error(400, 'There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.'));
-                            }
+                            next(new server_errors_1.Server_Error(400, 'There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.'));
                         }
                         packageId = req.params.id;
                         return [4 /*yield*/, this.database.getPackageById(packageId)];
@@ -357,7 +365,6 @@ var PackageManagementAPI = /** @class */ (function () {
         });
     };
     // endpoint: '/package/:id' PUT
-    // TODO test
     PackageManagementAPI.prototype.handleUpdatePackageById = function (req, res, next) {
         return __awaiter(this, void 0, void 0, function () {
             var packageId, updatedPackageData, updatedPackage, e_4, err;
@@ -365,20 +372,18 @@ var PackageManagementAPI = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         _a.trys.push([0, 2, , 3]);
-                        if (!Evaluate.isPackageID(req.params.id)) {
-                            if (!req.params.id) {
-                                next(new server_errors_1.Server_Error(400, 'Package ID is missing or invalid.'));
-                            }
-                            else {
-                                throw new server_errors_1.Server_Error(400, 'There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
-                            }
+                        if (!req.params.id) {
+                            throw new server_errors_1.Server_Error(400, 'Package ID is missing or invalid.');
                         }
-                        if (!Evaluate.isPackage(req.body)) {
+                        if (!Evaluate.isPackageID(req.params.id)) {
+                            throw new server_errors_1.Server_Error(400, 'There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
+                        }
+                        if (!Evaluate.isPackageData(req.body.data)) {
                             throw new server_errors_1.Server_Error(400, 'There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
                         }
                         packageId = req.params.id;
-                        updatedPackageData = req.body;
-                        return [4 /*yield*/, this.database.updatePackageById(packageId, updatedPackageData)];
+                        updatedPackageData = req.body.data;
+                        return [4 /*yield*/, this.database.updatePackageById(updatedPackageData)];
                     case 1:
                         updatedPackage = _a.sent();
                         if (!updatedPackage) {
@@ -406,6 +411,7 @@ var PackageManagementAPI = /** @class */ (function () {
     };
     // endpoint: '/package/:id' DELETE
     // TODO test
+    // not baseline
     PackageManagementAPI.prototype.handleDeletePackageById = function (req, res, next) {
         return __awaiter(this, void 0, void 0, function () {
             var packageId, deletedPackage;
@@ -452,7 +458,6 @@ var PackageManagementAPI = /** @class */ (function () {
         });
     };
     // endpoint: '/package/:id/rate' GET
-    // TODO test
     PackageManagementAPI.prototype.handleRatePackage = function (req, res, next) {
         return __awaiter(this, void 0, void 0, function () {
             var packageId, ratedPackage;
@@ -472,19 +477,13 @@ var PackageManagementAPI = /** @class */ (function () {
                           * 500
                           The package rating system choked on at least one of the metrics.
                           */
-                        if (!Evaluate.isPackageID(req.params.id)) {
-                            if (!req.params.id) {
-                                next(new server_errors_1.Server_Error(400, 'Package ID is missing or invalid.'));
-                            }
-                            else {
-                                next(new server_errors_1.Server_Error(400, 'There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.'));
-                            }
-                        }
-                        packageId = req.params.id;
-                        // Check if the package ID is provided
-                        if (!packageId) {
+                        if (!req.params.id) {
                             next(new server_errors_1.Server_Error(400, 'Package ID is missing or invalid.'));
                         }
+                        if (!Evaluate.isPackageID(req.params.id)) {
+                            next(new server_errors_1.Server_Error(400, 'There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.'));
+                        }
+                        packageId = req.params.id;
                         return [4 /*yield*/, this.database.getPackageRatings(packageId)];
                     case 1:
                         ratedPackage = _a.sent();
@@ -501,6 +500,7 @@ var PackageManagementAPI = /** @class */ (function () {
     };
     // endpoint: '/authenticate' PUT
     // TODO currently out of scope, will implement if we have time
+    // not baseline
     PackageManagementAPI.prototype.handleAuthenticateUser = function (req, res, next) {
         return __awaiter(this, void 0, void 0, function () {
             var secretKey, username, isAdmin, password, isValidUser, userObj, error_1;
@@ -538,6 +538,7 @@ var PackageManagementAPI = /** @class */ (function () {
     };
     // endpoint: '/package/byName/:name' GET
     // TODO currently out of scope, will implement if we have time
+    // not baseline
     PackageManagementAPI.prototype.handleGetPackageByName = function (req, res, next) {
         return __awaiter(this, void 0, void 0, function () {
             var packageName, packageHistory;
@@ -549,6 +550,7 @@ var PackageManagementAPI = /** @class */ (function () {
     };
     // endpoint: '/package/byName/:name' DELETE
     // TODO test
+    // not baseline
     PackageManagementAPI.prototype.handleDeletePackageByName = function (req, res, next) {
         return __awaiter(this, void 0, void 0, function () {
             var packageName, deletedPackage;
@@ -593,7 +595,6 @@ var PackageManagementAPI = /** @class */ (function () {
         });
     };
     // endpoint: '/package/byRegEx' POST
-    // TODO test
     PackageManagementAPI.prototype.handleSearchPackagesByRegex = function (req, res, next) {
         return __awaiter(this, void 0, void 0, function () {
             var regexPattern, searchResults;
@@ -610,7 +611,7 @@ var PackageManagementAPI = /** @class */ (function () {
                         * 404
                         No package found under this regex.
                         */
-                        if (!Evaluate.isPackageRegEx(req.body.RegEx)) {
+                        if (!Evaluate.isPackageRegEx(req.body.data)) {
                             if (!req.body.RegEx) {
                                 next(new server_errors_1.Server_Error(400, 'Regular expression pattern is missing.'));
                             }
@@ -618,7 +619,7 @@ var PackageManagementAPI = /** @class */ (function () {
                                 next(new server_errors_1.Server_Error(400, 'There is missing field(s) in the PackageRegEx/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.'));
                             }
                         }
-                        regexPattern = req.body.RegEx;
+                        regexPattern = req.body.data;
                         return [4 /*yield*/, this.database.searchPackagesByRegex(regexPattern)];
                     case 1:
                         searchResults = _a.sent();
@@ -656,8 +657,9 @@ var PackageManagementAPI = /** @class */ (function () {
 }());
 exports.PackageManagementAPI = PackageManagementAPI;
 // import request from 'supertest';
-var port = 3000;
-var apiServer = new PackageManagementAPI();
-logger_1.default.info("Starting server on port ".concat(port));
-apiServer.start(port);
+// commented out from testing, put in its own file for deployment TODO
+// const port = 3000
+// const apiServer = new PackageManagementAPI();
+// logger.info(`Starting server on port ${port}`);
+// apiServer.start(port);
 // const response = request(apiServer.getApp()).post('/packages').send({ Name: "package1", Version: "(1.0.0)\n(1.1.0)\n(~1.0)\n(^1.0.0)\n(1.0.0-1.2.0)\n" },);
