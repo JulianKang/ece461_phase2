@@ -158,6 +158,9 @@ export class PackageManagementAPI {
 			if (data.length > 100) {
 				throw new Server_Error(413, "Too many packages returned."); // don't actually know what to do for this error
 			}
+			if (data.length === 0) {
+				throw new Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
+			}
 			
 			// ask database and process
 			await Promise.all(data.map(async (query) => {
@@ -173,9 +176,6 @@ export class PackageManagementAPI {
 		
 			res.status(200).json(dbResp);
 		} catch(e) {
-			// if(!(e instanceof Server_Error)) {
-			// 	console.log(typeof(e))
-			// }	
 			let err: Server_Error;
 			if (!(e instanceof Server_Error)) {
 				err = new Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");

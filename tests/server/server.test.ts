@@ -77,9 +77,9 @@ describe('Server', () => {
                      response = await request(app).post('/packages')
                                                        .send({user: normalUser, data: [badPackageQuery]});
                     expect(response.statusCode).toBe(400);
-                    // response = await request(app).post('/packages')
-                    //                                    .send({user: normalUser, data: badPackageQuery});
-                    // expect(response.statusCode).toBe(400);
+                    response = await request(app).post('/packages')
+                                                       .send({user: normalUser, data: badPackageQuery});
+                    expect(response.statusCode).toBe(400);
                 });
             });         
             // too many packages (returned?) TODO
@@ -88,7 +88,7 @@ describe('Server', () => {
             });
         });
         
-        describe.skip("/package", () => {
+        describe("/package", () => {
             // works when the 409 and 424 tests are skipped and vice versa for each
             // i am learning to not like jest, (probably my fault though :P)
             it('should return 201', async () => {
@@ -131,7 +131,7 @@ describe('Server', () => {
 
         });
 
-        describe.skip('/package/byRegEx', () => {
+        describe('/package/byRegEx', () => {
             it('should return 200', async () => {
                 ValidConstants.RegEx.forEach(async (curr) => {
                     const response = await request(app).post('/package/byRegEx')
@@ -159,7 +159,7 @@ describe('Server', () => {
         });
     });
 
-    describe.skip('GET Endpoints', () => {
+    describe('GET Endpoints', () => {
         describe('/', () => {
             it('should return 200', async () => {
                 const response = await request(app).get('/');
@@ -228,7 +228,7 @@ describe('Server', () => {
         });
     });
 
-    describe.skip('PUT Endpoints', () => {
+    describe('PUT Endpoints', () => {
         describe('/package/:id', () => {
             it('should return 200', async () => {
                 ValidConstants.Update.forEach(async (curr) => {
@@ -275,7 +275,7 @@ describe('Server', () => {
         });
     });
 
-    describe.skip('DELETE Endpoints', () => {
+    describe('DELETE Endpoints', () => {
         describe('/reset', () => {
             it('should return 200', async () => {
                 const response = await request(app).delete('/reset')
