@@ -9,7 +9,6 @@ import * as Schemas from '../schemas';
 import * as helper from './server_helper';
 import dbCommunicator from '../dbCommunicator';
 import Evaluate = Schemas.Evaluate;
-import { error } from 'console';
 // Example Request: curl -X POST -H "Content-Type: application/json" -d 
 //'{"name": "Sample Package", "version": "1.0.0", "data": {"URL": "https://example.com/package.zip"}}' http://localhost:3000/packages
 
@@ -332,20 +331,24 @@ export class PackageManagementAPI {
 			if (!Evaluate.isPackageID(req.params.id)) {
 				throw new Server_Error(400, 'There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
 			}
-			if (!Evaluate.isPackageData(req.body.data)) {
+			if (!Evaluate.isPackage(req.body.data)) {
 				throw new Server_Error(400, 'There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
 			}
 
 			// ID and Package are valid format
 			const packageId: Schemas.PackageID = req.params.id;
-			const updatedPackageData: Schemas.Package = req.body.data;
+			const updatedPackage: Schemas.Package = req.body.data;
 			
+			if(packageId !== updatedPackage.metadata.ID) {
+				console.log(packageId, updatedPackage.metadata.ID)
+				throw new Server_Error(400, 'Package ID does not match.');
+			}
 			
 			// Update the package (replace this with your actual update logic)
 			// For demonstration purposes, let's assume you have a packages database and a function updatePackageById
-			const updatedPackage: boolean = await this.database.updatePackageById(updatedPackageData);
+			const updatedPackageBool: boolean = await this.database.updatePackageById(updatedPackage);
 			
-			if (!updatedPackage) {
+			if (!updatedPackageBool) {
 				// Package does not exist
 				throw new Server_Error(404, 'Package not found.');
 			}
@@ -366,6 +369,8 @@ export class PackageManagementAPI {
 	// TODO test
 	// not baseline
 	private async handleDeletePackageById(req: Request, res: Response, next: NextFunction): Promise<void> {
+		next(new Server_Error(501, 'This system does not support Delete by ID.'));
+		return;
 		/**
 		  * 200	
 		  Version is deleted.
@@ -543,6 +548,8 @@ export class PackageManagementAPI {
 	// TODO test
 	// not baseline
 	private async handleDeletePackageByName(req: Request, res: Response, next: NextFunction): Promise<void> {
+		next(new Server_Error(501, 'This system does not support Delete by Name.'));
+		return;
 		/**
 		 * 200	
 		 Package is deleted.
@@ -635,13 +642,3 @@ export class PackageManagementAPI {
 
 	}
 }
-
-// import request from 'supertest';
-
-// commented out from testing, put in its own file for deployment TODO
-// const port = 3000
-// const apiServer = new PackageManagementAPI();
-// logger.info(`Starting server on port ${port}`);
-// apiServer.start(port);
-
-// const response = request(apiServer.getApp()).post('/packages').send({ Name: "package1", Version: "(1.0.0)\n(1.1.0)\n(~1.0)\n(^1.0.0)\n(1.0.0-1.2.0)\n" },);
