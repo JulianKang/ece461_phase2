@@ -179,8 +179,8 @@ export namespace MockedDBCommunicator {
         return null;
     }
 
-    export async function updatePackageById(id: Schemas.PackageID, packageData: Schemas.Package): Promise<boolean> {
-        if(!(ValidConstants.PackageIDs.some(x => x===id))) {
+    export async function updatePackageById(updatedPackage: Schemas.Package): Promise<boolean> {
+        if(!(ValidConstants.PackageIDs.some(x => x===updatedPackage.metadata.ID))) {
             return false;
         }
 

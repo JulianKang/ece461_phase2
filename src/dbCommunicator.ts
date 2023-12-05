@@ -180,7 +180,7 @@ class DBCommunicator {
   async getPackageById(id: Schemas.PackageID): Promise<Schemas.Package | null> {
     return null;
   }
-  async updatePackageById(id: Schemas.PackageID, packageData: Schemas.Package): Promise<boolean> {
+  async updatePackageById(packageData: Schemas.Package): Promise<boolean> {
     return false;
   }
   async deletePackageById(id: Schemas.PackageID): Promise<boolean> {
