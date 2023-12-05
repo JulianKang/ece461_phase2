@@ -47,6 +47,7 @@ var Server_Error = /** @class */ (function (_super) {
         _this = _super.call(this, message) || this;
         _this.name = num.toString();
         _this.num = num;
+        Object.setPrototypeOf(_this, Server_Error.prototype);
         return _this;
     }
     return Server_Error;
@@ -62,6 +63,7 @@ var AggregateError = /** @class */ (function (_super) {
         if (errors[0] instanceof Server_Error) {
             _this.num = errors[0].num;
         }
+        Object.setPrototypeOf(_this, AggregateError.prototype);
         return _this;
     }
     return AggregateError;

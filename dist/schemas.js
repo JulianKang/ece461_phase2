@@ -67,7 +67,7 @@ var Evaluate;
     }
     Evaluate.isPackageMetadata = isPackageMetadata;
     function isPackageData(obj) {
-        return obj && (isPackageContent(obj) || isPackageURL(obj) || isPackageJSProgram(obj));
+        return obj && (isPackageContent(obj.Content) || isPackageURL(obj.URL) || isPackageJSProgram(obj.JSProgram));
     }
     Evaluate.isPackageData = isPackageData;
     function isPackage(obj) {

@@ -120,7 +120,6 @@ var Logger = /** @class */ (function () {
      * @param {string} message - The information message to log.
      */
     Logger.prototype.info = function (message) {
-        console.log(message);
         if (this.logLevel >= LogLevel.Info) {
             this.loggerMain.info(message);
         }

@@ -63,145 +63,166 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.queryForPackage = exports.getUserAPIKey = exports.APIHelpPackageURL = exports.APIHelpPackageContent = void 0;
-var Buffer = require('buffer').Buffer;
-var AdmZip = require('adm-zip');
 var fs = __importStar(require("fs"));
 var console_1 = require("console");
 var adjusted_main_1 = require("../adjusted_main");
 var server_errors_1 = require("./server_errors");
 var dbCommunicator_1 = __importDefault(require("../dbCommunicator"));
 var logger_1 = __importDefault(require("../logger"));
-function APIHelpPackageContent(base64, JsProgram) {
-    var zipBuffer = Buffer.from(base64, 'base64');
-    var unzipDir = './src/cloned_repositories';
-    if (!fs.existsSync(unzipDir)) {
-        fs.mkdirSync(unzipDir);
-    }
-    var gitRemoteUrl = '';
-    var githubUrl = null;
-    try {
-        var zip = new AdmZip(zipBuffer);
-        var zipEntries = zip.getEntries();
-        var foundURL_1 = false;
-        zipEntries.forEach(function (entry) {
-            if (!entry.isDirectory && !foundURL_1) {
-                var entryName = entry.entryName;
-                var entryData = entry.getData();
-                var outputPath = "".concat(unzipDir, "/").concat(entryName);
-                // Create subdirectories if they don't exist
-                var outputDir = outputPath.substring(0, outputPath.lastIndexOf('/'));
-                if (!fs.existsSync(outputDir)) {
-                    fs.mkdirSync(outputDir, { recursive: true });
-                }
-                // Write the entry data to the corresponding file
-                fs.writeFileSync(outputPath, entryData);
-                //logger.info(`Extracted: ${entryName}`);
-                // Check for package.json with GitHub URL
-                if (entryName.includes('package.json')) {
-                    //logger.info('here');
-                    var packageJson = JSON.parse(fs.readFileSync(outputPath, 'utf-8'));
-                    if (packageJson.repository && packageJson.repository.url) {
-                        gitRemoteUrl = packageJson.repository.url.split('+')[1].replace('.git', '');
-                        foundURL_1 = true; // Set the flag to true when the URL is found
-                    }
-                }
-            }
-        });
-        fs.rmSync(unzipDir, { recursive: true });
-        //logger.info('ZIP file extraction complete.');
-        //logger.info(gitRemoteUrl)
-        // TODO
-        return {
-            metadata: {
-                Name: "Underscore",
-                Version: "1.0.0",
-                ID: "underscore"
-            },
-            data: "Base64 of zipfile"
-        };
-        // return gitRemoteUrl
-    }
-    catch (error) {
-        logger_1.default.error("".concat(error));
-        // TODO
-        return {
-            metadata: {
-                Name: "Underscore",
-                Version: "1.0.0",
-                ID: "underscore"
-            },
-            data: "Base64 of zipfile"
-        };
-        // return gitRemoteUrl
-    }
+var Schemas = __importStar(require("../schemas"));
+var Evaluate = Schemas.Evaluate;
+var Buffer = require('buffer').Buffer;
+var AdmZip = require('adm-zip');
+function getPackageMetadataFromURL(url, version) {
+    var packageMetadata = {
+        Name: url.split('/')[url.split('/').length - 1],
+        Version: version,
+        ID: null,
+    };
+    packageMetadata.ID = packageMetadata.Name.toLowerCase() + '_' + packageMetadata.Version;
+    return packageMetadata;
 }
-exports.APIHelpPackageContent = APIHelpPackageContent;
-function APIHelpPackageURL(url, JsProgram) {
+function APIHelpPackageContent(base64, JsProgram) {
     return __awaiter(this, void 0, void 0, function () {
-        var result, keys, _i, keys_1, key, value, package_exists, success_response, error_1;
+        var zipBuffer, unzipDir, gitRemoteUrl, zip, zipEntries, foundURL_1, error_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    _a.trys.push([0, 2, , 3]);
+                    zipBuffer = Buffer.from(base64, 'base64');
+                    unzipDir = './src/cloned_repositories';
+                    if (!fs.existsSync(unzipDir)) {
+                        fs.mkdirSync(unzipDir);
+                    }
+                    gitRemoteUrl = '';
+                    _a.label = 1;
+                case 1:
+                    _a.trys.push([1, 3, , 4]);
+                    zip = new AdmZip(zipBuffer);
+                    zipEntries = zip.getEntries();
+                    foundURL_1 = false;
+                    zipEntries.forEach(function (entry) {
+                        if (!entry.isDirectory && !foundURL_1) {
+                            var entryName = entry.entryName;
+                            var entryData = entry.getData();
+                            var outputPath = "".concat(unzipDir, "/").concat(entryName);
+                            // Create subdirectories if they don't exist
+                            var outputDir = outputPath.substring(0, outputPath.lastIndexOf('/'));
+                            if (!fs.existsSync(outputDir)) {
+                                fs.mkdirSync(outputDir, { recursive: true });
+                            }
+                            // Write the entry data to the corresponding file
+                            fs.writeFileSync(outputPath, entryData);
+                            //logger.info(`Extracted: ${entryName}`);
+                            // Check for package.json with GitHub URL
+                            if (entryName.includes('package.json')) {
+                                //logger.info('here');
+                                var packageJson = JSON.parse(fs.readFileSync(outputPath, 'utf-8'));
+                                if (packageJson.repository && packageJson.repository.url) {
+                                    gitRemoteUrl = packageJson.repository.url.split('+')[1].replace('.git', '');
+                                    foundURL_1 = true; // Set the flag to true when the URL is found
+                                }
+                            }
+                        }
+                    });
+                    fs.rmSync(unzipDir, { recursive: true });
+                    //logger.info('ZIP file extraction complete.');
+                    //logger.info(gitRemoteUrl)
+                    if (!gitRemoteUrl) {
+                        throw new server_errors_1.Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
+                    }
+                    if (!Evaluate.isPackageURL(gitRemoteUrl) || !Evaluate.isPackageJSProgram(JsProgram)) {
+                        throw new server_errors_1.Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
+                    }
+                    return [4 /*yield*/, APIHelpPackageURL(gitRemoteUrl, JsProgram, base64)];
+                case 2: return [2 /*return*/, _a.sent()];
+                case 3:
+                    error_1 = _a.sent();
+                    if (error_1 instanceof server_errors_1.Server_Error) {
+                        throw error_1;
+                    }
+                    throw new server_errors_1.Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
+                case 4: return [2 /*return*/];
+            }
+        });
+    });
+}
+exports.APIHelpPackageContent = APIHelpPackageContent;
+function APIHelpPackageURL(url, JsProgram, content) {
+    return __awaiter(this, void 0, void 0, function () {
+        var result, newPackageRating, keys, _i, keys_1, key, value, newPackageData, newPackageMetadata, newPackage, db_response_package, db_response_ratings, error_2;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 4, , 5]);
                     return [4 /*yield*/, (0, adjusted_main_1.fetchDataAndCalculateScore)(url)];
                 case 1:
                     result = _a.sent();
-                    keys = Object.keys(result);
+                    newPackageRating = result.ratings;
+                    keys = Object.keys(newPackageRating);
                     for (_i = 0, keys_1 = keys; _i < keys_1.length; _i++) {
                         key = keys_1[_i];
-                        value = result[key];
-                        if (typeof value === 'number' && value < 0) {
-                            //logger.info(value)
+                        value = newPackageRating[key];
+                        if (typeof value === 'number' && value < 0.5) {
+                            logger_1.default.info("Package is not uploaded due to the disqualified rating. ".concat(key, " is ").concat(value, " for ").concat(url));
                             throw new server_errors_1.Server_Error(424, "Package is not uploaded due to the disqualified rating.");
                         }
                     }
-                    package_exists = false //DataBase.ScanForPacakge(url)
-                    ;
-                    if (package_exists) {
+                    newPackageData = {
+                        Content: content,
+                        URL: result.url,
+                        JSProgram: JsProgram
+                    };
+                    newPackageMetadata = getPackageMetadataFromURL(result.url, result.version);
+                    newPackage = {
+                        metadata: newPackageMetadata,
+                        data: newPackageData,
+                    };
+                    return [4 /*yield*/, dbCommunicator_1.default.injestPackage(newPackage, result.reademe)];
+                case 2:
+                    db_response_package = _a.sent();
+                    if (db_response_package === -1) {
                         throw new server_errors_1.Server_Error(409, "Package already exists");
                     }
-                    else {
-                        //DataBase.AddPackage(url, metrics, ...)
+                    else if (db_response_package === 0) {
+                        throw new server_errors_1.Server_Error(500, "Internal Server Error");
                     }
-                    success_response = {
-                        metadata: {
-                            Name: "Underscore",
-                            Version: "1.0.0",
-                            ID: "underscore"
-                        },
-                        data: "Base64 of zipfile"
-                    };
-                    return [2 /*return*/, success_response
-                        //res.status(201).json(newPackage);
-                    ];
-                case 2:
-                    error_1 = _a.sent();
+                    if (!newPackage.metadata.ID) {
+                        throw new server_errors_1.Server_Error(500, "Internal Server Error");
+                    }
+                    return [4 /*yield*/, dbCommunicator_1.default.injestPackageRatings(newPackage.metadata.ID, newPackageRating)];
+                case 3:
+                    db_response_ratings = _a.sent();
+                    if (!db_response_ratings) {
+                        throw new server_errors_1.Server_Error(500, "Internal Server Error");
+                    }
+                    return [2 /*return*/, newPackage];
+                case 4:
+                    error_2 = _a.sent();
                     // propogate error
+                    if (error_2 instanceof server_errors_1.Server_Error) {
+                        throw error_2;
+                    }
                     throw new server_errors_1.Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
-                case 3: return [2 /*return*/];
+                case 5: return [2 /*return*/];
             }
         });
     });
 }
 exports.APIHelpPackageURL = APIHelpPackageURL;
+// not used currently
 function getUserAPIKey(username, password) {
     return __awaiter(this, void 0, void 0, function () {
         var admin, authenication;
         return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    admin = username === "ece30861defaultadminuser" && password === "correcthorsebatterystaple123(!__+@**(A'\"`;DROP TABLE packages;";
-                    if (admin) {
-                        return [2 /*return*/, true];
-                    }
-                    return [4 /*yield*/, dbCommunicator_1.default.authenticateUser(username, password)];
-                case 1:
-                    authenication = _a.sent();
-                    if (!authenication) {
-                        return [2 /*return*/, false];
-                    }
-                    return [2 /*return*/, authenication];
+            admin = username === "ece30861defaultadminuser" && password === "correcthorsebatterystaple123(!__+@**(A'\"`;DROP TABLE packages;";
+            if (admin) {
+                return [2 /*return*/, true];
             }
+            authenication = true;
+            if (!authenication) {
+                return [2 /*return*/, false];
+            }
+            return [2 /*return*/, authenication];
         });
     });
 }
@@ -243,6 +264,9 @@ function queryForPackage(Input) {
                 case 2:
                     packageData = _a.sent();
                     foundPackages.push.apply(foundPackages, packageData);
+                    if (foundPackages.length > 100) {
+                        throw new server_errors_1.Server_Error(413, "Too many packages returned");
+                    }
                     _a.label = 3;
                 case 3:
                     _i++;
