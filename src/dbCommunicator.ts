@@ -330,6 +330,39 @@ class DBCommunicator {
     }
   }
 
+  // creating methods to for testing purposes to allow mocking, 
+  // will be overwritten by actual implementations in the future
+  async injestPackage(packageData: Schemas.Package, readeMe: string): Promise<number> {
+    return 0;
+  }
+  async injestPackageRatings(packageRating: Schemas.PackageRating, packageID: Schemas.PackageID): Promise<boolean> {
+    return false;
+  }
+  async getPackageMetadata(name: Schemas.PackageName, version: Schemas.PackageVersion): Promise<Schemas.PackageMetadata[]> {
+    return [];
+  }
+  async resetRegistry(user: Schemas.User): Promise<boolean> {
+    return false;
+  }
+  async getPackageById(id: Schemas.PackageID): Promise<Schemas.Package | null> {
+    return null;
+  }
+  async updatePackageById(id: Schemas.PackageID, packageData: Schemas.Package): Promise<boolean> {
+    return false;
+  }
+  async deletePackageById(id: Schemas.PackageID): Promise<boolean> {
+    return false;
+  }
+  async getPackageRatings(id: Schemas.PackageID): Promise<Schemas.PackageRating | null> {
+    return null;
+  }
+  async deletePackageByName(name: Schemas.PackageName): Promise<boolean> {
+    return false;
+  }
+  async searchPackagesByRegex(regex: Schemas.PackageRegEx): Promise<Schemas.PackageMetadata[]> {
+    return [];
+  }
+
   /**
    * Closes the connection to the MySQL database.
    */

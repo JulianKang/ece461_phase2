@@ -4,9 +4,6 @@ import "express-async-errors";
 import { Server } from "http";
 import bodyParser from 'body-parser';
 import { Server_Error, AggregateError } from './server_errors'
-import { stat } from 'fs';
-import * as fs from 'fs-extra';
-import * as path from 'path';
 import logger from '../logger'
 import * as Schemas from '../schemas';
 import * as helper from './server_helper';
@@ -56,7 +53,7 @@ export class PackageManagementAPI {
 		this.database.connect();
 
 		// authenticate middleware
-		// this.app.use(this.authenticate);
+		this.app.use(this.authenticate);
 		
 		// Define routes
 		this.app.get('/', 						 this.handleDefault.bind(this));
@@ -97,7 +94,7 @@ export class PackageManagementAPI {
 					(err instanceof AggregateError) ? err.num : // TODO replace with more appropriate error code, or add .num to AggregateError
 					500; // default to 500
 		
-		// Log and send the error          
+		// Log and send the error   
 		logger.error(`Code:${statusCode} -> Message: ${err}`); // TODO replace with actual error logging logic
 		res.status(statusCode).json({ error: errorMessage });
 		next();
@@ -106,18 +103,23 @@ export class PackageManagementAPI {
 	
 	// Middleware for authentication (placeholder)
 	// curently not working???? idk y
-	private authenticate(req: Request, res: Response, next: NextFunction) {
+	private async authenticate(req: Request, res: Response, next: NextFunction): Promise<void> {
 		// Check the request path to skip authentication for specific routes
-		if (req.path === '/authenticate') {
+		if (req.path === '/authenticate' || req.path === '/') {
 			next(); // Skip authentication for the /authenticate route
+			return;
 		}
 		// Skeleton authentication logic (replace with actual logic)
 		// For example, you can check for a valid token here
-		// let userAPIKey = helper.getUserAPIKey(req.body.User.name, req.body.Secret.password);
-		
+		if(!Evaluate.isUser(req.body.user)) { 
+			next(new Server_Error(400, 'There is missing field(s) in the AuthenticationRequest or it is formed improperly.'));
+			return;
+		}
+		// boolean isAuthentificated = await database.isAuthentificated(req.body.user.name, req.body.user.authentification);
 		//Should we pass a userPermission to the function called?
 		if (true) {
 			next(); // Authentication successful
+			return;
 		}
 		
 		throw new Server_Error(401, 'Authentication failed');
@@ -130,10 +132,10 @@ export class PackageManagementAPI {
 	// endpoint: '/' GET
 	private handleDefault(req: Request, res: Response) {
 		res.send('Welcome to the package management API!');
+		res.status(200)
 	}
 	
 	// endpoint: '/packages' POST
-	// TODO test
 	private async handleSearchPackages(req: Request, res: Response, next: NextFunction): Promise<void> {
 		/**
 		  * 200	
@@ -146,7 +148,8 @@ export class PackageManagementAPI {
 		  Too many packages returned.
 		  */
 		try {
-			const data: Schemas.PackageQuery[] = req.body;
+			// console.log(req.body.data)
+			const data: Schemas.PackageQuery[] = req.body.data;
 			let dbResp: Schemas.PackageMetadata[][] = [];
 
 			if (!Array.isArray(data)) {
@@ -155,12 +158,15 @@ export class PackageManagementAPI {
 			if (data.length > 100) {
 				throw new Server_Error(413, "Too many packages returned."); // don't actually know what to do for this error
 			}
+			if (data.length === 0) {
+				throw new Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
+			}
 			
 			// ask database and process
 			await Promise.all(data.map(async (query) => {
 				// check if query is valid format
 				if (!Evaluate.isPackageQuery(query)) {
-					throw error;
+					throw new Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
 				}
 			
 				// Query the database for the requested packages
@@ -181,7 +187,6 @@ export class PackageManagementAPI {
 	}
 	
 	// zendpoint: '/package' POST
-	// TODO validate helpers and test
 	private async handleCreatePackage(req: Request, res: Response, next: NextFunction): Promise<void> {
 		/**
 		  * 201	
@@ -197,20 +202,22 @@ export class PackageManagementAPI {
 		  Package is not uploaded due to the disqualified rating.
 		  */
 		try {
-			if(!Evaluate.isPackageData(req.body)) {
+			if(!Evaluate.isPackageData(req.body.data)) {
 				throw new Server_Error(400, "There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid.");
 			}
 
 			// PackageData is valid format
-			const newPackage: Schemas.PackageData = req.body // url or base64
+			const newPackage: Schemas.PackageData = req.body.data // url or base64
 			let result: Schemas.Package;
 
-			if (!newPackage) {
+			if (!newPackage || !Evaluate.isPackageData(newPackage) || (newPackage.URL && newPackage.Content) || !Evaluate.isPackageJSProgram(newPackage.JSProgram)) {
 				throw new Server_Error(400, 'There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid.');
-			} else if (/* is a url, TODO insert logic to check */ true) {
-				result = await helper.APIHelpPackageURL(newPackage, 'no js program?')
-			} else { // how to handle base64????
-				result = /* await  */helper.APIHelpPackageContent(newPackage, 'no js program')
+			} else if (newPackage.URL) {
+				result = await helper.APIHelpPackageURL(newPackage.URL, newPackage.JSProgram);
+			} else if (newPackage.Content) {
+				result = await helper.APIHelpPackageContent(newPackage.Content, newPackage.JSProgram);
+			} else {
+				throw new Server_Error(400, 'There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid.');
 			}
 
 			res.status(201).json(result);
@@ -226,7 +233,6 @@ export class PackageManagementAPI {
 	}
 	
 	// endpoint: '/reset' DELETE
-	// TODO test
 	private async handleReset(req: Request, res: Response, next: NextFunction): Promise<void> {
 		/**
 		  * 200	
@@ -240,16 +246,17 @@ export class PackageManagementAPI {
 		  */
 		// Check if the user is an admin
 		try{
-			if (!Evaluate.isUser(req.body.User)) {
+			if (!Evaluate.isUser(req.body.user)) {
 				throw new Server_Error(400, 'There is missing field(s) in the AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
 			}
 
 			// User is valid format
-			const data: Schemas.User = req.body.User;
+			const data: Schemas.User = req.body.user;
 			
-			if (!data.isAdmin) {
-				throw new Server_Error(401, 'You do not have permission to reset the registry.');
-			}
+			// TODO we currently do are not supporting this feature
+			// if (!data.isAdmin) {
+			// 	throw new Server_Error(401, 'You do not have permission to reset the registry.');
+			// }
 			
 			// Pass user to Database to authenticate token and reset if valid
 			const result = await this.database.resetRegistry(data);
@@ -258,7 +265,7 @@ export class PackageManagementAPI {
 				throw new Server_Error(400, 'There is missing field(s) in the AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
 			}
 
-			res.json({ message: 'System reset successfully' });
+			res.json('System reset successfully');
 		} catch (e) {
 			let err: Server_Error;
 			if (e instanceof Server_Error) {
@@ -271,7 +278,6 @@ export class PackageManagementAPI {
 	}
 	
 	// endpoint: '/package/:id' GET
-	// TODO test
 	private async handleGetPackageById(req: Request, res: Response, next: NextFunction): Promise<void> {
 		/**
 		  * 200	
@@ -283,13 +289,11 @@ export class PackageManagementAPI {
 		  * 404	
 		  Package does not exist.
 		  */
-
+		if (!req.params.id) {
+			next(new Server_Error(400, 'Package ID is missing or invalid.'));
+		}
 		if (!Evaluate.isPackageID(req.params.id)) {
-			if (!req.params.id) {
-				next(new Server_Error(400, 'Package ID is missing or invalid.'));
-			} else {
-				next(new Server_Error(400, 'There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.'));
-			}
+			next(new Server_Error(400, 'There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.'));
 		}
 
 		// ID is valid format
@@ -310,7 +314,6 @@ export class PackageManagementAPI {
 	}
 	
 	// endpoint: '/package/:id' PUT
-	// TODO test
 	private async handleUpdatePackageById(req: Request, res: Response, next: NextFunction): Promise<void> {
 		/**
 		  * 200	
@@ -322,21 +325,20 @@ export class PackageManagementAPI {
 		  * 404	
 		  Package does not exist.
 		  */
-		try {
-			if (!Evaluate.isPackageID(req.params.id)) {
-				if (!req.params.id) {
-					next(new Server_Error(400, 'Package ID is missing or invalid.'));
-				} else {
-					throw new Server_Error(400, 'There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
-				}
+		 try {
+			if (!req.params.id) {
+				throw new Server_Error(400, 'Package ID is missing or invalid.');
 			}
-			if (!Evaluate.isPackage(req.body)) {
+			if (!Evaluate.isPackageID(req.params.id)) {
+				throw new Server_Error(400, 'There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
+			}
+			if (!Evaluate.isPackageData(req.body.data)) {
 				throw new Server_Error(400, 'There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
 			}
 
 			// ID and Package are valid format
 			const packageId: Schemas.PackageID = req.params.id;
-			const updatedPackageData: Schemas.Package = req.body;
+			const updatedPackageData: Schemas.Package = req.body.data;
 			
 			
 			// Update the package (replace this with your actual update logic)
@@ -362,6 +364,7 @@ export class PackageManagementAPI {
 	
 	// endpoint: '/package/:id' DELETE
 	// TODO test
+	// not baseline
 	private async handleDeletePackageById(req: Request, res: Response, next: NextFunction): Promise<void> {
 		/**
 		  * 200	
@@ -405,7 +408,6 @@ export class PackageManagementAPI {
 	}
 	
 	// endpoint: '/package/:id/rate' GET
-	// TODO test
 	private async handleRatePackage(req: Request, res: Response, next: NextFunction): Promise<void> {
 		/**
 		  * 200	
@@ -420,21 +422,15 @@ export class PackageManagementAPI {
 		  * 500	
 		  The package rating system choked on at least one of the metrics.
 		  */
+		if (!req.params.id) {
+			next(new Server_Error(400, 'Package ID is missing or invalid.'));
+		}
 		if (!Evaluate.isPackageID(req.params.id)) {
-			if (!req.params.id) {
-				next(new Server_Error(400, 'Package ID is missing or invalid.'));
-			} else {
-				next(new Server_Error(400, 'There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.'));
-			}
+			next(new Server_Error(400, 'There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.'));
 		}
 
 		// ID is valid format
 		const packageId: Schemas.PackageID = req.params.id;
-		
-		// Check if the package ID is provided
-		if (!packageId) {
-			next(new Server_Error(400, 'Package ID is missing or invalid.'));
-		}
 		
 		// Perform rating logic or database updates here
 		// For demonstration purposes, let's assume you have a package ratings database and a function ratePackage
@@ -451,6 +447,7 @@ export class PackageManagementAPI {
 	
 	// endpoint: '/authenticate' PUT
 	// TODO currently out of scope, will implement if we have time
+	// not baseline
 	private async handleAuthenticateUser(req: Request, res: Response, next: NextFunction): Promise<void> {
 		next(new Server_Error(501, 'This system does not support authentication.'));
 		return;
@@ -506,6 +503,7 @@ export class PackageManagementAPI {
 
 	// endpoint: '/package/byName/:name' GET
 	// TODO currently out of scope, will implement if we have time
+	// not baseline
 	private async handleGetPackageByName(req: Request, res: Response, next: NextFunction): Promise<void> {
 		next(new Server_Error(501, 'This system does not support package history.'));
 		return
@@ -543,6 +541,7 @@ export class PackageManagementAPI {
 
 	// endpoint: '/package/byName/:name' DELETE
 	// TODO test
+	// not baseline
 	private async handleDeletePackageByName(req: Request, res: Response, next: NextFunction): Promise<void> {
 		/**
 		 * 200	
@@ -584,7 +583,6 @@ export class PackageManagementAPI {
 	}
 
 	// endpoint: '/package/byRegEx' POST
-	// TODO test
 	private async handleSearchPackagesByRegex(req: Request, res: Response, next: NextFunction): Promise<void> {
 		/**
 		 * 200	
@@ -596,7 +594,7 @@ export class PackageManagementAPI {
 		* 404	
 		No package found under this regex.
 		*/
-		if (!Evaluate.isPackageRegEx(req.body.RegEx)) {
+		if (!Evaluate.isPackageRegEx(req.body.data)) {
 			if (!req.body.RegEx) {
 				next(new Server_Error(400, 'Regular expression pattern is missing.'));
 			} else {
@@ -605,7 +603,7 @@ export class PackageManagementAPI {
 		}
 
 		// RegEx is valid format
-		const regexPattern: Schemas.PackageRegEx = req.body.RegEx; // The property should match the name in the request body
+		const regexPattern: Schemas.PackageRegEx = req.body.data; // The property should match the name in the request body
 		
 		// Perform a search using the regex pattern
 		// For demonstration purposes, let's assume you have a packages database and a function searchPackagesByRegex
@@ -640,10 +638,10 @@ export class PackageManagementAPI {
 
 // import request from 'supertest';
 
-
-const port = 3000
-const apiServer = new PackageManagementAPI();
-logger.info(`Starting server on port ${port}`);
-apiServer.start(port);
+// commented out from testing, put in its own file for deployment TODO
+// const port = 3000
+// const apiServer = new PackageManagementAPI();
+// logger.info(`Starting server on port ${port}`);
+// apiServer.start(port);
 
 // const response = request(apiServer.getApp()).post('/packages').send({ Name: "package1", Version: "(1.0.0)\n(1.1.0)\n(~1.0)\n(^1.0.0)\n(1.0.0-1.2.0)\n" },);
