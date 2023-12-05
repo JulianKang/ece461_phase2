@@ -259,7 +259,7 @@ export class PackageManagementAPI {
 			// }
 			
 			// Pass user to Database to authenticate token and reset if valid
-			const result = await this.database.resetRegistry(data);
+			const result = await this.database.resetRegistry();//data);
 			
 			if (!result) {
 				throw new Server_Error(400, 'There is missing field(s) in the AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
