@@ -367,7 +367,7 @@ var PackageManagementAPI = /** @class */ (function () {
     // endpoint: '/package/:id' PUT
     PackageManagementAPI.prototype.handleUpdatePackageById = function (req, res, next) {
         return __awaiter(this, void 0, void 0, function () {
-            var packageId, updatedPackageData, updatedPackage, e_4, err;
+            var packageId, updatedPackage, updatedPackageBool, e_4, err;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -378,15 +378,19 @@ var PackageManagementAPI = /** @class */ (function () {
                         if (!Evaluate.isPackageID(req.params.id)) {
                             throw new server_errors_1.Server_Error(400, 'There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
                         }
-                        if (!Evaluate.isPackageData(req.body.data)) {
+                        if (!Evaluate.isPackage(req.body.data)) {
                             throw new server_errors_1.Server_Error(400, 'There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
                         }
                         packageId = req.params.id;
-                        updatedPackageData = req.body.data;
-                        return [4 /*yield*/, this.database.updatePackageById(updatedPackageData)];
+                        updatedPackage = req.body.data;
+                        if (packageId !== updatedPackage.metadata.ID) {
+                            console.log(packageId, updatedPackage.metadata.ID);
+                            throw new server_errors_1.Server_Error(400, 'Package ID does not match.');
+                        }
+                        return [4 /*yield*/, this.database.updatePackageById(updatedPackage)];
                     case 1:
-                        updatedPackage = _a.sent();
-                        if (!updatedPackage) {
+                        updatedPackageBool = _a.sent();
+                        if (!updatedPackageBool) {
                             // Package does not exist
                             throw new server_errors_1.Server_Error(404, 'Package not found.');
                         }
@@ -418,30 +422,8 @@ var PackageManagementAPI = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        /**
-                          * 200
-                          Version is deleted.
-                          
-                          * 400
-                          There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.
-                          
-                          * 404
-                          Package does not exist.
-                          */
-                        if (!Evaluate.isPackageID(req.params.id)) {
-                            if (!req.params.id) {
-                                next(new server_errors_1.Server_Error(400, 'Package ID is missing or invalid.'));
-                            }
-                            else {
-                                next(new server_errors_1.Server_Error(400, 'There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.'));
-                            }
-                        }
-                        packageId = req.params.id;
-                        // Check if the package ID is provided
-                        if (!packageId) {
-                            next(new server_errors_1.Server_Error(400, 'Package ID is missing or invalid.'));
-                        }
-                        return [4 /*yield*/, this.database.deletePackageById(packageId)];
+                        next(new server_errors_1.Server_Error(501, 'This system does not support Delete by ID.'));
+                        return [2 /*return*/];
                     case 1:
                         deletedPackage = _a.sent();
                         if (!deletedPackage) {
@@ -557,30 +539,8 @@ var PackageManagementAPI = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        /**
-                         * 200
-                         Package is deleted.
-                        
-                        * 400
-                        There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.
-                        
-                        * 404
-                        Package does not exist.
-                        */
-                        if (!Evaluate.isPackageName(req.params.name)) {
-                            if (!req.params.name) {
-                                next(new server_errors_1.Server_Error(400, 'Package name is missing or invalid.'));
-                            }
-                            else {
-                                next(new server_errors_1.Server_Error(400, 'There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.'));
-                            }
-                        }
-                        packageName = req.params.name;
-                        // Check if the package name is provided
-                        if (!packageName) {
-                            next(new server_errors_1.Server_Error(400, 'Package name is missing or invalid.'));
-                        }
-                        return [4 /*yield*/, this.database.deletePackageByName(packageName)];
+                        next(new server_errors_1.Server_Error(501, 'This system does not support Delete by Name.'));
+                        return [2 /*return*/];
                     case 1:
                         deletedPackage = _a.sent();
                         if (!deletedPackage) {
@@ -656,10 +616,3 @@ var PackageManagementAPI = /** @class */ (function () {
     return PackageManagementAPI;
 }());
 exports.PackageManagementAPI = PackageManagementAPI;
-// import request from 'supertest';
-// commented out from testing, put in its own file for deployment TODO
-// const port = 3000
-// const apiServer = new PackageManagementAPI();
-// logger.info(`Starting server on port ${port}`);
-// apiServer.start(port);
-// const response = request(apiServer.getApp()).post('/packages').send({ Name: "package1", Version: "(1.0.0)\n(1.1.0)\n(~1.0)\n(^1.0.0)\n(1.0.0-1.2.0)\n" },);

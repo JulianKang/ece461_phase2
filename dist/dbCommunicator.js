@@ -67,9 +67,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.userType = void 0;
 var promise_1 = __importDefault(require("mysql2/promise"));
-var logger_1 = __importDefault(require("../src/logger"));
+var logger_1 = __importDefault(require("./logger"));
 require("dotenv/config");
-var Schemas = __importStar(require("../src/schemas"));
+var Schemas = __importStar(require("./schemas"));
 //require('mysql2/node_modules/iconv-lite').encodingExists('foo');
 /**
  * An enum for the different user types.
@@ -508,7 +508,7 @@ var DBCommunicator = /** @class */ (function () {
     async getPackageById(id: Schemas.PackageID): Promise<Schemas.Package | null> {
       return null;
     }
-    async updatePackageById(id: Schemas.PackageID, packageData: Schemas.Package): Promise<boolean> {
+    async updatePackageById(packageData: Schemas.Package): Promise<boolean> {
       return false;
     }
     async deletePackageById(id: Schemas.PackageID): Promise<boolean> {
