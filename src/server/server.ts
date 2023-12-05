@@ -4,9 +4,6 @@ import "express-async-errors";
 import { Server } from "http";
 import bodyParser from 'body-parser';
 import { Server_Error, AggregateError } from './server_errors'
-import { stat } from 'fs';
-import * as fs from 'fs-extra';
-import * as path from 'path';
 import logger from '../logger'
 import * as Schemas from '../schemas';
 import * as helper from './server_helper';
@@ -108,7 +105,7 @@ export class PackageManagementAPI {
 	// curently not working???? idk y
 	private async authenticate(req: Request, res: Response, next: NextFunction): Promise<void> {
 		// Check the request path to skip authentication for specific routes
-		if (req.path == '/authenticate' || req.path == '/') {
+		if (req.path === '/authenticate' || req.path === '/') {
 			next(); // Skip authentication for the /authenticate route
 			return;
 		}
@@ -638,7 +635,7 @@ export class PackageManagementAPI {
 // import request from 'supertest';
 
 
-const port = 8080
+const port = 3000
 const apiServer = new PackageManagementAPI();
 logger.info(`Starting server on port ${port}`);
 apiServer.start(port);

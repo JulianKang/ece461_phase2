@@ -142,15 +142,15 @@ export namespace MockedDBCommunicator {
             return [];
         }
 
-        if(name == "package2") {
+        if(name === "package2") {
             return [ValidConstants.Packages[2].metadata];
-        } else if(name == "package3") {
+        } else if(name === "package3") {
             return [ValidConstants.Packages[3].metadata];
         }
 
-        if(version == "1.0.0") {
+        if(version === "1.0.0") {
             return [ValidConstants.Packages[0].metadata];
-        } else if(version == "1.1.0") {
+        } else if(version === "1.1.0") {
             return [ValidConstants.Packages[1].metadata];
         }
 
@@ -166,13 +166,13 @@ export namespace MockedDBCommunicator {
             return null;
         }
 
-        if(id == ValidConstants.PackageIDs[0]) {
+        if(id === ValidConstants.PackageIDs[0]) {
             return ValidConstants.Packages[0];
-        } else if(id == ValidConstants.PackageIDs[1]) {
+        } else if(id === ValidConstants.PackageIDs[1]) {
             return ValidConstants.Packages[1];
-        } else if(id == ValidConstants.PackageIDs[2]) {
+        } else if(id === ValidConstants.PackageIDs[2]) {
             return ValidConstants.Packages[2];
-        } else if(id == ValidConstants.PackageIDs[3]) {
+        } else if(id === ValidConstants.PackageIDs[3]) {
             return ValidConstants.Packages[3];
         }
         
@@ -217,15 +217,5 @@ export namespace MockedDBCommunicator {
             return [];
         }
         return ValidConstants.Packages.map((x) => x.metadata);
-    }
-}
-
-export namespace MockedHelper { 
-    export async function APIHelpPackageContent(base64: Schemas.PackageContent, JsProgram: Schemas.PackageJSProgram): Promise<Schemas.Package> {
-        return ValidConstants.Packages[0];
-    }
-
-    export async function APIHelpPackageURL(url: Schemas.PackageURL, JsProgram: Schemas.PackageJSProgram, content?: Schemas.PackageContent): Promise<Schemas.Package> {
-        return ValidConstants.Packages[0];
     }
 }
