@@ -3,9 +3,11 @@
  */
 
 import mysql from 'mysql2/promise';
+import logger from '../src/logger';
 import 'dotenv/config';
 import { type } from 'node:os';
 import * as Schemas from '../src/schemas';
+//require('mysql2/node_modules/iconv-lite').encodingExists('foo');
 
 /** 
  * An enum for the different user types.
@@ -28,7 +30,7 @@ const dbConfig = {
     database: process.env.DB_NAME,
 };
 if (!dbConfig.host || !dbConfig.user || !dbConfig.password || !dbConfig.database) {
-    console.error('Missing database configuration.'); // replace with logger when we gain access to it
+    logger.error('Missing database configuration.');
     process.exit(1);
 }
 type QueryResult = mysql.OkPacket | mysql.RowDataPacket[] | mysql.ResultSetHeader[] | mysql.RowDataPacket[][] | mysql.OkPacket[] | mysql.ProcedureCallPacket;
@@ -89,28 +91,29 @@ class DBCommunicator {
   private async connect() {
     try {
       this.connection = await mysql.createConnection(dbConfig);
-      console.log('Connected to MySQL database'); // replace with logger when we gain access to it
+      logger.info('Connected to MySQL database'); // replace with logger when we gain access to it
     } catch (error) {
-      console.error('Error connecting to the database:', error); // replace with logger when we gain access to it
+      logger.error('Error connecting to the database:' + error); // replace with logger when we gain access to it
     }
   }
 
   //TODO: Figure out versions; TEST
 
   public async resetRegistry(): Promise<boolean> {
-    const sql = "DELETE * FROM packages";
-    const result : QueryResult | null = await this.query(sql);
-    if (result == null || !Array.isArray(result) || result.length === 0) {
+    const sql = "DELETE FROM packages";
+    const result : QueryResult | null | number = await this.query(sql);
+    console.log("RESET: " + JSON.stringify(result));
+    if (result == null || (result as mysql.ResultSetHeader).affectedRows == 0 || typeof(result) == "number") {
       return false;
     }
     return true;
   }
 
   public async searchPackagesByRegex(regex: Schemas.PackageRegEx): Promise<Schemas.PackageMetadata[]> {
-    const sql = "SELECT name, version, package_id FROM packages WHERE name REGEX ? OR description REGEX ?";
+    const sql = "SELECT name, version, package_id FROM packages WHERE name REGEXP ? OR description REGEXP ?";
     const values = [regex, regex];
-    const result : QueryResult | null = await this.query(sql, values);
-    if (result == null || !Array.isArray(result) || result.length === 0) {
+    const result : QueryResult | null | number = await this.query(sql, values);
+    if (result == null || !Array.isArray(result) || result.length === 0 || typeof(result) == "number") {
       return [];
     }
 
@@ -121,7 +124,7 @@ class DBCommunicator {
       const packageName: Schemas.PackageID = (result[i] as mysql.RowDataPacket).name;
       const packageMeta: Schemas.PackageMetadata = {
         Name: packageName,
-        Version: (result[i] as mysql.RowDataPacket).package_version,
+        Version: (result[i] as mysql.RowDataPacket).version,
         ID: packageID
       }
 
@@ -132,13 +135,15 @@ class DBCommunicator {
   }
 
   public async injestPackage(newPackage: Schemas.Package, newDescription: string | null): Promise<number> {
-    const sql = "INSERT INTO packages (name, package_id, version, zip, js_program, url, description) VALUES(?, ?, ?, ?, ?, ?)";
+    const sql = "INSERT INTO packages (name, package_id, version, zip, js_program, url, description) VALUES(?, ?, ?, ?, ?, ?, ?)";
     const values = [newPackage.metadata.Name, newPackage.metadata.ID, newPackage.metadata.Version, newPackage.data.Content, newPackage.data.JSProgram, newPackage.data.URL, newDescription]; 
-    const result : QueryResult | null = await this.query(sql, values);
-    if (result == null || !Array.isArray(result) || result.length === 0) {
+    const result : QueryResult | null | number = await this.query(sql, values);
+    if(typeof(result) == "number" && result == -1){
+      return -1; //PACKAGE EXISTS
+    }
+    else if (result == null || (result as mysql.ResultSetHeader).affectedRows == 0 || typeof(result) == "number") {
       return 0; //ANY ERROR
     }
-    return -1; //PACKAGE EXISTS
     return 1;
 
   }
@@ -147,18 +152,18 @@ class DBCommunicator {
     let sql;
     let values;
     if(Schemas.Evaluate.isPackageURL(newPackage.data.URL)){
-      sql = "UPDATE packages SET url = ? FROM packages WHERE package_id = ? AND name = ? AND version = ?";
+      sql = "UPDATE packages SET url = ? WHERE package_id = ? AND name = ? AND version = ?";
       values = [newPackage.data.URL, newPackage.metadata.ID, newPackage.metadata.Name, newPackage.metadata.Version];
     }
     else if(Schemas.Evaluate.isPackageContent(newPackage.data.Content)){
-      sql = "UPDATE packages SET content = ? FROM packages WHERE package_id = ? AND name = ? AND version = ?";
+      sql = "UPDATE packages SET zip = ? WHERE package_id = ? AND name = ? AND version = ?";
       values = [newPackage.data.Content, newPackage.metadata.ID, newPackage.metadata.Name, newPackage.metadata.Version];
     }
     else {
       return false;
     }
-    const result : QueryResult | null = await this.query(sql, values);
-    if (result == null || !Array.isArray(result) || result.length === 0) {
+    const result : QueryResult | null | number = await this.query(sql, values);
+    if (result == null || (result as mysql.ResultSetHeader).affectedRows == 0 || typeof(result) == "number") {
       return false;
     }
     return true;
@@ -169,22 +174,24 @@ class DBCommunicator {
     let sql;
     const values = [packageName, packageVersion]; 
     if(packageName == "*"){
-      sql = "SELECT * FROM packages";
+      sql = "SELECT name, package_id, version FROM packages;";
     }
     else{
-      sql = "SELECT package_id, version FROM packages WHERE name = ? AND version = ?";
+      sql = "SELECT name, package_id, version FROM packages WHERE name = ? AND version = ?;";
     }
-    const result : QueryResult | null = await this.query(sql, values);
-    if (result == null || !Array.isArray(result) || result.length === 0) {
+    const result : QueryResult | null | number = await this.query(sql, values);
+    if (result == null || !Array.isArray(result) || result.length === 0 || typeof(result) == "number") {
       return [];
     }
+    
     
     let packageMetaList: Schemas.PackageMetadata[] = [];
 
     for(let i = 0; i < result.length; i++){
       const packageID: Schemas.PackageID = (result[i] as mysql.RowDataPacket).package_id;
+      const newPackageName: Schemas.PackageName = (result[i] as mysql.RowDataPacket).name;
       const packageMeta: Schemas.PackageMetadata = {
-        Name: packageName,
+        Name: newPackageName,
         Version: (result[i] as mysql.RowDataPacket).version,
         ID: packageID
       }
@@ -196,17 +203,17 @@ class DBCommunicator {
   }
 
   public async getPackageById(packageID: Schemas.PackageID): Promise<Schemas.Package | null> {
-    const sql = "SELECT name, package_version, zip, js_program, url FROM packages WHERE package_id = ?";
+    const sql = "SELECT name, version, zip, js_program, url FROM packages WHERE package_id = ?";
     const values = [packageID]; 
-    const result : QueryResult | null = await this.query(sql, values);
-    if (result == null || !Array.isArray(result) || result.length === 0) {
+    const result : QueryResult | null | number = await this.query(sql, values);
+      if (result == null || !Array.isArray(result) || result.length === 0 || typeof(result) == "number") {
       return null;
     }
 
     const packageName: Schemas.PackageName = (result[0] as mysql.RowDataPacket).name;
     const packageMeta: Schemas.PackageMetadata = {
       Name: packageName,
-      Version: (result[0] as mysql.RowDataPacket).package_version,
+      Version: (result[0] as mysql.RowDataPacket).version,
       ID: packageID
     };
     const packageData: Schemas.PackageData = {
@@ -224,8 +231,8 @@ class DBCommunicator {
   public async deletePackageById(packageID: Schemas.PackageID): Promise<boolean> {
     const sql = "DELETE FROM packages WHERE package_id = ?";
     const values = [packageID]; 
-    const result : QueryResult | null = await this.query(sql, values);
-    if (result == null || !Array.isArray(result) || result.length === 0) {
+    const result : QueryResult | null | number = await this.query(sql, values);
+    if (result == null || (result as mysql.ResultSetHeader).affectedRows == 0 || typeof(result) == "number") {
       return false;
     }
     return true;
@@ -234,8 +241,8 @@ class DBCommunicator {
   public async deletePackageByName(packageName: Schemas.PackageName): Promise<boolean> {
     const sql = "DELETE FROM packages WHERE name = ?";
     const values = [packageName]; 
-    const result : QueryResult | null = await this.query(sql, values);
-    if (result == null || !Array.isArray(result) || result.length === 0) {
+    const result : QueryResult | null | number = await this.query(sql, values);
+    if (result == null || (result as mysql.ResultSetHeader).affectedRows == 0 || typeof(result) == "number") {
       return false;
     }
     return true;
@@ -244,8 +251,8 @@ class DBCommunicator {
   public async getPackageRatings(packageID: Schemas.PackageID): Promise<Schemas.PackageRating | null> {
     const sql = "SELECT bus_factor, correctness, ramp_up, responsive_maintainer, license_score, good_pinning_practice, pull_request, net_score FROM packages WHERE package_id = ?";
     const values = [packageID]; 
-    const result : QueryResult | null = await this.query(sql, values);
-    if (result == null || !Array.isArray(result) || result.length === 0) {
+    const result : QueryResult | null | number = await this.query(sql, values);
+    if (result == null || !Array.isArray(result) || result.length === 0 || typeof(result) == "number") {
       return null;
     }
     const metrics: Schemas.PackageRating =  {
@@ -263,10 +270,10 @@ class DBCommunicator {
   }
 
   public async injestPackageRatings(packageID: Schemas.PackageID, metrics: Schemas.PackageRating): Promise<boolean> {
-    const sql = "UPDATE packages SET bus_factor = ?, correctness = ?, ramp_up = ?, responsive_maintainer = ?, license_score = ?, good_pinning_practice = ?, pull_request = ?, net_score = ? FROM packages WHERE package_id = ?";
+    const sql = "UPDATE packages SET bus_factor = ?, correctness = ?, ramp_up = ?, responsive_maintainer = ?, license_score = ?, good_pinning_practice = ?, pull_request = ?, net_score = ? WHERE package_id = ?";
     const values = [metrics.BusFactor, metrics.Correctness, metrics.RampUp, metrics.ResponsiveMaintainer, metrics.LicenseScore, metrics.GoodPinningPractice, metrics.PullRequest, metrics.NetScore, packageID]; 
-    const result : QueryResult | null = await this.query(sql, values);
-    if (result == null || !Array.isArray(result) || result.length === 0) {
+    const result : QueryResult | null | number = await this.query(sql, values);
+    if (result == null || (result as mysql.ResultSetHeader).affectedRows == 0 || typeof(result) == "number") {
       return false;
     }
     return true;
@@ -282,8 +289,8 @@ class DBCommunicator {
   private async checkPermission(userRoleId: number, queryType: string, query: string): Promise<boolean> {
     const sql = 'SELECT COUNT(*) as count FROM permissions WHERE role_id = ? AND (query_type = ? OR (query_type IS NULL AND query = ?))';
     const values = [userRoleId, queryType, query];
-    const result : QueryResult | null = await this.query(sql, values);
-    if (result == null || !Array.isArray(result) || result.length === 0) {
+    const result : QueryResult | null | number = await this.query(sql, values);
+    if (const const result == null || !Array.isArray(result) || result.length === 0 || typeof(result) == number || typeof(result) == number) {
       return false;
     }
     // Query the permissions table to check if the role has permission for the given query type and/or specific query
@@ -293,16 +300,17 @@ class DBCommunicator {
   /**
    * Authenticates a user with the given username and password.
    * @returns A promise that resolves with the user's permission if the user is authenticated, null otherwise.
-   */
-  public async authenticateUser(username: string, password: string): Promise<string | null> {
+   public async authenticateUser(username: string, password: string): Promise<string | null> {
     const sql = 'SELECT user_type FROM users WHERE username = ? AND password = ?';
     const values = [username, password];
-    const result : QueryResult | null = await this.query(sql, values);
-    if (result == null || !Array.isArray(result) || result.length === 0) {
+    const result : QueryResult | null | number = await this.query(sql, values);
+    if (const result == null || !Array.isArray(result) || result.length === 0 || typeof(result) == number) {
       return null;
     }
     return (result[0] as mysql.RowDataPacket).user_type;
   }
+   */
+  
 
   /**
    * Executes a SQL query on the connected database.
@@ -310,9 +318,9 @@ class DBCommunicator {
    * @param values - An array of values to replace placeholders in the SQL query.
    * @returns A promise that resolves with the query results or null on error.
    */
-  async query(sql: string, values: any[] = []) : Promise<QueryResult | null> {
+  async query(sql: string, values: any[] = []) : Promise<QueryResult | null | number> {
     if (!this.connection) {
-      console.error('Database connection not established.'); // replace with logger when we gain access to it
+      logger.error('Database connection not established.'); // replace with logger when we gain access to it
       return null;
     }
 
@@ -324,8 +332,12 @@ class DBCommunicator {
       const [rows, fields] = await this.connection.execute(sql, values);
       return rows;
       
-    } catch (error) {
-      console.error('Database query error:', error); // replace with logger when we gain access to it
+    } catch (error: any) {
+      logger.error('Database query error:' + error); // replace with logger when we gain access to it
+
+      if(error.code == "ER_DUP_ENTRY"){
+        return -1;
+      }
       return null;
     }
   }
@@ -336,7 +348,7 @@ class DBCommunicator {
   async close() {
     if (this.connection) {
       await this.connection.end();
-      console.log('Database connection closed.'); // replace with logger when we gain access to it
+      logger.info('Database connection closed.'); // replace with logger when we gain access to it
     }
   }
 }
