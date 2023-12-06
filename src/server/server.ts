@@ -53,6 +53,13 @@ export class PackageManagementAPI {
 
 		// authenticate middleware
 		this.app.use(this.authenticate);
+		// enable CORS for all requests
+		this.app.use((req, res, next) => {
+			res.setHeader('Access-Control-Allow-Origin', '*');
+			res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+			res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+			next();
+		});
 		
 		// Define routes
 		this.app.get('/', 						 this.handleDefault.bind(this));
