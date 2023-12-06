@@ -161,10 +161,10 @@ var PackageManagementAPI = /** @class */ (function () {
                 }
                 // Skeleton authentication logic (replace with actual logic)
                 // For example, you can check for a valid token here
-                if (!Evaluate.isUser(req.body.user)) {
-                    next(new server_errors_1.Server_Error(400, 'There is missing field(s) in the AuthenticationRequest or it is formed improperly.'));
-                    return [2 /*return*/];
-                }
+                // if(!Evaluate.isUser(req.body.user)) { 
+                // 	next(new Server_Error(400, 'There is missing field(s) in the AuthenticationRequest or it is formed improperly.'));
+                // 	return;
+                // }
                 // boolean isAuthentificated = await database.isAuthentificated(req.body.user.name, req.body.user.authentification);
                 //Should we pass a userPermission to the function called?
                 if (true) {
@@ -192,7 +192,7 @@ var PackageManagementAPI = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         _a.trys.push([0, 2, , 3]);
-                        data = req.body.data;
+                        data = req.body;
                         dbResp_1 = [];
                         if (!Array.isArray(data)) {
                             throw new server_errors_1.Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
@@ -250,13 +250,13 @@ var PackageManagementAPI = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         _a.trys.push([0, 7, , 8]);
-                        if (!Evaluate.isPackageData(req.body.data)) {
+                        if (!req.body || !Evaluate.isPackageData(req.body)) {
                             throw new server_errors_1.Server_Error(400, "There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid.");
                         }
-                        newPackage = req.body.data // url or base64
+                        newPackage = req.body // url or base64
                         ;
                         result = void 0;
-                        if (!(!newPackage || !Evaluate.isPackageData(newPackage) || (newPackage.URL && newPackage.Content) || !Evaluate.isPackageJSProgram(newPackage.JSProgram))) return [3 /*break*/, 1];
+                        if (!((newPackage.URL && newPackage.Content) || !Evaluate.isPackageJSProgram(newPackage.JSProgram))) return [3 /*break*/, 1];
                         throw new server_errors_1.Server_Error(400, 'There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid.');
                     case 1:
                         if (!newPackage.URL) return [3 /*break*/, 3];
@@ -378,13 +378,12 @@ var PackageManagementAPI = /** @class */ (function () {
                         if (!Evaluate.isPackageID(req.params.id)) {
                             throw new server_errors_1.Server_Error(400, 'There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
                         }
-                        if (!Evaluate.isPackage(req.body.data)) {
+                        if (!Evaluate.isPackage(req.body)) {
                             throw new server_errors_1.Server_Error(400, 'There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
                         }
                         packageId = req.params.id;
-                        updatedPackage = req.body.data;
+                        updatedPackage = req.body;
                         if (packageId !== updatedPackage.metadata.ID) {
-                            console.log(packageId, updatedPackage.metadata.ID);
                             throw new server_errors_1.Server_Error(400, 'Package ID does not match.');
                         }
                         return [4 /*yield*/, this.database.updatePackageById(updatedPackage)];
@@ -571,7 +570,7 @@ var PackageManagementAPI = /** @class */ (function () {
                         * 404
                         No package found under this regex.
                         */
-                        if (!Evaluate.isPackageRegEx(req.body.data)) {
+                        if (!req.body.RegEx || !Evaluate.isPackageRegEx(req.body.RegEx)) {
                             if (!req.body.RegEx) {
                                 next(new server_errors_1.Server_Error(400, 'Regular expression pattern is missing.'));
                             }
@@ -579,7 +578,7 @@ var PackageManagementAPI = /** @class */ (function () {
                                 next(new server_errors_1.Server_Error(400, 'There is missing field(s) in the PackageRegEx/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.'));
                             }
                         }
-                        regexPattern = req.body.data;
+                        regexPattern = req.body.RegEx;
                         return [4 /*yield*/, this.database.searchPackagesByRegex(regexPattern)];
                     case 1:
                         searchResults = _a.sent();
