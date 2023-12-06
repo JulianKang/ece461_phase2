@@ -84,10 +84,11 @@ export async function APIHelpPackageContent(base64: Schemas.PackageContent, JsPr
 
 export async function APIHelpPackageURL(url: Schemas.PackageURL, JsProgram: Schemas.PackageJSProgram, content?: Schemas.PackageContent): Promise<Schemas.Package> {
     try {
-        const result: Schemas.DataFetchedFromURL = await fetchDataAndCalculateScore(url);
+        const result: Schemas.DataFetchedFromURL = await fetchDataAndCalculateScore(url, content);
         const newPackageRating = result.ratings;
         //Check to see if Scores Fulfill the threshold if not return a different return code
         // Believe they all have to be over 0.5
+        content = result.content
         const keys: string[] = Object.keys(newPackageRating)
         for (const key of keys) {
             const value = newPackageRating[key as keyof Schemas.PackageRating];
