@@ -97,8 +97,6 @@ class DBCommunicator {
     }
   }
 
-  //TODO: Figure out versions; TEST
-
   public async resetRegistry(): Promise<boolean> {
     const sql = "DELETE FROM packages";
     const result : QueryResult | null | number = await this.query(sql);
@@ -170,14 +168,13 @@ class DBCommunicator {
   }
 
   public async getPackageMetadata(packageName: Schemas.PackageName, packageVersion: string): Promise<Schemas.PackageMetadata[]> {
-    //ADD HANDLING FOR DIFFERENT VERSION TYPES!!!!!
     let sql;
     let values;
 
     if(packageVersion.includes("~")){
       sql = "SELECT * FROM packages WHERE name = ? AND CAST(SUBSTRING_INDEX(version, '.', 1) AS UNSIGNED) = ? AND CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(version, '.', -2), '.', 1) AS UNSIGNED) = ? AND CAST(SUBSTRING_INDEX(version, '.', -1) AS UNSIGNED) >= ?;"
       const [major, minor, patch] = packageVersion
-        .replace(/[^\d.^-]/g, '') // Remove non-numeric, ^, ~ characters
+        .replace(/[^\d.^-]/g, '') 
         .split('.')
         .map(Number);
       values = [packageName, major, minor, patch]
@@ -188,16 +185,18 @@ class DBCommunicator {
           CAST(SUBSTRING_INDEX(version, '.', 1) AS UNSIGNED) * 10000 +
           CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(version, '.', -2), '.', 1) AS UNSIGNED) * 100 +
           CAST(SUBSTRING_INDEX(version, '.', -1) AS UNSIGNED)
-      ) >=
+      ) BETWEEN
           CAST(? AS SIGNED) * 10000 +
           CAST(? AS SIGNED) * 100 +
-          CAST(? AS SIGNED);`
+          CAST(? AS SIGNED)
+        AND
+          CAST(? AS SIGNED) * 10000 - 1;`
           
       const [major, minor, patch] = packageVersion
-        .replace(/[^\d.~-]/g, '') // Remove non-numeric, ^, ~ characters
+        .replace(/[^\d.~-]/g, '') 
         .split('.')
         .map(Number);
-      values = [packageName, major, minor, patch];
+      values = [packageName, major, minor, patch, major + 1];
     }
     else if(packageVersion.includes("-")){
       sql = `SELECT * FROM packages WHERE name = ? AND 
@@ -214,7 +213,6 @@ class DBCommunicator {
                   CAST(? AS SIGNED) * 100 +
                   CAST(? AS SIGNED);`
       
-      /*CAST(SUBSTRING_INDEX(version, '.', 1) AS UNSIGNED) BETWEEN ? AND ? AND CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(version, '.', -2), '.', 1) AS UNSIGNED) BETWEEN ? AND ? AND CAST(SUBSTRING_INDEX(version, '.', -1) AS UNSIGNED) BETWEEN ? AND ?;*/
       const [starMajor, startMinor, startPatch, endMajor, endMinor, endPatch] = packageVersion
         .replace(/[^\d.~^]/g, '.') // Remove non-numeric, ^, ~ characters
         .split('.')

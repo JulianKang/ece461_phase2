@@ -272,6 +272,15 @@ function fetchDataAndCalculateScore(inputUrl, content) {
                             // Return an appropriate value or handle the error as needed
                         }
                     }
+                    else {
+                        try {
+                            fs.rmdirSync(directoryPath, { recursive: true });
+                            logger_1.default.info("Directory ".concat(directoryPath, " removed successfully."));
+                        }
+                        catch (err) {
+                            logger_1.default.info("Error removing directory ".concat(directoryPath, ": ").concat(err));
+                        }
+                    }
                     output = {
                         ratings: {
                             BusFactor: parseFloat(busFactorResult.toFixed(5)),
