@@ -202,13 +202,13 @@ var PackageManagementAPI = /** @class */ (function () {
                         data = req.body;
                         dbResp_1 = [];
                         if (!Array.isArray(data)) {
-                            throw new server_errors_1.Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
+                            throw new server_errors_1.Server_Error(400, "1There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
                         }
                         if (data.length > 100) {
                             throw new server_errors_1.Server_Error(413, "Too many packages returned."); // don't actually know what to do for this error
                         }
                         if (data.length === 0) {
-                            throw new server_errors_1.Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
+                            throw new server_errors_1.Server_Error(400, "2There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
                         }
                         // ask database and process
                         return [4 /*yield*/, Promise.all(data.map(function (query) { return __awaiter(_this, void 0, void 0, function () {
@@ -218,7 +218,7 @@ var PackageManagementAPI = /** @class */ (function () {
                                         case 0:
                                             // check if query is valid format
                                             if (!Evaluate.isPackageQuery(query)) {
-                                                throw new server_errors_1.Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
+                                                throw new server_errors_1.Server_Error(400, "3There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
                                             }
                                             return [4 /*yield*/, helper.queryForPackage(query)];
                                         case 1:
@@ -237,7 +237,7 @@ var PackageManagementAPI = /** @class */ (function () {
                         e_1 = _a.sent();
                         err = void 0;
                         if (!(e_1 instanceof server_errors_1.Server_Error)) {
-                            err = new server_errors_1.Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
+                            err = new server_errors_1.Server_Error(400, "4There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
                         }
                         else {
                             err = e_1;
