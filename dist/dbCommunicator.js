@@ -413,14 +413,14 @@ var DBCommunicator = /** @class */ (function () {
                             return [2 /*return*/, null];
                         }
                         metrics = {
-                            BusFactor: result[0].bus_factor,
-                            Correctness: result[0].correctness,
-                            RampUp: result[0].ramp_up,
-                            ResponsiveMaintainer: result[0].responsive_maintainer,
-                            LicenseScore: result[0].license_score,
-                            GoodPinningPractice: result[0].good_pinning_practice,
-                            PullRequest: result[0].pull_request,
-                            NetScore: result[0].net_score
+                            BusFactor: result[0].bus_factor.toFixed(5),
+                            Correctness: result[0].correctness.toFixed(5),
+                            RampUp: result[0].ramp_up.toFixed(5),
+                            ResponsiveMaintainer: result[0].responsive_maintainer.toFixed(5),
+                            LicenseScore: result[0].license_score.toFixed(5),
+                            GoodPinningPractice: result[0].good_pinning_practice.toFixed(5),
+                            PullRequest: result[0].pull_request.toFixed(5),
+                            NetScore: result[0].net_score.toFixed(5)
                         };
                         return [2 /*return*/, metrics];
                 }
