@@ -222,6 +222,7 @@ var DBCommunicator = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
+                        newPackage.metadata.Version = newPackage.metadata.Version.replace(/[vV]/g, '');
                         sql = "INSERT INTO packages (name, package_id, version, zip, js_program, url, description) VALUES(?, ?, ?, ?, ?, ?, ?)";
                         values = [newPackage.metadata.Name, newPackage.metadata.ID, newPackage.metadata.Version, newPackage.data.Content, newPackage.data.JSProgram, newPackage.data.URL, newDescription];
                         return [4 /*yield*/, this.query(sql, values)];
@@ -347,7 +348,7 @@ var DBCommunicator = /** @class */ (function () {
                             ID: packageID
                         };
                         packageData = {
-                            Content: result[0].zip,
+                            Content: result[0].zip.toString('utf8'),
                             URL: result[0].url,
                             JSProgram: result[0].js_program
                         };
