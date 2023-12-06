@@ -8,22 +8,28 @@ data = {
 }
 
 data_url = {
-  "URL": 'https://github.com/lodash/lodash',
+  "URL": 'https://github.com/nullivex/nodist',
   "JSProgram": "if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}\n"
 }
 adminUser= {
     'name': "admin",
     'isAdmin': True
-};
-url = 'http://ec2-18-191-52-162.us-east-2.compute.amazonaws.com/packages'
-get_url = 'http://ec2-18-191-52-162.us-east-2.compute.amazonaws.com/api/package/ece461project_1.0/rate'
+}
+url = 'http://ec2-18-191-52-162.us-east-2.compute.amazonaws.com/api/'
+get_url = 'http://ec2-18-191-52-162.us-east-2.compute.amazonaws.com/api/package/ece461project_1.0'
+delete_url = 'http://ec2-18-191-52-162.us-east-2.compute.amazonaws.com/api/reset'
 post_url = 'http://ec2-18-191-52-162.us-east-2.compute.amazonaws.com/api/package'
 post_local = 'http://localhost:3000/package'
 get_local = 'http://localhost:3000/package/1'
 headers = {'Content-Type': 'application/json'}
 # Perform the POST request
-response = requests.post(post_url, headers=headers, data=json.dumps(data_url))
-#response = requests.get(get_url, headers=headers)
+data_packages = {
+    "Version": "1.0",
+    "Name": "ECE461Project"
+}
+response = requests.post(post_url, headers=headers, data=data_url)
+#response = requests.delete(delete_url, headers=headers)
+#response = requests.get(url, headers=headers)
 #response = requests.get(get_url, headers=headers)
 # Print the JSON response and response code
 print("Response Code:", response.status_code)
