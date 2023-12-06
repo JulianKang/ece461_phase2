@@ -233,10 +233,21 @@ exports.APIHelpPackageURL = APIHelpPackageURL;
  */
 function queryForPackage(Input) {
     return __awaiter(this, void 0, void 0, function () {
-        var versionRegex, lines, versions, foundPackages, _i, versions_1, version, packageData;
+        var foundPackages_1, packageData, versionRegex, lines, versions, foundPackages, _i, versions_1, version, packageData;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
+                    if (!(Input.Name === "*" && Input.Version === "*")) return [3 /*break*/, 2];
+                    foundPackages_1 = [];
+                    return [4 /*yield*/, dbCommunicator_1.default.getPackageMetadata(Input.Name, Input.Version)];
+                case 1:
+                    packageData = _a.sent();
+                    foundPackages_1.push.apply(foundPackages_1, packageData);
+                    foundPackages_1 = foundPackages_1.filter(function (item, index) {
+                        return foundPackages_1.findIndex(function (obj) { return obj.Name === item.Name && obj.Version === item.Version; }) === index;
+                    });
+                    return [2 /*return*/, foundPackages_1];
+                case 2:
                     versionRegex = /\(([^)]+)\)/;
                     lines = Input.Version.split('\n');
                     versions = lines.map(function (line) {
@@ -253,22 +264,22 @@ function queryForPackage(Input) {
                     });
                     foundPackages = [];
                     _i = 0, versions_1 = versions;
-                    _a.label = 1;
-                case 1:
-                    if (!(_i < versions_1.length)) return [3 /*break*/, 4];
+                    _a.label = 3;
+                case 3:
+                    if (!(_i < versions_1.length)) return [3 /*break*/, 6];
                     version = versions_1[_i];
                     return [4 /*yield*/, dbCommunicator_1.default.getPackageMetadata(Input.Name, version)];
-                case 2:
+                case 4:
                     packageData = _a.sent();
                     foundPackages.push.apply(foundPackages, packageData);
                     if (foundPackages.length > 100) {
                         throw new server_errors_1.Server_Error(413, "Too many packages returned");
                     }
-                    _a.label = 3;
-                case 3:
+                    _a.label = 5;
+                case 5:
                     _i++;
-                    return [3 /*break*/, 1];
-                case 4:
+                    return [3 /*break*/, 3];
+                case 6:
                     // make unique list
                     foundPackages = foundPackages.filter(function (item, index) {
                         return foundPackages.findIndex(function (obj) { return obj.Name === item.Name && obj.Version === item.Version; }) === index;
