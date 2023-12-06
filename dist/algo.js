@@ -118,7 +118,7 @@ function calculateBusFactor(repositoryUrl, localDirectory, topContributorsCount)
                     }
                     totalContributions = log.total;
                     busFactor = totalTopContributions / totalContributions;
-                    return [2 /*return*/, busFactor];
+                    return [2 /*return*/, { busFactor: busFactor, url: httpsRepositoryUrl }];
                 case 4:
                     error_1 = _b.sent();
                     logger_1.default.error("Error: ".concat(error_1));
