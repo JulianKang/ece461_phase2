@@ -106,8 +106,8 @@ describe('Server', () => {
 
             it.skip('should return 409', async () => {
                 ValidConstants.Create.forEach(async (curr) => {
-                    jest.spyOn(Helper, 'APIHelpPackageContent').mockRejectedValue(new Server_Error(409, "Package already exists"));
-                    jest.spyOn(Helper, 'APIHelpPackageURL').mockRejectedValue(new Server_Error(409, "Package already exists"));
+                    jest.spyOn(Helper, 'APIHelpPackageContent').mockRejectedValue(new Server_Error(409, -1, "MOCK" , "Package already exists"));
+                    jest.spyOn(Helper, 'APIHelpPackageURL').mockRejectedValue(new Server_Error(409, -1, "MOCK" , "Package already exists"));
                     const response = await request(app).post('/package').send(curr);
                     expect(response.statusCode).toBe(409);
                 });
@@ -115,8 +115,8 @@ describe('Server', () => {
 
             it.skip('should return 424', async () => {
                 ValidConstants.Create.forEach(async (curr) => {
-                    jest.spyOn(Helper, 'APIHelpPackageContent').mockRejectedValue(new Server_Error(424, "Package is not uploaded due to the disqualified rating."));
-                    jest.spyOn(Helper, 'APIHelpPackageURL').mockRejectedValue(new Server_Error(424, "Package is not uploaded due to the disqualified rating."));
+                    jest.spyOn(Helper, 'APIHelpPackageContent').mockRejectedValue(new Server_Error(424, -1, "MOCK", "Package is not uploaded due to the disqualified rating."));
+                    jest.spyOn(Helper, 'APIHelpPackageURL').mockRejectedValue(new Server_Error(424, -1, "MOCK", "Package is not uploaded due to the disqualified rating."));
                     const response = await request(app).post('/package').send(curr);
                     expect(response.statusCode).toBe(424);
                 });
