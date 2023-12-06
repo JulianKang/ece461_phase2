@@ -39,7 +39,7 @@ var DEFAULT_SERVER_ERRORS = {
 };
 var Server_Error = /** @class */ (function (_super) {
     __extends(Server_Error, _super);
-    function Server_Error(num, str) {
+    function Server_Error(num, which, endpoint, str) {
         var _this = this;
         var message = str != null ? str :
             num in DEFAULT_SERVER_ERRORS ? DEFAULT_SERVER_ERRORS[num] :
@@ -47,6 +47,8 @@ var Server_Error = /** @class */ (function (_super) {
         _this = _super.call(this, message) || this;
         _this.name = num.toString();
         _this.num = num;
+        _this.which = which;
+        _this.endpoint = endpoint;
         Object.setPrototypeOf(_this, Server_Error.prototype);
         return _this;
     }
@@ -58,10 +60,14 @@ var AggregateError = /** @class */ (function (_super) {
     function AggregateError(errors) {
         var _this = _super.call(this, 'Multiple errors occurred') || this;
         _this.num = 500;
+        _this.which = 0;
+        _this.endpoint = '';
         _this.name = 'AggregateError';
         _this.errors = errors;
         if (errors[0] instanceof Server_Error) {
             _this.num = errors[0].num;
+            _this.which = errors[0].which;
+            _this.endpoint = errors[0].endpoint;
         }
         Object.setPrototypeOf(_this, AggregateError.prototype);
         return _this;

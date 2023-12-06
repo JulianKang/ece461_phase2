@@ -67,10 +67,10 @@ export async function APIHelpPackageContent(base64: Schemas.PackageContent, JsPr
         //logger.info('ZIP file extraction complete.');
         //logger.info(gitRemoteUrl)
         if(!gitRemoteUrl) {
-            throw new Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
+            throw new Server_Error(400, 5, 'POST "/package"', "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
         }
         if(!Evaluate.isPackageURL(gitRemoteUrl) || !Evaluate.isPackageJSProgram(JsProgram)) {
-            throw new Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
+            throw new Server_Error(400, 6, 'POST "/package"', "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
         }
 
         return await APIHelpPackageURL(gitRemoteUrl, JsProgram, base64);
@@ -78,7 +78,7 @@ export async function APIHelpPackageContent(base64: Schemas.PackageContent, JsPr
         if(error instanceof Server_Error) {
             throw error;
         }
-        throw new Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
+        throw new Server_Error(400, 7, 'POST "/package"', "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
     }
 }
 
@@ -94,7 +94,7 @@ export async function APIHelpPackageURL(url: Schemas.PackageURL, JsProgram: Sche
             const value = newPackageRating[key as keyof Schemas.PackageRating];
             if (typeof value === 'number' && value < 0.5) {
                 logger.info(`Package is not uploaded due to the disqualified rating. ${key} is ${value} for ${url}`)
-                throw new Server_Error(424, "Package is not uploaded due to the disqualified rating.")
+                throw new Server_Error(424, 8, 'POST "/package"', "Package is not uploaded due to the disqualified rating.")
             }
         }
 
@@ -116,18 +116,18 @@ export async function APIHelpPackageURL(url: Schemas.PackageURL, JsProgram: Sche
         // Store in database
         const db_response_package: number = await dbCommunicator.injestPackage(newPackage, result.reademe);
         if(db_response_package === -1) {
-            throw new Server_Error(409, "Package already exists")
+            throw new Server_Error(409, 9, 'POST "/package"', "Package already exists")
         } else if(db_response_package === 0) {
-            throw new Server_Error(500, "Internal Server Error")
+            throw new Server_Error(500, 10, 'POST "/package"', "Internal Server Error")
         }
 
         if(!newPackage.metadata.ID) { 
-            throw new Server_Error(500, "Internal Server Error")
+            throw new Server_Error(500, 11, 'POST "/package"', "Internal Server Error")
         }
         const db_response_ratings: boolean = await dbCommunicator.injestPackageRatings(newPackage.metadata.ID, newPackageRating);
 
         if(!db_response_ratings) {
-            throw new Server_Error(500, "Internal Server Error")
+            throw new Server_Error(500, 12, 'POST "/package"', "Internal Server Error")
         }
 
         return newPackage;
@@ -136,7 +136,7 @@ export async function APIHelpPackageURL(url: Schemas.PackageURL, JsProgram: Sche
         if(error instanceof Server_Error) {
             throw error;
         }
-        throw new Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
+        throw new Server_Error(400, 13, 'POST "/package"', "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
     }
 }
 
@@ -163,6 +163,19 @@ export async function APIHelpPackageURL(url: Schemas.PackageURL, JsProgram: Sche
     }
  */
 export async function queryForPackage(Input: Schemas.PackageQuery): Promise<Schemas.PackageMetadata[]> {
+    // return all packages
+    if(Input.Name==="*" && Input.Version==="*") { 
+        let foundPackages: Schemas.PackageMetadata[] = [];
+        const packageData = await dbCommunicator.getPackageMetadata(Input.Name, Input.Version);  
+        foundPackages.push(...packageData);
+        foundPackages = foundPackages.filter((item, index) => {
+            return foundPackages.findIndex(obj => obj.Name === item.Name && obj.Version === item.Version) === index;
+        });
+        
+        return foundPackages;
+    }
+
+
     // process "Version"
     const versionRegex = /\(([^)]+)\)/;
     const lines: string[] = Input.Version.split('\n');
@@ -174,7 +187,7 @@ export async function queryForPackage(Input: Schemas.PackageQuery): Promise<Sche
             }
             return match[1];
         } catch (error) {
-            throw new Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
+            throw new Server_Error(400, 6, 'POST "/packages"', "5There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
         }
     });
     // "1.2.3", "1.2.3-2.1.0", "^1.2.3", "~1.2.0"
@@ -184,7 +197,7 @@ export async function queryForPackage(Input: Schemas.PackageQuery): Promise<Sche
         const packageData = await dbCommunicator.getPackageMetadata(Input.Name, version);  
         foundPackages.push(...packageData);
         if(foundPackages.length > 100) {
-            throw new Server_Error(413, "Too many packages returned");
+            throw new Server_Error(413, 7, 'POST "/packages"', "Too many packages returned");
         }
     }
 

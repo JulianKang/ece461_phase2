@@ -22,8 +22,10 @@ const DEFAULT_SERVER_ERRORS: { [key: number]: string } = {
 
 export class Server_Error extends Error { 
     num: number;
+    which: number;
+    endpoint: string;
 
-    constructor(num:number, str:string|null) {
+    constructor(num:number, which:number, endpoint:string, str:string|null) {
         let message = str!=null ? str : 
                       num in DEFAULT_SERVER_ERRORS ? DEFAULT_SERVER_ERRORS[num] :
                         "Unknown Server Error or Default Error not Found";
@@ -31,6 +33,8 @@ export class Server_Error extends Error {
         super(message);
         this.name = num.toString();
         this.num = num
+        this.which = which;
+        this.endpoint = endpoint;
 
         Object.setPrototypeOf(this, Server_Error.prototype);
     }
@@ -40,6 +44,8 @@ export class Server_Error extends Error {
 export class AggregateError extends Error {
     errors: Error[];
     num: number = 500;
+    which: number = 0;
+    endpoint: string = '';
     
     constructor(errors: Error[]) {
         super('Multiple errors occurred');
@@ -47,6 +53,8 @@ export class AggregateError extends Error {
         this.errors = errors;
         if(errors[0] instanceof Server_Error) {
             this.num = errors[0].num;
+            this.which = errors[0].which;
+            this.endpoint = errors[0].endpoint;
         }
         Object.setPrototypeOf(this, AggregateError.prototype);
 
