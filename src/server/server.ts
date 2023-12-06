@@ -479,7 +479,7 @@ export class PackageManagementAPI {
 				return;
 			}
 			// Implement your actual user authentication logic here
-			const isValidUser = await helper.getUserAPIKey(username, password);
+			const isValidUser = true; //await helper.getUserAPIKey(username, password);
 			
 			//Temporary 'Base Case' Authentication
 			if (!isValidUser) {
