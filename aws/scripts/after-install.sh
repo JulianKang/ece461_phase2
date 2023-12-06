@@ -23,4 +23,5 @@ sudo npm cache clean --force
 sudo rm -rf /usr/lib/node_modules/pm2
 sudo npm install -g pm2
 tsc
+sudo rm -rf /home/ubuntu/.npm
 echo "complete"

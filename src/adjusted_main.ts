@@ -74,7 +74,7 @@ function createOrClearDirectory(directoryPath: string) {
 }
 
 // Function to fetch the number of weekly commits and other required data
-export async function fetchDataAndCalculateScore(inputUrl: string): Promise<Schemas.DataFetchedFromURL> {
+export async function fetchDataAndCalculateScore(inputUrl: string, content?: Schemas.PackageContent): Promise<Schemas.DataFetchedFromURL> {
   let repoUrl = inputUrl;
 
   // Check if the input URL is an npm package link and try to get the corresponding GitHub repo
@@ -292,15 +292,19 @@ export async function fetchDataAndCalculateScore(inputUrl: string): Promise<Sche
     const currentDirectory = __dirname;
     const directoryPath = path.join(currentDirectory, 'cloned_repositories');
     const zipFilePath = path.join(currentDirectory, `${repo}.zip`);
-    let base64Zip = ''
-    if (fs.existsSync(directoryPath)) {
+    let base64Zip = content
+    if ((base64Zip === undefined || base64Zip === null) && fs.existsSync(directoryPath)) {
       try {
           // Create a new instance of AdmZip
           const zip: typeof AdmZip = new AdmZip();
-  
+          const gitFolderPath = `${directoryPath}/.git`;
+          if (fs.existsSync(gitFolderPath)) {
+            fs.rmdirSync(gitFolderPath, { recursive: true });
+            //logger.info(`.git folder removed successfully.`);
+          }
           // Add the entire directory to the zip file
           addFolderToZip(directoryPath, zip);
-  
+          //zip.writeZip(zipFilePath);
           // Get the zip file as a buffer
           const zipBuffer = zip.toBuffer();
   
@@ -324,7 +328,14 @@ export async function fetchDataAndCalculateScore(inputUrl: string): Promise<Sche
           // Return an appropriate value or handle the error as needed
       }
     }  
-
+    else{
+      try {
+        fs.rmdirSync(directoryPath, { recursive: true });
+        logger.info(`Directory ${directoryPath} removed successfully.`);
+    } catch (err) {
+        logger.info(`Error removing directory ${directoryPath}: ${err}`);
+    }
+    }
     const output: Schemas.DataFetchedFromURL = {
       ratings: {
         BusFactor: parseFloat(busFactorResult.toFixed(5)),
@@ -341,7 +352,6 @@ export async function fetchDataAndCalculateScore(inputUrl: string): Promise<Sche
       version: version,
       reademe: readmeText
     };
-    
     // Serialize the output to JSON
     const jsonOutput = JSON.stringify(output);
     /**

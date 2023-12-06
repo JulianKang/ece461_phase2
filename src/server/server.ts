@@ -110,10 +110,11 @@ export class PackageManagementAPI {
 		}
 		// Skeleton authentication logic (replace with actual logic)
 		// For example, you can check for a valid token here
-		if(!Evaluate.isUser(req.body.user)) { 
-			next(new Server_Error(400, 'There is missing field(s) in the AuthenticationRequest or it is formed improperly.'));
-			return;
-		}
+		// if(!Evaluate.isUser(req.body.user)) { 
+		// 	next(new Server_Error(400, 'There is missing field(s) in the AuthenticationRequest or it is formed improperly.'));
+		// 	return;
+		// }
+
 		// boolean isAuthentificated = await database.isAuthentificated(req.body.user.name, req.body.user.authentification);
 		//Should we pass a userPermission to the function called?
 		if (true) {
@@ -147,8 +148,7 @@ export class PackageManagementAPI {
 		  Too many packages returned.
 		  */
 		try {
-			// console.log(req.body.data)
-			const data: Schemas.PackageQuery[] = req.body.data;
+			const data: Schemas.PackageQuery[] = req.body;
 			let dbResp: Schemas.PackageMetadata[][] = [];
 
 			if (!Array.isArray(data)) {
@@ -201,15 +201,15 @@ export class PackageManagementAPI {
 		  Package is not uploaded due to the disqualified rating.
 		  */
 		try {
-			if(!Evaluate.isPackageData(req.body.data)) {
+			if(!req.body || !Evaluate.isPackageData(req.body)) {
 				throw new Server_Error(400, "There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid.");
 			}
 
 			// PackageData is valid format
-			const newPackage: Schemas.PackageData = req.body.data // url or base64
+			const newPackage: Schemas.PackageData = req.body // url or base64
 			let result: Schemas.Package;
 
-			if (!newPackage || !Evaluate.isPackageData(newPackage) || (newPackage.URL && newPackage.Content) || !Evaluate.isPackageJSProgram(newPackage.JSProgram)) {
+			if ((newPackage.URL && newPackage.Content) || !Evaluate.isPackageJSProgram(newPackage.JSProgram)) {
 				throw new Server_Error(400, 'There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid.');
 			} else if (newPackage.URL) {
 				result = await helper.APIHelpPackageURL(newPackage.URL, newPackage.JSProgram);
@@ -218,7 +218,6 @@ export class PackageManagementAPI {
 			} else {
 				throw new Server_Error(400, 'There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid.');
 			}
-
 			res.status(201).json(result);
 		} catch (e) {
 			let err: Server_Error;
@@ -245,12 +244,12 @@ export class PackageManagementAPI {
 		  */
 		// Check if the user is an admin
 		try{
-			if (!Evaluate.isUser(req.body.user)) {
-				throw new Server_Error(400, 'There is missing field(s) in the AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
-			}
+			//if (!Evaluate.isUser(req.body.user)) {
+			//	throw new Server_Error(400, 'There is missing field(s) in the AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
+			//}
 
 			// User is valid format
-			const data: Schemas.User = req.body.user;
+			//const data: Schemas.User = req.body.user;
 			
 			// TODO we currently do are not supporting this feature
 			// if (!data.isAdmin) {
@@ -331,16 +330,15 @@ export class PackageManagementAPI {
 			if (!Evaluate.isPackageID(req.params.id)) {
 				throw new Server_Error(400, 'There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
 			}
-			if (!Evaluate.isPackage(req.body.data)) {
+			if (!Evaluate.isPackage(req.body)) {
 				throw new Server_Error(400, 'There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
 			}
 
 			// ID and Package are valid format
 			const packageId: Schemas.PackageID = req.params.id;
-			const updatedPackage: Schemas.Package = req.body.data;
+			const updatedPackage: Schemas.Package = req.body;
 			
 			if(packageId !== updatedPackage.metadata.ID) {
-				console.log(packageId, updatedPackage.metadata.ID)
 				throw new Server_Error(400, 'Package ID does not match.');
 			}
 			
@@ -601,7 +599,7 @@ export class PackageManagementAPI {
 		* 404	
 		No package found under this regex.
 		*/
-		if (!Evaluate.isPackageRegEx(req.body.data)) {
+		if (!req.body.RegEx || !Evaluate.isPackageRegEx(req.body.RegEx)) {
 			if (!req.body.RegEx) {
 				next(new Server_Error(400, 'Regular expression pattern is missing.'));
 			} else {
@@ -610,7 +608,7 @@ export class PackageManagementAPI {
 		}
 
 		// RegEx is valid format
-		const regexPattern: Schemas.PackageRegEx = req.body.data; // The property should match the name in the request body
+		const regexPattern: Schemas.PackageRegEx = req.body.RegEx; // The property should match the name in the request body
 		
 		// Perform a search using the regex pattern
 		// For demonstration purposes, let's assume you have a packages database and a function searchPackagesByRegex
