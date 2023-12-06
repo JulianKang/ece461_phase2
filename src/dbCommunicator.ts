@@ -133,6 +133,7 @@ class DBCommunicator {
   }
 
   public async injestPackage(newPackage: Schemas.Package, newDescription: string | null): Promise<number> {
+    newPackage.metadata.Version = newPackage.metadata.Version.replace(/[vV]/g, '');
     const sql = "INSERT INTO packages (name, package_id, version, zip, js_program, url, description) VALUES(?, ?, ?, ?, ?, ?, ?)";
     const values = [newPackage.metadata.Name, newPackage.metadata.ID, newPackage.metadata.Version, newPackage.data.Content, newPackage.data.JSProgram, newPackage.data.URL, newDescription]; 
     const result : QueryResult | null | number = await this.query(sql, values);
@@ -265,7 +266,7 @@ class DBCommunicator {
       ID: packageID
     };
     const packageData: Schemas.PackageData = {
-      Content: (result[0] as mysql.RowDataPacket).zip,
+      Content: (result[0] as mysql.RowDataPacket).zip.toString('utf8'),
       URL: (result[0] as mysql.RowDataPacket).url,
       JSProgram: (result[0] as mysql.RowDataPacket).js_program
     }
