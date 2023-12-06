@@ -54,7 +54,7 @@ var Evaluate;
     }
     Evaluate.isPackageJSProgram = isPackageJSProgram;
     function isSemverRange(obj) {
-        return obj && typeof obj === 'string';
+        return typeof obj === 'string';
     }
     Evaluate.isSemverRange = isSemverRange;
     function isPackageRegEx(obj) {
@@ -103,7 +103,7 @@ var Evaluate;
     }
     Evaluate.isPackageHistoryEntry = isPackageHistoryEntry;
     function isPackageQuery(obj) {
-        return obj && isSemverRange(obj.Version) && isPackageName(obj.Name);
+        return obj && isSemverRange(obj.Version) && (isPackageName(obj.Name) || obj.Name === '*');
     }
     Evaluate.isPackageQuery = isPackageQuery;
 })(Evaluate || (exports.Evaluate = Evaluate = {}));
