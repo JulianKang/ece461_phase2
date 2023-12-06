@@ -141,19 +141,19 @@ export async function APIHelpPackageURL(url: Schemas.PackageURL, JsProgram: Sche
 }
 
 // not used currently
-export async function getUserAPIKey(username: string, password: string): Promise<string | boolean> {
-    const admin = username === "ece30861defaultadminuser" && password === "correcthorsebatterystaple123(!__+@**(A'\"`;DROP TABLE packages;";
-    if(admin){
-        return true
-    }
+// export async function getUserAPIKey(username: string, password: string): Promise<string | boolean> {
+//     const admin = username === "ece30861defaultadminuser" && password === "correcthorsebatterystaple123(!__+@**(A'\"`;DROP TABLE packages;";
+//     if(admin){
+//         return true
+//     }
 
-    let authenication = true;//await dbCommunicator.authenticateUser(username, password);
-    if (!authenication) {
-        return false;
-    }
+//     // let authenication = await dbCommunicator.authenticateUser(username, password);
+//     if (!authenication) {
+//         return false;
+//     }
 
-    return authenication;
-}
+//     return authenication;
+// }
 
 /*   
     example input
