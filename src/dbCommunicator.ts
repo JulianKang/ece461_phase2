@@ -101,7 +101,7 @@ class DBCommunicator {
     const sql = "DELETE FROM packages";
     const result : QueryResult | null | number = await this.query(sql);
     console.log("RESET: " + JSON.stringify(result));
-    if (result == null || (result as mysql.ResultSetHeader).affectedRows == 0 || typeof(result) == "number") {
+    if (result == null || typeof(result) == "number") {
       return false;
     }
     return true;
