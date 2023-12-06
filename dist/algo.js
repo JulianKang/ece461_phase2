@@ -264,12 +264,25 @@ function RampUp(owner, repo) {
     });
 }
 exports.RampUp = RampUp;
-function licenseCheck(readmeContent) {
+// checking if there is an upstream license compatible with LGPL-2.1
+function licenseCheck(text) {
     // Use regex to parse the project readme and check for the required license
-    var licenseRegex = /GNU Lesser General Public License v2\.1/;
-    var hasLicense = licenseRegex.test(readmeContent);
-    // Return a score of 1 if the license matches, 0 otherwise
-    return hasLicense ? 1 : 0;
+    var hashLicense;
+    var compatibleLicenseRegex = [/MIT/, /LGPL 2\.1/, /2-Clause BSD/, /Curl/, /ISC/, /MPL 2\.0/, /NTP/, /UPL 2\.0/, /WTFPL/, /X11/, /zlib/];
+    compatibleLicenseRegex.forEach(function (RegEx) {
+        hashLicense = RegEx.test(text);
+        if (hashLicense && !(/zlib-acknowledgement/.test(text))) { // zlib-acknowledgement is an exception to the zlib license compatibility
+            return 1;
+        }
+    });
+    var incompatibleLicenseRegex = [/AGPL/, /4-Clause BSD/, /CDDL/, /EPL/, /EUPL/, /GPL/, /IJG/, /MPL/, /Ms-RL/, /OSL/, /RPL/, /XFree86/, /zlib/];
+    incompatibleLicenseRegex.forEach(function (RegEx) {
+        hashLicense = RegEx.test(text);
+        if (hashLicense) {
+            return 0;
+        }
+    });
+    return 0.5; // TODO, since we don't know the license, likely should be return 0, returning 0.5 for now though for testing
 }
 exports.licenseCheck = licenseCheck;
 function calculateCorrectnessScore(issues) {
