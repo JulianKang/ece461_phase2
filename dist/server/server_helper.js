@@ -62,7 +62,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.queryForPackage = exports.getUserAPIKey = exports.APIHelpPackageURL = exports.APIHelpPackageContent = void 0;
+exports.queryForPackage = exports.APIHelpPackageURL = exports.APIHelpPackageContent = void 0;
 var fs = __importStar(require("fs"));
 var console_1 = require("console");
 var adjusted_main_1 = require("../adjusted_main");
@@ -213,23 +213,17 @@ function APIHelpPackageURL(url, JsProgram, content) {
 }
 exports.APIHelpPackageURL = APIHelpPackageURL;
 // not used currently
-function getUserAPIKey(username, password) {
-    return __awaiter(this, void 0, void 0, function () {
-        var admin, authenication;
-        return __generator(this, function (_a) {
-            admin = username === "ece30861defaultadminuser" && password === "correcthorsebatterystaple123(!__+@**(A'\"`;DROP TABLE packages;";
-            if (admin) {
-                return [2 /*return*/, true];
-            }
-            authenication = true;
-            if (!authenication) {
-                return [2 /*return*/, false];
-            }
-            return [2 /*return*/, authenication];
-        });
-    });
-}
-exports.getUserAPIKey = getUserAPIKey;
+// export async function getUserAPIKey(username: string, password: string): Promise<string | boolean> {
+//     const admin = username === "ece30861defaultadminuser" && password === "correcthorsebatterystaple123(!__+@**(A'\"`;DROP TABLE packages;";
+//     if(admin){
+//         return true
+//     }
+//     // let authenication = await dbCommunicator.authenticateUser(username, password);
+//     if (!authenication) {
+//         return false;
+//     }
+//     return authenication;
+// }
 /*
     example input
     {

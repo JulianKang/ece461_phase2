@@ -111,6 +111,13 @@ var PackageManagementAPI = /** @class */ (function () {
         this.database.connect();
         // authenticate middleware
         this.app.use(this.authenticate);
+        // enable CORS for all requests
+        this.app.use(function (req, res, next) {
+            res.setHeader('Access-Control-Allow-Origin', '*');
+            res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+            res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+            next();
+        });
         // Define routes
         this.app.get('/', this.handleDefault.bind(this));
         this.app.post('/packages', this.handleSearchPackages.bind(this));
@@ -293,11 +300,12 @@ var PackageManagementAPI = /** @class */ (function () {
     // endpoint: '/reset' DELETE
     PackageManagementAPI.prototype.handleReset = function (req, res, next) {
         return __awaiter(this, void 0, void 0, function () {
-            var result, e_3, err;
+            var data, result, e_3, err;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         _a.trys.push([0, 2, , 3]);
+                        data = { name: 'admin', isAdmin: true };
                         return [4 /*yield*/, this.database.resetRegistry()];
                     case 1:
                         result = _a.sent();
@@ -480,36 +488,10 @@ var PackageManagementAPI = /** @class */ (function () {
     // not baseline
     PackageManagementAPI.prototype.handleAuthenticateUser = function (req, res, next) {
         return __awaiter(this, void 0, void 0, function () {
-            var secretKey, username, isAdmin, password, isValidUser, userObj, error_1;
+            var secretKey, username, isAdmin, password, isValidUser, userObj;
             return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        next(new server_errors_1.Server_Error(501, 'This system does not support authentication.'));
-                        return [2 /*return*/];
-                    case 1:
-                        _a.trys.push([1, 3, , 4]);
-                        username = req.body.User.name;
-                        isAdmin = req.body.User.isAdmin;
-                        password = req.body.Secret.password;
-                        if (!username || !password || req.body.User.isAdmin == null) {
-                            res.status(400).json({ error: 'Missing Fields' });
-                            return [2 /*return*/];
-                        }
-                        return [4 /*yield*/, helper.getUserAPIKey(username, password)];
-                    case 2:
-                        isValidUser = _a.sent();
-                        //Temporary 'Base Case' Authentication
-                        if (!isValidUser) {
-                            throw new server_errors_1.Server_Error(401, 'User or Password is invalid');
-                        }
-                        userObj = req.body.User;
-                        return [3 /*break*/, 4];
-                    case 3:
-                        error_1 = _a.sent();
-                        res.status(400).json({ error: 'Missing Fields' });
-                        return [3 /*break*/, 4];
-                    case 4: return [2 /*return*/];
-                }
+                next(new server_errors_1.Server_Error(501, 'This system does not support authentication.'));
+                return [2 /*return*/];
             });
         });
     };
