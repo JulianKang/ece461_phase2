@@ -20,6 +20,7 @@ get_url = 'http://ec2-18-191-52-162.us-east-2.compute.amazonaws.com/api/package/
 delete_url = 'http://ec2-18-191-52-162.us-east-2.compute.amazonaws.com/api/reset'
 post_url = 'http://ec2-18-191-52-162.us-east-2.compute.amazonaws.com/api/package'
 post_local = 'http://localhost:3000/package'
+
 get_local = 'http://localhost:3000/package/1'
 headers = {'Content-Type': 'application/json'}
 # Perform the POST request
