@@ -197,12 +197,12 @@ export async function fetchDataAndCalculateScore(inputUrl: string, content?: Sch
     // Calculate the "correctness" score
     const correctnessScore = calculateCorrectnessScore(issues);
     // Process the data using your algo functions
-    const busFactorResult = await calculateBusFactor(
+    const busFactorObject = await calculateBusFactor(
       repoUrl, // Replace with the actual repository URL
       localRepositoryDirectory // Replace with the local directory path
     );
-
-
+    const busFactorResult: number = 'busFactor' in busFactorObject ?  busFactorObject.busFactor as number : 0
+    repoUrl ='url' in  busFactorObject? busFactorObject.url as string : repoUrl;
     const DependencyFraction = await calculatePinnedDependencies();
     const PullRequestFraction = await calculateCodeReviewFraction(owner,repo);
     const responsiveMaintainerResult = responsiveMaintainer(
@@ -332,10 +332,11 @@ export async function fetchDataAndCalculateScore(inputUrl: string, content?: Sch
       try {
         fs.rmdirSync(directoryPath, { recursive: true });
         logger.info(`Directory ${directoryPath} removed successfully.`);
-    } catch (err) {
-        logger.info(`Error removing directory ${directoryPath}: ${err}`);
+      } catch (err) {
+          logger.info(`Error removing directory ${directoryPath}: ${err}`);
+      }
     }
-    }
+
     const output: Schemas.DataFetchedFromURL = {
       ratings: {
         BusFactor: parseFloat(busFactorResult.toFixed(5)),
