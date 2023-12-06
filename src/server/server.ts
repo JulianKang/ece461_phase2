@@ -159,20 +159,20 @@ export class PackageManagementAPI {
 			let dbResp: Schemas.PackageMetadata[][] = [];
 
 			if (!Array.isArray(data)) {
-				throw new Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
+				throw new Server_Error(400, "1There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
 			}
 			if (data.length > 100) {
 				throw new Server_Error(413, "Too many packages returned."); // don't actually know what to do for this error
 			}
 			if (data.length === 0) {
-				throw new Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
+				throw new Server_Error(400, "2There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
 			}
 			
 			// ask database and process
 			await Promise.all(data.map(async (query) => {
 				// check if query is valid format
 				if (!Evaluate.isPackageQuery(query)) {
-					throw new Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
+					throw new Server_Error(400, "3There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
 				}
 			
 				// Query the database for the requested packages
@@ -184,7 +184,7 @@ export class PackageManagementAPI {
 		} catch(e) {
 			let err: Server_Error;
 			if (!(e instanceof Server_Error)) {
-				err = new Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
+				err = new Server_Error(400, "4There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
 			} else {
 				err = e;
 			}
