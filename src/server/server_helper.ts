@@ -163,6 +163,19 @@ export async function APIHelpPackageURL(url: Schemas.PackageURL, JsProgram: Sche
     }
  */
 export async function queryForPackage(Input: Schemas.PackageQuery): Promise<Schemas.PackageMetadata[]> {
+    // return all packages
+    if(Input.Name==="*" && Input.Version==="*") { 
+        let foundPackages: Schemas.PackageMetadata[] = [];
+        const packageData = await dbCommunicator.getPackageMetadata(Input.Name, Input.Version);  
+        foundPackages.push(...packageData);
+        foundPackages = foundPackages.filter((item, index) => {
+            return foundPackages.findIndex(obj => obj.Name === item.Name && obj.Version === item.Version) === index;
+        });
+        
+        return foundPackages;
+    }
+
+
     // process "Version"
     const versionRegex = /\(([^)]+)\)/;
     const lines: string[] = Input.Version.split('\n');
