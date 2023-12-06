@@ -328,7 +328,14 @@ export async function fetchDataAndCalculateScore(inputUrl: string, content?: Sch
           // Return an appropriate value or handle the error as needed
       }
     }  
-
+    else{
+      try {
+        fs.rmdirSync(directoryPath, { recursive: true });
+        logger.info(`Directory ${directoryPath} removed successfully.`);
+    } catch (err) {
+        logger.info(`Error removing directory ${directoryPath}: ${err}`);
+    }
+    }
     const output: Schemas.DataFetchedFromURL = {
       ratings: {
         BusFactor: parseFloat(busFactorResult.toFixed(5)),

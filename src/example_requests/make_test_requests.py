@@ -8,14 +8,14 @@ data = {
 }
 
 data_url = {
-  "URL": 'https://github.com/nullivex/nodist',
+  "URL": 'https://github.com/cloudinary/cloudinary_npm',
   "JSProgram": "if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}\n"
 }
 adminUser= {
     'name': "admin",
     'isAdmin': True
-}
-url = 'http://ec2-18-191-52-162.us-east-2.compute.amazonaws.com/api/'
+};
+url = 'http://ec2-18-191-52-162.us-east-2.compute.amazonaws.com/api/packages'
 get_url = 'http://ec2-18-191-52-162.us-east-2.compute.amazonaws.com/api/package/ece461project_1.0'
 delete_url = 'http://ec2-18-191-52-162.us-east-2.compute.amazonaws.com/api/reset'
 post_url = 'http://ec2-18-191-52-162.us-east-2.compute.amazonaws.com/api/package'
@@ -25,11 +25,11 @@ headers = {'Content-Type': 'application/json'}
 # Perform the POST request
 data_packages = {
     "Version": "1.0",
-    "Name": "ECE461Project"
+    "Name": "ece461project"
 }
-response = requests.post(post_url, headers=headers, data=data_url)
+response = requests.post(post_url, headers=headers, data=json.dumps(data))
 #response = requests.delete(delete_url, headers=headers)
-#response = requests.get(url, headers=headers)
+#response = requests.get(get_url, headers=headers)
 #response = requests.get(get_url, headers=headers)
 # Print the JSON response and response code
 print("Response Code:", response.status_code)
