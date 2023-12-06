@@ -129,7 +129,7 @@ function createOrClearDirectory(directoryPath) {
 // Function to fetch the number of weekly commits and other required data
 function fetchDataAndCalculateScore(inputUrl, content) {
     return __awaiter(this, void 0, void 0, function () {
-        var repoUrl, packageName, githubRepo, githubToken, headers, graphqlEndpoint, parsedURL, queries, response, data, lastCommitDate, readmeText, oneWeekAgo, weeklyCommitCount, _i, _a, commit, commitDate, parts, repo, owner, rampUpResult, issues, correctnessScore, busFactorResult, DependencyFraction, PullRequestFraction, responsiveMaintainerResult, version, licenseCheckResult, netScoreResult, currentDirectory, directoryPath, zipFilePath, base64Zip, zip, gitFolderPath, zipBuffer, output, jsonOutput, error_1, currentDirectory, directoryPath;
+        var repoUrl, packageName, githubRepo, githubToken, headers, graphqlEndpoint, parsedURL, queries, response, data, lastCommitDate, readmeText, oneWeekAgo, weeklyCommitCount, _i, _a, commit, commitDate, parts, repo, owner, rampUpResult, issues, correctnessScore, busFactorObject, busFactorResult, DependencyFraction, PullRequestFraction, responsiveMaintainerResult, version, licenseCheckResult, netScoreResult, currentDirectory, directoryPath, zipFilePath, base64Zip, zip, gitFolderPath, zipBuffer, output, jsonOutput, error_1, currentDirectory, directoryPath;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -216,7 +216,9 @@ function fetchDataAndCalculateScore(inputUrl, content) {
                         localRepositoryDirectory // Replace with the local directory path
                         )];
                 case 8:
-                    busFactorResult = _b.sent();
+                    busFactorObject = _b.sent();
+                    busFactorResult = 'busFactor' in busFactorObject ? busFactorObject.busFactor : 0;
+                    repoUrl = 'url' in busFactorObject ? busFactorObject.url : repoUrl;
                     return [4 /*yield*/, (0, algo_1.calculatePinnedDependencies)()];
                 case 9:
                     DependencyFraction = _b.sent();

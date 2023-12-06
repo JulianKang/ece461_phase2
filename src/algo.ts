@@ -25,7 +25,7 @@ interface Issue {
 }
 
 //Bus Factor = Total Code Contributions by Top Contributors / Total Code Contributions
-export async function calculateBusFactor(repositoryUrl: string, localDirectory: string, topContributorsCount: number = 3): Promise<number> {
+export async function calculateBusFactor(repositoryUrl: string, localDirectory: string, topContributorsCount: number = 3): Promise<object> {
   // Initialize SimpleGit
   const git: SimpleGit = simpleGit({ baseDir: localDirectory });
 
@@ -68,7 +68,7 @@ export async function calculateBusFactor(repositoryUrl: string, localDirectory: 
     // Calculate the Bus Factor
     const busFactor = totalTopContributions / totalContributions;
 
-    return busFactor;
+    return {busFactor:busFactor, url:httpsRepositoryUrl};
   } catch (error) {
     logger.error(`Error: ${error}`);
     throw error; // Re-throw the error if needed

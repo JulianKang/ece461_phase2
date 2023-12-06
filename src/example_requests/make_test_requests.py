@@ -8,7 +8,7 @@ data = {
 }
 
 data_url = {
-  "URL": 'https://github.com/lodash/lodash',
+  "URL": 'https://www.npmjs.com/package/browserify',
   "JSProgram": "if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}\n"
 }
 adminUser= {
@@ -16,7 +16,7 @@ adminUser= {
     'isAdmin': True
 };
 url = 'http://ec2-18-191-52-162.us-east-2.compute.amazonaws.com/api/packages'
-get_url = 'http://ec2-18-191-52-162.us-east-2.compute.amazonaws.com/api/package/ece461project_1.0'
+get_url = 'http://ec2-18-191-52-162.us-east-2.compute.amazonaws.com/api/package/browserify_v17.0.0'
 delete_url = 'http://ec2-18-191-52-162.us-east-2.compute.amazonaws.com/api/reset'
 post_url = 'http://ec2-18-191-52-162.us-east-2.compute.amazonaws.com/api/package'
 post_local = 'http://localhost:3000/package'

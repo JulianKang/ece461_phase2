@@ -157,8 +157,8 @@ export namespace MockedDBCommunicator {
         return [ValidConstants.Packages[0].metadata, ValidConstants.Packages[1].metadata];
     }
 
-    export async function resetRegistry(user: Schemas.User): Promise<boolean> {
-        return user.isAdmin;
+    export async function resetRegistry(): Promise<boolean> {
+        return true;
     }
 
     export async function getPackageById(id: Schemas.PackageID): Promise<Schemas.Package | null> {
