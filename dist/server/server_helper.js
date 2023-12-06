@@ -128,10 +128,10 @@ function APIHelpPackageContent(base64, JsProgram) {
                     //logger.info('ZIP file extraction complete.');
                     //logger.info(gitRemoteUrl)
                     if (!gitRemoteUrl) {
-                        throw new server_errors_1.Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
+                        throw new server_errors_1.Server_Error(400, 5, 'POST "/package"', "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
                     }
                     if (!Evaluate.isPackageURL(gitRemoteUrl) || !Evaluate.isPackageJSProgram(JsProgram)) {
-                        throw new server_errors_1.Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
+                        throw new server_errors_1.Server_Error(400, 6, 'POST "/package"', "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
                     }
                     return [4 /*yield*/, APIHelpPackageURL(gitRemoteUrl, JsProgram, base64)];
                 case 2: return [2 /*return*/, _a.sent()];
@@ -140,7 +140,7 @@ function APIHelpPackageContent(base64, JsProgram) {
                     if (error_1 instanceof server_errors_1.Server_Error) {
                         throw error_1;
                     }
-                    throw new server_errors_1.Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
+                    throw new server_errors_1.Server_Error(400, 7, 'POST "/package"', "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
                 case 4: return [2 /*return*/];
             }
         });
@@ -167,7 +167,7 @@ function APIHelpPackageURL(url, JsProgram, content) {
                         value = newPackageRating[key];
                         if (typeof value === 'number' && value < 0.5) {
                             logger_1.default.info("Package is not uploaded due to the disqualified rating. ".concat(key, " is ").concat(value, " for ").concat(url));
-                            throw new server_errors_1.Server_Error(424, "Package is not uploaded due to the disqualified rating.");
+                            throw new server_errors_1.Server_Error(424, 8, 'POST "/package"', "Package is not uploaded due to the disqualified rating.");
                         }
                     }
                     newPackageData = {
@@ -184,19 +184,19 @@ function APIHelpPackageURL(url, JsProgram, content) {
                 case 2:
                     db_response_package = _a.sent();
                     if (db_response_package === -1) {
-                        throw new server_errors_1.Server_Error(409, "Package already exists");
+                        throw new server_errors_1.Server_Error(409, 9, 'POST "/package"', "Package already exists");
                     }
                     else if (db_response_package === 0) {
-                        throw new server_errors_1.Server_Error(500, "Internal Server Error");
+                        throw new server_errors_1.Server_Error(500, 10, 'POST "/package"', "Internal Server Error");
                     }
                     if (!newPackage.metadata.ID) {
-                        throw new server_errors_1.Server_Error(500, "Internal Server Error");
+                        throw new server_errors_1.Server_Error(500, 11, 'POST "/package"', "Internal Server Error");
                     }
                     return [4 /*yield*/, dbCommunicator_1.default.injestPackageRatings(newPackage.metadata.ID, newPackageRating)];
                 case 3:
                     db_response_ratings = _a.sent();
                     if (!db_response_ratings) {
-                        throw new server_errors_1.Server_Error(500, "Internal Server Error");
+                        throw new server_errors_1.Server_Error(500, 12, 'POST "/package"', "Internal Server Error");
                     }
                     return [2 /*return*/, newPackage];
                 case 4:
@@ -205,7 +205,7 @@ function APIHelpPackageURL(url, JsProgram, content) {
                     if (error_2 instanceof server_errors_1.Server_Error) {
                         throw error_2;
                     }
-                    throw new server_errors_1.Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
+                    throw new server_errors_1.Server_Error(400, 13, 'POST "/package"', "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
                 case 5: return [2 /*return*/];
             }
         });
@@ -259,7 +259,7 @@ function queryForPackage(Input) {
                             return match[1];
                         }
                         catch (error) {
-                            throw new server_errors_1.Server_Error(400, "5There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
+                            throw new server_errors_1.Server_Error(400, 6, 'POST "/packages"', "5There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
                         }
                     });
                     foundPackages = [];
@@ -273,7 +273,7 @@ function queryForPackage(Input) {
                     packageData = _a.sent();
                     foundPackages.push.apply(foundPackages, packageData);
                     if (foundPackages.length > 100) {
-                        throw new server_errors_1.Server_Error(413, "Too many packages returned");
+                        throw new server_errors_1.Server_Error(413, 7, 'POST "/packages"', "Too many packages returned");
                     }
                     _a.label = 5;
                 case 5:
