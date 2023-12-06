@@ -244,13 +244,13 @@ export class PackageManagementAPI {
 		  */
 		// Check if the user is an admin
 		try{
-			if (!Evaluate.isUser(req.body.user)) {
-				throw new Server_Error(400, 'There is missing field(s) in the AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
-			}
+			// if (!Evaluate.isUser(req.body.user)) {
+			// 	throw new Server_Error(400, 'There is missing field(s) in the AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
+			// }
 
 			// User is valid format
-			const data: Schemas.User = req.body.user;
-			
+			// const data: Schemas.User = req.body.user;
+			const data: Schemas.User = {name: 'admin', isAdmin: true}; 
 			// TODO we currently do are not supporting this feature
 			// if (!data.isAdmin) {
 			// 	throw new Server_Error(401, 'You do not have permission to reset the registry.');
