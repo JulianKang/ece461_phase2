@@ -129,7 +129,7 @@ function createOrClearDirectory(directoryPath) {
 // Function to fetch the number of weekly commits and other required data
 function fetchDataAndCalculateScore(inputUrl, content) {
     return __awaiter(this, void 0, void 0, function () {
-        var repoUrl, packageName, githubRepo, githubToken, headers, graphqlEndpoint, parsedURL, queries, response, data, lastCommitDate, readmeText, oneWeekAgo, weeklyCommitCount, _i, _a, commit, commitDate, parts, repo, owner, rampUpResult, issues, correctnessScore, busFactorResult, DependencyFraction, PullRequestFraction, responsiveMaintainerResult, version, licenseCheckResult, netScoreResult, currentDirectory, directoryPath, zipFilePath, base64Zip, zip, zipBuffer, output, jsonOutput, error_1, currentDirectory, directoryPath;
+        var repoUrl, packageName, githubRepo, githubToken, headers, graphqlEndpoint, parsedURL, queries, response, data, lastCommitDate, readmeText, oneWeekAgo, weeklyCommitCount, _i, _a, commit, commitDate, parts, repo, owner, rampUpResult, issues, correctnessScore, busFactorResult, DependencyFraction, PullRequestFraction, responsiveMaintainerResult, version, licenseCheckResult, netScoreResult, currentDirectory, directoryPath, zipFilePath, base64Zip, zip, gitFolderPath, zipBuffer, output, jsonOutput, error_1, currentDirectory, directoryPath;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -245,6 +245,11 @@ function fetchDataAndCalculateScore(inputUrl, content) {
                     if ((base64Zip === undefined || base64Zip === null) && fs.existsSync(directoryPath)) {
                         try {
                             zip = new AdmZip();
+                            gitFolderPath = "".concat(directoryPath, "/.git");
+                            if (fs.existsSync(gitFolderPath)) {
+                                fs.rmdirSync(gitFolderPath, { recursive: true });
+                                //logger.info(`.git folder removed successfully.`);
+                            }
                             // Add the entire directory to the zip file
                             addFolderToZip(directoryPath, zip);
                             zipBuffer = zip.toBuffer();
