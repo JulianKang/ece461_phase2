@@ -171,7 +171,7 @@ export namespace Evaluate {
     }
     
     export function isSemverRange(obj: any): obj is SemverRange {
-        return obj && typeof obj === 'string';
+        return typeof obj === 'string';
     }
 
     export function isPackageRegEx(obj: any): obj is PackageRegEx {
@@ -224,7 +224,7 @@ export namespace Evaluate {
     }
 
     export function isPackageQuery(obj: any): obj is PackageQuery {
-        return obj && isSemverRange(obj.Version) && isPackageName(obj.Name);
+        return obj && isSemverRange(obj.Version) && (isPackageName(obj.Name) || obj.Name === '*');
     }
     
 }

@@ -156,6 +156,12 @@ export class PackageManagementAPI {
 		  */
 		try {
 			const data: Schemas.PackageQuery[] = req.body;
+			[
+				{
+					Version: "",
+					Name: "*"
+				}
+			]
 			let dbResp: Schemas.PackageMetadata[][] = [];
 
 			if (!Array.isArray(data)) {
