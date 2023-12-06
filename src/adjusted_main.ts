@@ -297,10 +297,14 @@ export async function fetchDataAndCalculateScore(inputUrl: string, content?: Sch
       try {
           // Create a new instance of AdmZip
           const zip: typeof AdmZip = new AdmZip();
-  
+          const gitFolderPath = `${directoryPath}/.git`;
+          if (fs.existsSync(gitFolderPath)) {
+            fs.rmdirSync(gitFolderPath, { recursive: true });
+            //logger.info(`.git folder removed successfully.`);
+          }
           // Add the entire directory to the zip file
           addFolderToZip(directoryPath, zip);
-  
+          //zip.writeZip(zipFilePath);
           // Get the zip file as a buffer
           const zipBuffer = zip.toBuffer();
   
