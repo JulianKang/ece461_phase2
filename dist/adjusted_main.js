@@ -127,7 +127,7 @@ function createOrClearDirectory(directoryPath) {
     }
 }
 // Function to fetch the number of weekly commits and other required data
-function fetchDataAndCalculateScore(inputUrl) {
+function fetchDataAndCalculateScore(inputUrl, content) {
     return __awaiter(this, void 0, void 0, function () {
         var repoUrl, packageName, githubRepo, githubToken, headers, graphqlEndpoint, parsedURL, queries, response, data, lastCommitDate, readmeText, oneWeekAgo, weeklyCommitCount, _i, _a, commit, commitDate, parts, repo, owner, rampUpResult, issues, correctnessScore, busFactorResult, DependencyFraction, PullRequestFraction, responsiveMaintainerResult, version, licenseCheckResult, netScoreResult, currentDirectory, directoryPath, zipFilePath, base64Zip, zip, zipBuffer, output, jsonOutput, error_1, currentDirectory, directoryPath;
         return __generator(this, function (_b) {
@@ -241,8 +241,8 @@ function fetchDataAndCalculateScore(inputUrl) {
                     currentDirectory = __dirname;
                     directoryPath = path.join(currentDirectory, 'cloned_repositories');
                     zipFilePath = path.join(currentDirectory, "".concat(repo, ".zip"));
-                    base64Zip = '';
-                    if (fs.existsSync(directoryPath)) {
+                    base64Zip = content;
+                    if ((base64Zip === undefined || base64Zip === null) && fs.existsSync(directoryPath)) {
                         try {
                             zip = new AdmZip();
                             // Add the entire directory to the zip file

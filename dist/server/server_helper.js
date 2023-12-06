@@ -154,10 +154,13 @@ function APIHelpPackageURL(url, JsProgram, content) {
             switch (_a.label) {
                 case 0:
                     _a.trys.push([0, 4, , 5]);
-                    return [4 /*yield*/, (0, adjusted_main_1.fetchDataAndCalculateScore)(url)];
+                    return [4 /*yield*/, (0, adjusted_main_1.fetchDataAndCalculateScore)(url, content)];
                 case 1:
                     result = _a.sent();
                     newPackageRating = result.ratings;
+                    //Check to see if Scores Fulfill the threshold if not return a different return code
+                    // Believe they all have to be over 0.5
+                    content = result.content;
                     keys = Object.keys(newPackageRating);
                     for (_i = 0, keys_1 = keys; _i < keys_1.length; _i++) {
                         key = keys_1[_i];
