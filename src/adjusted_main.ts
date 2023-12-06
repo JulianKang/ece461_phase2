@@ -162,7 +162,6 @@ export async function fetchDataAndCalculateScore(inputUrl: string, content?: Sch
       
     }
     const data = response.data.data;
-    winston.info(data);
     if (!data || !data.repository || !data.repository.defaultBranchRef || !data.repository.defaultBranchRef.target || !data.repository.defaultBranchRef.target.history || !data.repository.defaultBranchRef.target.history.edges || !data.repository.defaultBranchRef.target.history.edges[0] || !data.repository.defaultBranchRef.target.history.edges[0].node || !data.repository.defaultBranchRef.target.history.edges[0].node.committedDate) {
       winston.error(`Error: GraphQL response does not contain the expected data for URL ${repoUrl}`);
       //process.exit(1); // Exit with a failure status code (1) on error
@@ -212,11 +211,12 @@ export async function fetchDataAndCalculateScore(inputUrl: string, content?: Sch
 
     const licenseCheckResult = licenseCheck(readmeText);
     
-    winston.debug(`Weekly Commit Count: ${weeklyCommitCount}`);
     winston.debug(`Ramp Up Score: ${rampUpResult}`);
     winston.debug(`Correctness Score: ${correctnessScore}`);
     winston.debug(`Bus Factor Score: ${busFactorResult}`);
     winston.debug(`Responsive Maintainer Score: ${responsiveMaintainerResult}`);
+    winston.debug(`Pull Request Fraction: ${PullRequestFraction}`);
+    winston.debug(`Dependency Pin: ${DependencyFraction}`);
     winston.debug(`License Score: ${licenseCheckResult}`);
 
     // Calculate the net score using your netScore function
@@ -232,63 +232,6 @@ export async function fetchDataAndCalculateScore(inputUrl: string, content?: Sch
     winston.info(`NET_SCORE: ${netScoreResult}`);
   
     // Return the result for NDJSON formatting
-/*    const output: Schemas.DataFetchedFromURL = {
-      ratings: {
-        BusFactor: parseFloat(busFactorResult.toFixed(5)),
-        Correctness: parseFloat(correctnessScore.toFixed(5)),
-        RampUp: parseFloat(rampUpResult.toFixed(5)),
-        ResponsiveMaintainer: parseFloat(responsiveMaintainerResult.toFixed(5)),
-        LicenseScore: parseFloat(licenseCheckResult.toFixed(5)),
-        GoodPinningPractice: DependencyFraction, // TODO
-        PullRequest: PullRequestFraction, // TODO
-        NetScore: parseFloat(netScoreResult.toFixed(5)), 
-      }, 
-      url: repoUrl,
-      content: 'TODO',
-      version: 'TODO',
-      reademe: readmeText,
-    };
-    
-    // Serialize the output to JSON
-    const jsonOutput = JSON.stringify(output);
-    /**
-    const parts = repositoryUrl.split('/');
-    const owner = parts[parts.length - 2];
-    const repo = parts[parts.length - 1];
-     
-    // Log the JSON output
-    logger.info(jsonOutput);
-    const currentDirectory = __dirname;
-    const directoryPath = path.join(currentDirectory, 'cloned_repositories');
-    logger.info(fs.existsSync(directoryPath))
-    const zipFilePath = path.join(currentDirectory, `${repo}.zip`);
-    logger.info(fs.existsSync(directoryPath));
-
-    if (fs.existsSync(directoryPath)) {
-        try {
-            // Create a new instance of AdmZip
-            const zip: typeof AdmZip = new AdmZip();
-
-            // Add the entire directory to the zip file
-            addFolderToZip(directoryPath, zip);
-    
-            // Write the zip file to disk
-            zip.writeZip(zipFilePath);
-    
-            logger.info(`Zip file created successfully at: ${zipFilePath}`);
-    
-            // Now you can remove the directory
-            try {
-                fs.rmdirSync(directoryPath, { recursive: true });
-                logger.info(`Directory ${directoryPath} removed successfully.`);
-            } catch (err) {
-                logger.info(`Error removing directory ${directoryPath}: ${err}`);
-            }
-        } catch (err) {
-            logger.info(`Error creating zip file: ${err}`);
-            fs.rmdirSync(directoryPath, { recursive: true });
-        }
-    }*/
     const currentDirectory = __dirname;
     const directoryPath = path.join(currentDirectory, 'cloned_repositories');
     const zipFilePath = path.join(currentDirectory, `${repo}.zip`);
@@ -300,7 +243,6 @@ export async function fetchDataAndCalculateScore(inputUrl: string, content?: Sch
           const gitFolderPath = `${directoryPath}/.git`;
           if (fs.existsSync(gitFolderPath)) {
             fs.rmdirSync(gitFolderPath, { recursive: true });
-            //logger.info(`.git folder removed successfully.`);
           }
           // Add the entire directory to the zip file
           addFolderToZip(directoryPath, zip);
@@ -311,12 +253,9 @@ export async function fetchDataAndCalculateScore(inputUrl: string, content?: Sch
           // Convert the buffer to a base64-encoded string
           base64Zip = zipBuffer.toString('base64');
   
-          logger.info(`Base64-encoded zip file created successfully.`);
-  
           // Now you can remove the directory
           try {
               fs.rmdirSync(directoryPath, { recursive: true });
-              logger.info(`Directory ${directoryPath} removed successfully.`);
           } catch (err) {
               logger.info(`Error removing directory ${directoryPath}: ${err}`);
           }
@@ -331,7 +270,6 @@ export async function fetchDataAndCalculateScore(inputUrl: string, content?: Sch
     else{
       try {
         fs.rmdirSync(directoryPath, { recursive: true });
-        logger.info(`Directory ${directoryPath} removed successfully.`);
       } catch (err) {
           logger.info(`Error removing directory ${directoryPath}: ${err}`);
       }
@@ -346,7 +284,7 @@ export async function fetchDataAndCalculateScore(inputUrl: string, content?: Sch
         LicenseScore: parseFloat(licenseCheckResult.toFixed(5)),
         GoodPinningPractice: parseFloat(DependencyFraction.toFixed(5)),
         PullRequest: parseFloat(PullRequestFraction.toFixed(5)), // TODO
-        NetScore: parseFloat(netScoreResult.toFixed(5)), 
+        NetScore: parseFloat(netScoreResult.toFixed(5)),
       }, 
       url: repoUrl,
       content: base64Zip,
@@ -369,7 +307,6 @@ export async function fetchDataAndCalculateScore(inputUrl: string, content?: Sch
         try {
           // Remove the directory
           fs.removeSync(directoryPath);
-          logger.info(`Directory ${directoryPath} removed successfully.`);
         } catch (err) {
           logger.info(`Error removing directory ${directoryPath}: ${err}`);
         }
@@ -394,43 +331,6 @@ function addFolderToZip(folderPath: string, zip: typeof AdmZip): void {
       }
       // Ignore symbolic links
   });
-}
-
-function removeDirectory(dirPath: string): void {
-  if (fs.existsSync(dirPath)) {
-      fs.readdirSync(dirPath).forEach((entry: string) => {
-          const entryPath: string = path.join(dirPath, entry);
-          if (fs.lstatSync(entryPath).isDirectory()) {
-              removeDirectory(entryPath);
-          } else {
-              fs.unlinkSync(entryPath);
-          }
-      });
-      fs.rmdirSync(dirPath);
-      logger.info(`Directory ${dirPath} removed successfully.`);
-  }
-}
-
-async function processAndCalculateScoresForUrls(filePath: string, outputStream: NodeJS.WritableStream) {
-  
-  try {
-    const urls = await processUrls(filePath);
-
-    // Process URLs sequentially using async/await
-    for (const repoUrl of urls) {
-      const result = await fetchDataAndCalculateScore(repoUrl);
-
-      // Format the result as NDJSON and write it to the output stream
-      outputStream.write(JSON.stringify(result) + '\n');
-    }
-
-    // All URLs processed successfully, exit with a success status code (0)
-    process.exit(0);
-  } catch (error) {
-    console.error('Error processing URLs or calculating scores:', error);
-    //process.exit(1); // Exit with a failure status code (1) on error
-    throw new Error(`Error processing URLs or calculating scores: ${error}`);
-  }
 }
 
 

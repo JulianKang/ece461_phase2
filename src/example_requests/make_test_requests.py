@@ -16,7 +16,7 @@ adminUser= {
     'isAdmin': True
 };
 url = 'http://ec2-18-191-52-162.us-east-2.compute.amazonaws.com/api/packages'
-get_url = 'http://ec2-18-191-52-162.us-east-2.compute.amazonaws.com/api/package/browserify_v17.0.0'
+get_url = 'http://ec2-18-191-52-162.us-east-2.compute.amazonaws.com/api/package/inversifyjs_v6.0.2'
 delete_url = 'http://ec2-18-191-52-162.us-east-2.compute.amazonaws.com/api/reset'
 post_url = 'http://ec2-18-191-52-162.us-east-2.compute.amazonaws.com/api/package'
 post_local = 'http://localhost:3000/package'
