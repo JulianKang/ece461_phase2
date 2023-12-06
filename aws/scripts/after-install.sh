@@ -24,5 +24,5 @@ sudo rm -rf /usr/lib/node_modules/pm2
 sudo npm install -g pm2
 tsc
 sudo rm -rf /home/ubuntu/.npm
-sudo rm -rf /home/ubunut/apps/tests
+sudo rm -rf /home/ubuntu/apps/tests
 echo "complete"
