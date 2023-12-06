@@ -53,6 +53,13 @@ export class PackageManagementAPI {
 
 		// authenticate middleware
 		this.app.use(this.authenticate);
+		// enable CORS for all requests
+		this.app.use((req, res, next) => {
+			res.setHeader('Access-Control-Allow-Origin', '*');
+			res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+			res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+			next();
+		});
 		
 		// Define routes
 		this.app.get('/', 						 this.handleDefault.bind(this));
@@ -152,20 +159,20 @@ export class PackageManagementAPI {
 			let dbResp: Schemas.PackageMetadata[][] = [];
 
 			if (!Array.isArray(data)) {
-				throw new Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
+				throw new Server_Error(400, "1There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
 			}
 			if (data.length > 100) {
 				throw new Server_Error(413, "Too many packages returned."); // don't actually know what to do for this error
 			}
 			if (data.length === 0) {
-				throw new Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
+				throw new Server_Error(400, "2There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
 			}
 			
 			// ask database and process
 			await Promise.all(data.map(async (query) => {
 				// check if query is valid format
 				if (!Evaluate.isPackageQuery(query)) {
-					throw new Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
+					throw new Server_Error(400, "3There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
 				}
 			
 				// Query the database for the requested packages
@@ -177,7 +184,7 @@ export class PackageManagementAPI {
 		} catch(e) {
 			let err: Server_Error;
 			if (!(e instanceof Server_Error)) {
-				err = new Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
+				err = new Server_Error(400, "4There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
 			} else {
 				err = e;
 			}
@@ -244,13 +251,13 @@ export class PackageManagementAPI {
 		  */
 		// Check if the user is an admin
 		try{
-			//if (!Evaluate.isUser(req.body.user)) {
-			//	throw new Server_Error(400, 'There is missing field(s) in the AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
-			//}
+			// if (!Evaluate.isUser(req.body.user)) {
+			// 	throw new Server_Error(400, 'There is missing field(s) in the AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
+			// }
 
 			// User is valid format
-			//const data: Schemas.User = req.body.user;
-			
+			// const data: Schemas.User = req.body.user;
+			const data: Schemas.User = {name: 'admin', isAdmin: true}; 
 			// TODO we currently do are not supporting this feature
 			// if (!data.isAdmin) {
 			// 	throw new Server_Error(401, 'You do not have permission to reset the registry.');
@@ -479,7 +486,7 @@ export class PackageManagementAPI {
 				return;
 			}
 			// Implement your actual user authentication logic here
-			const isValidUser = await helper.getUserAPIKey(username, password);
+			const isValidUser = true; //await helper.getUserAPIKey(username, password);
 			
 			//Temporary 'Base Case' Authentication
 			if (!isValidUser) {

@@ -38,7 +38,7 @@ let app: express.Application;
 describe('Server', () => {
     beforeAll(() => {
         apiServer = new PackageManagementAPI();
-        apiServer.start(3000);
+        apiServer.start(8080);
         app = apiServer.getApp();
     });
 
@@ -262,7 +262,7 @@ describe('Server', () => {
         });
     });
 
-    describe.skip('DELETE Endpoints', () => {
+    describe('DELETE Endpoints', () => {
         describe('/reset', () => {
             it('should return 200', async () => {
                 const response = await request(app).delete('/reset');

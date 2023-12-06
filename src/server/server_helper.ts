@@ -141,19 +141,19 @@ export async function APIHelpPackageURL(url: Schemas.PackageURL, JsProgram: Sche
 }
 
 // not used currently
-export async function getUserAPIKey(username: string, password: string): Promise<string | boolean> {
-    const admin = username === "ece30861defaultadminuser" && password === "correcthorsebatterystaple123(!__+@**(A'\"`;DROP TABLE packages;";
-    if(admin){
-        return true
-    }
+// export async function getUserAPIKey(username: string, password: string): Promise<string | boolean> {
+//     const admin = username === "ece30861defaultadminuser" && password === "correcthorsebatterystaple123(!__+@**(A'\"`;DROP TABLE packages;";
+//     if(admin){
+//         return true
+//     }
 
-    let authenication = true;//await dbCommunicator.authenticateUser(username, password);
-    if (!authenication) {
-        return false;
-    }
+//     // let authenication = await dbCommunicator.authenticateUser(username, password);
+//     if (!authenication) {
+//         return false;
+//     }
 
-    return authenication;
-}
+//     return authenication;
+// }
 
 /*   
     example input
@@ -163,6 +163,19 @@ export async function getUserAPIKey(username: string, password: string): Promise
     }
  */
 export async function queryForPackage(Input: Schemas.PackageQuery): Promise<Schemas.PackageMetadata[]> {
+    // return all packages
+    if(Input.Name==="*" && Input.Version==="*") { 
+        let foundPackages: Schemas.PackageMetadata[] = [];
+        const packageData = await dbCommunicator.getPackageMetadata(Input.Name, Input.Version);  
+        foundPackages.push(...packageData);
+        foundPackages = foundPackages.filter((item, index) => {
+            return foundPackages.findIndex(obj => obj.Name === item.Name && obj.Version === item.Version) === index;
+        });
+        
+        return foundPackages;
+    }
+
+
     // process "Version"
     const versionRegex = /\(([^)]+)\)/;
     const lines: string[] = Input.Version.split('\n');
@@ -174,7 +187,7 @@ export async function queryForPackage(Input: Schemas.PackageQuery): Promise<Sche
             }
             return match[1];
         } catch (error) {
-            throw new Server_Error(400, "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
+            throw new Server_Error(400, "5There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
         }
     });
     // "1.2.3", "1.2.3-2.1.0", "^1.2.3", "~1.2.0"

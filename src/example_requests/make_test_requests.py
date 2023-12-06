@@ -8,7 +8,7 @@ data = {
 }
 
 data_url = {
-  "URL": 'https://github.com/cloudinary/cloudinary_npm',
+  "URL": 'https://github.com/lodash/lodash',
   "JSProgram": "if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}\n"
 }
 adminUser= {
@@ -27,7 +27,7 @@ data_packages = {
     "Version": "1.0",
     "Name": "ece461project"
 }
-response = requests.post(post_url, headers=headers, data=json.dumps(data))
+response = requests.post(post_url, headers=headers, data=json.dumps(data_url))
 #response = requests.delete(delete_url, headers=headers)
 #response = requests.get(get_url, headers=headers)
 #response = requests.get(get_url, headers=headers)

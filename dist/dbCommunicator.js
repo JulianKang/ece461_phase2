@@ -167,7 +167,6 @@ var DBCommunicator = /** @class */ (function () {
             });
         });
     };
-    //TODO: Figure out versions; TEST
     DBCommunicator.prototype.resetRegistry = function () {
         return __awaiter(this, void 0, void 0, function () {
             var sql, result;
@@ -276,18 +275,18 @@ var DBCommunicator = /** @class */ (function () {
                         if (packageVersion.includes("~")) {
                             sql = "SELECT * FROM packages WHERE name = ? AND CAST(SUBSTRING_INDEX(version, '.', 1) AS UNSIGNED) = ? AND CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(version, '.', -2), '.', 1) AS UNSIGNED) = ? AND CAST(SUBSTRING_INDEX(version, '.', -1) AS UNSIGNED) >= ?;";
                             _a = packageVersion
-                                .replace(/[^\d.^-]/g, '') // Remove non-numeric, ^, ~ characters
+                                .replace(/[^\d.^-]/g, '')
                                 .split('.')
                                 .map(Number), major = _a[0], minor = _a[1], patch = _a[2];
                             values = [packageName, major, minor, patch];
                         }
                         else if (packageVersion.includes("^")) {
-                            sql = "SELECT * FROM packages WHERE name = ? AND \n      (\n          CAST(SUBSTRING_INDEX(version, '.', 1) AS UNSIGNED) * 10000 +\n          CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(version, '.', -2), '.', 1) AS UNSIGNED) * 100 +\n          CAST(SUBSTRING_INDEX(version, '.', -1) AS UNSIGNED)\n      ) >=\n          CAST(? AS SIGNED) * 10000 +\n          CAST(? AS SIGNED) * 100 +\n          CAST(? AS SIGNED);";
+                            sql = "SELECT * FROM packages WHERE name = ? AND \n      (\n          CAST(SUBSTRING_INDEX(version, '.', 1) AS UNSIGNED) * 10000 +\n          CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(version, '.', -2), '.', 1) AS UNSIGNED) * 100 +\n          CAST(SUBSTRING_INDEX(version, '.', -1) AS UNSIGNED)\n      ) BETWEEN\n          CAST(? AS SIGNED) * 10000 +\n          CAST(? AS SIGNED) * 100 +\n          CAST(? AS SIGNED)\n        AND\n          CAST(? AS SIGNED) * 10000 - 1;";
                             _b = packageVersion
-                                .replace(/[^\d.~-]/g, '') // Remove non-numeric, ^, ~ characters
+                                .replace(/[^\d.~-]/g, '')
                                 .split('.')
                                 .map(Number), major = _b[0], minor = _b[1], patch = _b[2];
-                            values = [packageName, major, minor, patch];
+                            values = [packageName, major, minor, patch, major + 1];
                         }
                         else if (packageVersion.includes("-")) {
                             sql = "SELECT * FROM packages WHERE name = ? AND \n              (\n                  CAST(SUBSTRING_INDEX(version, '.', 1) AS UNSIGNED) * 10000 +\n                  CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(version, '.', -2), '.', 1) AS UNSIGNED) * 100 +\n                  CAST(SUBSTRING_INDEX(version, '.', -1) AS UNSIGNED)\n              ) BETWEEN\n                  CAST(? AS SIGNED) * 10000 +\n                  CAST(? AS SIGNED) * 100 +\n                  CAST(? AS SIGNED)\n              AND\n                  CAST(? AS SIGNED) * 10000 +\n                  CAST(? AS SIGNED) * 100 +\n                  CAST(? AS SIGNED);";
