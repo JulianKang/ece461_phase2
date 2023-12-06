@@ -293,15 +293,11 @@ var PackageManagementAPI = /** @class */ (function () {
     // endpoint: '/reset' DELETE
     PackageManagementAPI.prototype.handleReset = function (req, res, next) {
         return __awaiter(this, void 0, void 0, function () {
-            var data, result, e_3, err;
+            var result, e_3, err;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         _a.trys.push([0, 2, , 3]);
-                        if (!Evaluate.isUser(req.body.user)) {
-                            throw new server_errors_1.Server_Error(400, 'There is missing field(s) in the AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
-                        }
-                        data = req.body.user;
                         return [4 /*yield*/, this.database.resetRegistry()];
                     case 1:
                         result = _a.sent();
