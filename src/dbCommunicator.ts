@@ -304,14 +304,14 @@ class DBCommunicator {
       return null;
     }
     const metrics: Schemas.PackageRating =  {
-      BusFactor: (result[0] as mysql.RowDataPacket).bus_factor,
-      Correctness: (result[0] as mysql.RowDataPacket).correctness,
-      RampUp: (result[0] as mysql.RowDataPacket).ramp_up,
-      ResponsiveMaintainer: (result[0] as mysql.RowDataPacket).responsive_maintainer,
-      LicenseScore: (result[0] as mysql.RowDataPacket).license_score,
-      GoodPinningPractice: (result[0] as mysql.RowDataPacket).good_pinning_practice,
-      PullRequest: (result[0] as mysql.RowDataPacket).pull_request,
-      NetScore: (result[0] as mysql.RowDataPacket).net_score
+      BusFactor: (result[0] as mysql.RowDataPacket).bus_factor.toFixed(5),
+      Correctness: (result[0] as mysql.RowDataPacket).correctness.toFixed(5),
+      RampUp: (result[0] as mysql.RowDataPacket).ramp_up.toFixed(5),
+      ResponsiveMaintainer: (result[0] as mysql.RowDataPacket).responsive_maintainer.toFixed(5),
+      LicenseScore: (result[0] as mysql.RowDataPacket).license_score.toFixed(5),
+      GoodPinningPractice: (result[0] as mysql.RowDataPacket).good_pinning_practice.toFixed(5),
+      PullRequest: (result[0] as mysql.RowDataPacket).pull_request.toFixed(5),
+      NetScore: (result[0] as mysql.RowDataPacket).net_score.toFixed(5)
     };
 
     return metrics;
