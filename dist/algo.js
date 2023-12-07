@@ -304,7 +304,6 @@ function convertToHttpsUrl(repositoryUrl) {
         var parts = repositoryUrl.split(':');
         var ownerAndRepo = parts[1].replace('.git', '');
         // Construct the HTTPS URL
-        //logger.info('boom')
         return "https://github.com/".concat(ownerAndRepo);
     }
     else if (repositoryUrl.includes('git@github.com')) {
@@ -312,7 +311,6 @@ function convertToHttpsUrl(repositoryUrl) {
         var parts = repositoryUrl.split('git@github.com');
         var ownerAndRepo = parts[1]; //.replace('.git', '');
         // Construct the HTTPS URL
-        //logger.info('boom')
         return "https://github.com".concat(ownerAndRepo);
     }
     // If it's not an SSH URL, return the original URL
@@ -354,8 +352,6 @@ function calculatePinnedDependencies() {
                     }
                     pinnedDependencies = dependencies.filter(function (dep) {
                         var version = dep.split('@')[1];
-                        //logger.info(version)
-                        //logger.info(version.match(/(\d+)\.(\d+)/))
                         return version && version.match(/(\d+)\.(\d+)/) !== null; // Check if the version follows the major.minor format
                     });
                     fraction = pinnedDependencies.length / dependencies.length;
@@ -370,72 +366,6 @@ function calculatePinnedDependencies() {
     });
 }
 exports.calculatePinnedDependencies = calculatePinnedDependencies;
-/*export async function calculateCodeReviewFraction(localDirectory: string): Promise<number> {
-  try {
-    logger.info(localDirectory);
-    const git: SimpleGit = simpleGit({ baseDir: localDirectory });
-
-    // Get the number of merged pull requests
-    const mergedPullRequestsResponse: string = await git.raw(['log', '--merges', '--grep=^Merge pull request']);
-    const mergedPullRequests = mergedPullRequestsResponse.split('commit ').filter(commit => commit.trim() !== '').length;
-
-    // Get the total number of commits
-    const allCommitsResponse: string = await git.raw(['rev-list', '--all', '--count']);
-    const totalCommits = parseInt(allCommitsResponse, 10);
-
-    if (totalCommits === 0) {
-      // Handle the case where there are no commits
-      return 0;
-    }
-
-    // Calculate the code review fraction
-    logger.info(mergedPullRequests)
-    logger.info(totalCommits)
-    const codeReviewFraction = mergedPullRequests / totalCommits;
-
-    return codeReviewFraction;
-  } catch (error) {
-    logger.error(error);
-    return 0;
-  }
-}*/
-/*export async function calculateCodeReviewFraction(owner: string, repo: string): Promise<number> {
-  try {
-    const headers = {
-      Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
-    };
-
-    // Get the pull requests
-    const pullRequestsResponse = await axios.get(`https://api.github.com/repos/${owner}/${repo}/pulls?state=closed&per_page=100`, { headers });
-    logger.info(pullRequestsResponse)
-    // Filter pull requests based on the merged_at property
-    const mergedPullRequests = pullRequestsResponse.data.filter(
-      (pr: any) => pr.merged_at !== null
-    );
-
-    // Filter merged pull requests with the 'approved' label (adjust as needed)
-   /* const approvedMergedPullRequests = mergedPullRequests.filter(
-      (pr: any) => pr.labels.some((label: any) => label.name === 'approved')
-    );
-
-    // Get the total number of commits
-    const commitsResponse = await axios.get(`https://api.github.com/repos/${owner}/${repo}/commits?per_page=100`, { headers });
-    const totalCommits = commitsResponse.data.length;
-
-    if (totalCommits === 0) {
-      // Handle the case where there are no commits
-      return 0;
-    }
-
-    // Calculate the code review fraction
-    const codeReviewFraction = mergedPullRequests.length / totalCommits;
-
-    return codeReviewFraction;
-  } catch (error) {
-    logger.error(error);
-    return 0;
-  }
-}*/
 function calculateCodeReviewFraction(owner, repo) {
     return __awaiter(this, void 0, void 0, function () {
         var headers, commitsResponse, commitNodes, commitsFromPRCount, proportionFromPR, error_5;
@@ -458,7 +388,6 @@ function calculateCodeReviewFraction(owner, repo) {
                     }
                     commitsFromPRCount = commitNodes.filter(function (commitNode) { return commitNode.associatedPullRequests.totalCount > 0; }).length;
                     proportionFromPR = commitsFromPRCount / commitNodes.length;
-                    //logger.info(`Proportion of commits from pull requests: ${proportionFromPR}`);
                     return [2 /*return*/, proportionFromPR];
                 case 2:
                     error_5 = _a.sent();
@@ -487,13 +416,10 @@ function getGitHubPackageVersion(owner, repo) {
                         return [2 /*return*/, '1.0'];
                     }
                     latestTag = tagsResponse.data[0].name || '1.0';
-                    //logger.info('Latest tag:', latestTag);
                     return [2 /*return*/, latestTag];
                 case 2:
                     error_6 = _a.sent();
                     logger_1.default.error("Error fetching GitHub package version: ".concat(error_6.message));
-                    //logger.info(owner)
-                    //logger.info(repo)
                     return [2 /*return*/, '1.0'];
                 case 3: return [2 /*return*/];
             }

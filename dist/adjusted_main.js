@@ -76,7 +76,6 @@ var path = __importStar(require("path"));
 var fs = __importStar(require("fs-extra"));
 var axios_1 = __importDefault(require("axios"));
 var algo_1 = require("./algo");
-var parser_1 = require("./parser");
 var dotenv = __importStar(require("dotenv"));
 var logger_1 = __importDefault(require("./logger"));
 var winston = require('winston'); // Import Winston using CommonJS syntax
@@ -180,7 +179,6 @@ function fetchDataAndCalculateScore(inputUrl, content) {
                         throw new Error("GraphQL query errors: ".concat(JSON.stringify(response.data.errors)));
                     }
                     data = response.data.data;
-                    winston.info(data);
                     if (!data || !data.repository || !data.repository.defaultBranchRef || !data.repository.defaultBranchRef.target || !data.repository.defaultBranchRef.target.history || !data.repository.defaultBranchRef.target.history.edges || !data.repository.defaultBranchRef.target.history.edges[0] || !data.repository.defaultBranchRef.target.history.edges[0].node || !data.repository.defaultBranchRef.target.history.edges[0].node.committedDate) {
                         winston.error("Error: GraphQL response does not contain the expected data for URL ".concat(repoUrl));
                         //process.exit(1); // Exit with a failure status code (1) on error
@@ -230,11 +228,12 @@ function fetchDataAndCalculateScore(inputUrl, content) {
                 case 11:
                     version = _b.sent();
                     licenseCheckResult = (0, algo_1.licenseCheck)(readmeText);
-                    winston.debug("Weekly Commit Count: ".concat(weeklyCommitCount));
                     winston.debug("Ramp Up Score: ".concat(rampUpResult));
                     winston.debug("Correctness Score: ".concat(correctnessScore));
                     winston.debug("Bus Factor Score: ".concat(busFactorResult));
                     winston.debug("Responsive Maintainer Score: ".concat(responsiveMaintainerResult));
+                    winston.debug("Pull Request Fraction: ".concat(PullRequestFraction));
+                    winston.debug("Dependency Pin: ".concat(DependencyFraction));
                     winston.debug("License Score: ".concat(licenseCheckResult));
                     netScoreResult = (0, algo_1.netScore)(licenseCheckResult, busFactorResult, responsiveMaintainerResult, correctnessScore, // Include the correctness score
                     rampUpResult, // Use the retrieved weeklyCommits value
@@ -250,18 +249,15 @@ function fetchDataAndCalculateScore(inputUrl, content) {
                             gitFolderPath = "".concat(directoryPath, "/.git");
                             if (fs.existsSync(gitFolderPath)) {
                                 fs.rmdirSync(gitFolderPath, { recursive: true });
-                                //logger.info(`.git folder removed successfully.`);
                             }
                             // Add the entire directory to the zip file
                             addFolderToZip(directoryPath, zip);
                             zipBuffer = zip.toBuffer();
                             // Convert the buffer to a base64-encoded string
                             base64Zip = zipBuffer.toString('base64');
-                            logger_1.default.info("Base64-encoded zip file created successfully.");
                             // Now you can remove the directory
                             try {
                                 fs.rmdirSync(directoryPath, { recursive: true });
-                                logger_1.default.info("Directory ".concat(directoryPath, " removed successfully."));
                             }
                             catch (err) {
                                 logger_1.default.info("Error removing directory ".concat(directoryPath, ": ").concat(err));
@@ -277,7 +273,6 @@ function fetchDataAndCalculateScore(inputUrl, content) {
                     else {
                         try {
                             fs.rmdirSync(directoryPath, { recursive: true });
-                            logger_1.default.info("Directory ".concat(directoryPath, " removed successfully."));
                         }
                         catch (err) {
                             logger_1.default.info("Error removing directory ".concat(directoryPath, ": ").concat(err));
@@ -315,7 +310,6 @@ function fetchDataAndCalculateScore(inputUrl, content) {
                         try {
                             // Remove the directory
                             fs.removeSync(directoryPath);
-                            logger_1.default.info("Directory ".concat(directoryPath, " removed successfully."));
                         }
                         catch (err) {
                             logger_1.default.info("Error removing directory ".concat(directoryPath, ": ").concat(err));
@@ -344,59 +338,6 @@ function addFolderToZip(folderPath, zip) {
         // Ignore symbolic links
     });
 }
-function removeDirectory(dirPath) {
-    if (fs.existsSync(dirPath)) {
-        fs.readdirSync(dirPath).forEach(function (entry) {
-            var entryPath = path.join(dirPath, entry);
-            if (fs.lstatSync(entryPath).isDirectory()) {
-                removeDirectory(entryPath);
-            }
-            else {
-                fs.unlinkSync(entryPath);
-            }
-        });
-        fs.rmdirSync(dirPath);
-        logger_1.default.info("Directory ".concat(dirPath, " removed successfully."));
-    }
-}
-function processAndCalculateScoresForUrls(filePath, outputStream) {
-    return __awaiter(this, void 0, void 0, function () {
-        var urls, _i, urls_1, repoUrl, result, error_2;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    _a.trys.push([0, 6, , 7]);
-                    return [4 /*yield*/, (0, parser_1.processUrls)(filePath)];
-                case 1:
-                    urls = _a.sent();
-                    _i = 0, urls_1 = urls;
-                    _a.label = 2;
-                case 2:
-                    if (!(_i < urls_1.length)) return [3 /*break*/, 5];
-                    repoUrl = urls_1[_i];
-                    return [4 /*yield*/, fetchDataAndCalculateScore(repoUrl)];
-                case 3:
-                    result = _a.sent();
-                    // Format the result as NDJSON and write it to the output stream
-                    outputStream.write(JSON.stringify(result) + '\n');
-                    _a.label = 4;
-                case 4:
-                    _i++;
-                    return [3 /*break*/, 2];
-                case 5:
-                    // All URLs processed successfully, exit with a success status code (0)
-                    process.exit(0);
-                    return [3 /*break*/, 7];
-                case 6:
-                    error_2 = _a.sent();
-                    console.error('Error processing URLs or calculating scores:', error_2);
-                    //process.exit(1); // Exit with a failure status code (1) on error
-                    throw new Error("Error processing URLs or calculating scores: ".concat(error_2));
-                case 7: return [2 /*return*/];
-            }
-        });
-    });
-}
 // Define a function to parse GitHub repository URL
 function parseGitHubUrl(url) {
     var githubRegex = /github\.com\/([^/]+)\/([^/]+)/;
@@ -413,7 +354,7 @@ function parseGitHubUrl(url) {
 // Define a function to fetch and process issues data from the repository
 function fetchAndProcessIssues(repositoryUrl) {
     return __awaiter(this, void 0, void 0, function () {
-        var parts, owner, repo, response, issues, error_3;
+        var parts, owner, repo, response, issues, error_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -430,7 +371,7 @@ function fetchAndProcessIssues(repositoryUrl) {
                     }); });
                     return [2 /*return*/, issues];
                 case 2:
-                    error_3 = _a.sent();
+                    error_2 = _a.sent();
                     return [2 /*return*/, []]; // Return an empty array in case of an error
                 case 3: return [2 /*return*/];
             }
@@ -451,7 +392,7 @@ function extractPackageNameFromNpmLink(npmLink) {
 // Function to fetch GitHub repository information from an npm package name
 function getGitHubRepoFromNpm(packageName) {
     return __awaiter(this, void 0, void 0, function () {
-        var response, packageData, repositoryUrl, githubUrl, error_4;
+        var response, packageData, repositoryUrl, githubUrl, error_3;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -467,7 +408,7 @@ function getGitHubRepoFromNpm(packageName) {
                     }
                     return [2 /*return*/, null];
                 case 2:
-                    error_4 = _a.sent();
+                    error_3 = _a.sent();
                     return [2 /*return*/, null];
                 case 3: return [2 /*return*/];
             }
