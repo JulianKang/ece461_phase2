@@ -73,13 +73,16 @@ var Schemas = __importStar(require("../schemas"));
 var Evaluate = Schemas.Evaluate;
 var Buffer = require('buffer').Buffer;
 var AdmZip = require('adm-zip');
+function remove_periods(version) {
+    return version.replace(/\./g, '');
+}
 function getPackageMetadataFromURL(url, version) {
     var packageMetadata = {
         Name: url.split('/')[url.split('/').length - 1],
         Version: version,
         ID: null,
     };
-    packageMetadata.ID = packageMetadata.Name.toLowerCase() + '_' + packageMetadata.Version;
+    packageMetadata.ID = packageMetadata.Name.toLowerCase() + '_' + remove_periods(packageMetadata.Version);
     return packageMetadata;
 }
 function APIHelpPackageContent(base64, JsProgram) {
@@ -198,6 +201,7 @@ function APIHelpPackageURL(url, JsProgram, content) {
                     if (!db_response_ratings) {
                         throw new server_errors_1.Server_Error(500, 12, 'POST "/package"', "Internal Server Error");
                     }
+                    logger_1.default.info("Package uploaded successfully: Name{".concat(newPackage.metadata.Name, "} Version{").concat(newPackage.metadata.Version, "} ID{").concat(newPackage.metadata.ID, "}"));
                     return [2 /*return*/, newPackage];
                 case 4:
                     error_2 = _a.sent();
