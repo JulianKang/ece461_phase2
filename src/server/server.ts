@@ -182,7 +182,8 @@ export class PackageManagementAPI {
 				const result = await helper.queryForPackage(query);
 				dbResp.push(result);
 			}));
-		
+			
+			logger.info(`At:{POST "/packages"}:{1} got Code:200 -> Message: Successfully retrieved packages`);
 			res.status(200).json(dbResp);
 		} catch(e) {
 			let err: Server_Error;
@@ -228,6 +229,8 @@ export class PackageManagementAPI {
 			} else {
 				throw new Server_Error(400, 3, 'POST "/package"', 'There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid.');
 			}
+
+			logger.info(`At:{POST "/package"}:{1} got Code:201 -> Message: Successfully created package`);
 			res.status(201).json(result);
 		} catch (e) {
 			let err: Server_Error;
@@ -273,6 +276,7 @@ export class PackageManagementAPI {
 				throw new Server_Error(400, 1, 'DELETE "/reset"', 'There is missing field(s) in the AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
 			}
 
+			logger.info(`At:{DELETE "/reset"}:{1} got Code:200 -> Message: Successfully reset registry`);
 			res.json('System reset successfully');
 		} catch (e) {
 			let err: Server_Error;
@@ -318,6 +322,7 @@ export class PackageManagementAPI {
 		}
 		
 		// Successfully retrieved the package
+		logger.info(`At:{GET "/package/:id"}:{1} got Code:200 -> Message: Successfully retrieved package`);
 		res.status(200).json(package_result);
 	}
 	
@@ -361,6 +366,7 @@ export class PackageManagementAPI {
 				throw new Server_Error(404, 5, 'PUT "/package/:id"', 'Package not found.');
 			}
 			// Successfully updated package
+			logger.info(`At:{PUT "/package/:id"}:{1} got Code:200 -> Message: Successfully updated package`);
 			res.status(200).json('Version is updated.');
 		} catch(e) {
 			let err: Server_Error;
@@ -456,6 +462,7 @@ export class PackageManagementAPI {
 		}
 		
 		// Successfully rated package
+		logger.info(`At:{GET "/package/:id/rate"}:{1} got Code:200 -> Message: Successfully rated package`);
 		res.status(200).json(ratedPackage);
 	}
 	
@@ -629,6 +636,7 @@ export class PackageManagementAPI {
 		}
 		
 		// Successfully retrieved search results
+		logger.info(`At:{POST "/package/byRegEx"}:{1} got Code:200 -> Message: Successfully retrieved search results`);
 		res.status(200).json(searchResults);
 	}
 
