@@ -235,6 +235,7 @@ var PackageManagementAPI = /** @class */ (function () {
                     case 1:
                         // ask database and process
                         _a.sent();
+                        logger_1.default.info("At:{POST \"/packages\"}:{1} got Code:200 -> Message: Successfully retrieved packages");
                         res.status(200).json(dbResp_1);
                         return [3 /*break*/, 3];
                     case 2:
@@ -283,6 +284,7 @@ var PackageManagementAPI = /** @class */ (function () {
                         return [3 /*break*/, 6];
                     case 5: throw new server_errors_1.Server_Error(400, 3, 'POST "/package"', 'There is missing field(s) in the PackageData/AuthenticationToken or it is formed improperly (e.g. Content and URL are both set), or the AuthenticationToken is invalid.');
                     case 6:
+                        logger_1.default.info("At:{POST \"/package\"}:{1} got Code:201 -> Message: Successfully created package");
                         res.status(201).json(result);
                         return [3 /*break*/, 8];
                     case 7:
@@ -315,6 +317,7 @@ var PackageManagementAPI = /** @class */ (function () {
                         if (!result) {
                             throw new server_errors_1.Server_Error(400, 1, 'DELETE "/reset"', 'There is missing field(s) in the AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
                         }
+                        logger_1.default.info("At:{DELETE \"/reset\"}:{1} got Code:200 -> Message: Successfully reset registry");
                         res.json('System reset successfully');
                         return [3 /*break*/, 3];
                     case 2:
@@ -365,6 +368,7 @@ var PackageManagementAPI = /** @class */ (function () {
                             next(new server_errors_1.Server_Error(404, 3, 'GET "/package/:id"', 'Package not found.'));
                         }
                         // Successfully retrieved the package
+                        logger_1.default.info("At:{GET \"/package/:id\"}:{1} got Code:200 -> Message: Successfully retrieved package");
                         res.status(200).json(package_result);
                         return [2 /*return*/];
                 }
@@ -401,6 +405,7 @@ var PackageManagementAPI = /** @class */ (function () {
                             throw new server_errors_1.Server_Error(404, 5, 'PUT "/package/:id"', 'Package not found.');
                         }
                         // Successfully updated package
+                        logger_1.default.info("At:{PUT \"/package/:id\"}:{1} got Code:200 -> Message: Successfully updated package");
                         res.status(200).json('Version is updated.');
                         return [3 /*break*/, 3];
                     case 2:
@@ -465,6 +470,7 @@ var PackageManagementAPI = /** @class */ (function () {
                             next(new server_errors_1.Server_Error(404, 3, 'GET "/package/:id/rate"', 'Package not found.'));
                         }
                         // Successfully rated package
+                        logger_1.default.info("At:{GET \"/package/:id/rate\"}:{1} got Code:200 -> Message: Successfully rated package");
                         res.status(200).json(ratedPackage);
                         return [2 /*return*/];
                 }
@@ -538,6 +544,7 @@ var PackageManagementAPI = /** @class */ (function () {
                             next(new server_errors_1.Server_Error(404, 3, 'POST "/package/byRegEx"', 'No package found under this regex.'));
                         }
                         // Successfully retrieved search results
+                        logger_1.default.info("At:{POST \"/package/byRegEx\"}:{1} got Code:200 -> Message: Successfully retrieved search results");
                         res.status(200).json(searchResults);
                         return [2 /*return*/];
                 }

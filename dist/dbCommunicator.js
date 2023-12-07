@@ -177,8 +177,7 @@ var DBCommunicator = /** @class */ (function () {
                         return [4 /*yield*/, this.query(sql)];
                     case 1:
                         result = _a.sent();
-                        console.log("RESET: " + JSON.stringify(result));
-                        if (result == null || result.affectedRows == 0 || typeof (result) == "number") {
+                        if (result == null || typeof (result) == "number") {
                             return [2 /*return*/, false];
                         }
                         return [2 /*return*/, true];

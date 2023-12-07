@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { error } from 'console';
+import { error, log } from 'console';
 import { fetchDataAndCalculateScore } from '../adjusted_main'
 import { Server_Error } from './server_errors'
 import dbCommunicator from '../dbCommunicator';
@@ -9,10 +9,14 @@ import Evaluate = Schemas.Evaluate;
 const { Buffer } = require('buffer');
 const AdmZip = require('adm-zip');
 
+function remove_periods(version: string): string {
+    return version.replace(/\./g, '');
+}
+
 function getPackageMetadataFromURL(url: Schemas.PackageURL, version: Schemas.PackageVersion): Schemas.PackageMetadata {
     let packageMetadata: Schemas.PackageMetadata = {
         Name: url.split('/')[url.split('/').length - 1],
-        Version: version,
+        Version: remove_periods(version),
         ID: null,
     };
 
@@ -129,7 +133,7 @@ export async function APIHelpPackageURL(url: Schemas.PackageURL, JsProgram: Sche
         if(!db_response_ratings) {
             throw new Server_Error(500, 12, 'POST "/package"', "Internal Server Error")
         }
-
+        logger.info(`Package uploaded successfully: Name{${newPackage.metadata.Name}} Version{${newPackage.metadata.Version}} ID{${newPackage.metadata.ID}}`);
         return newPackage;
     } catch (error) {
         // propogate error
