@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { error, log } from 'console';
+import { error } from 'console';
 import { fetchDataAndCalculateScore } from '../adjusted_main'
 import { Server_Error } from './server_errors'
 import dbCommunicator from '../dbCommunicator';
@@ -16,11 +16,11 @@ function remove_periods(version: string): string {
 function getPackageMetadataFromURL(url: Schemas.PackageURL, version: Schemas.PackageVersion): Schemas.PackageMetadata {
     let packageMetadata: Schemas.PackageMetadata = {
         Name: url.split('/')[url.split('/').length - 1],
-        Version: remove_periods(version),
+        Version: version,
         ID: null,
     };
 
-    packageMetadata.ID = packageMetadata.Name.toLowerCase() + '_' + packageMetadata.Version;
+    packageMetadata.ID = packageMetadata.Name.toLowerCase() + '_' + remove_periods(packageMetadata.Version);
 
     return packageMetadata;
 }
