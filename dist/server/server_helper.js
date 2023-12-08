@@ -143,6 +143,7 @@ function APIHelpPackageContent(base64, JsProgram) {
                     if (error_1 instanceof server_errors_1.Server_Error) {
                         throw error_1;
                     }
+                    logger_1.default.error("unkown error: {".concat(error_1, "}"));
                     throw new server_errors_1.Server_Error(400, 7, 'POST "/package"', "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
                 case 4: return [2 /*return*/];
             }
