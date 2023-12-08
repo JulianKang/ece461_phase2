@@ -158,7 +158,7 @@ var PackageManagementAPI = /** @class */ (function () {
                 -1;
         // Log and send the error   
         logger_1.default.error("At:{".concat(location, "}:{").concat(which, "} got Code:").concat(statusCode, " -> Message: ").concat(errorMessage)); // TODO replace with actual error logging logic
-        res.status(statusCode).json({ error: errorMessage });
+        res.status(statusCode).json({ statusCode: statusCode, error: errorMessage, location: location, which: which }); //{ error: errorMessage });
         next();
     };
     // Middleware for authentication (placeholder)
