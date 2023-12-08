@@ -82,6 +82,7 @@ export async function APIHelpPackageContent(base64: Schemas.PackageContent, JsPr
         if(error instanceof Server_Error) {
             throw error;
         }
+        logger.error(`unkown error: {${error}}`);
         throw new Server_Error(400, 7, 'POST "/package"', "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
     }
 }
