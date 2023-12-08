@@ -106,7 +106,7 @@ export class PackageManagementAPI {
 		
 		// Log and send the error   
 		logger.error(`At:{${location}}:{${which}} got Code:${statusCode} -> Message: ${errorMessage}`); // TODO replace with actual error logging logic
-		res.status(statusCode).json({ error: errorMessage });
+		res.status(statusCode).json({statusCode: statusCode, error: errorMessage, location: location, which: which});//{ error: errorMessage });
 		next();
 	}
 	
