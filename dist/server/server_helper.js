@@ -263,7 +263,7 @@ function queryForPackage(Input) {
                             return match[1];
                         }
                         catch (error) {
-                            throw new server_errors_1.Server_Error(400, 6, 'POST "/packages"', "5There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
+                            throw new server_errors_1.Server_Error(400, 6, 'POST "/packages"', "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.");
                         }
                     });
                     foundPackages = [];
