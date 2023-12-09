@@ -110,6 +110,7 @@ var PackageManagementAPI = /** @class */ (function () {
         this.app.use(body_parser_1.default.json());
         this.database.connect();
         this.app.use(express_1.default.json({ limit: '1mb' }));
+        this.app.use(express_1.default.urlencoded({ limit: '1mb', extended: true }));
         // authenticate middleware
         this.app.use(this.authenticate);
         // enable CORS for all requests
