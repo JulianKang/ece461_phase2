@@ -66,7 +66,6 @@ exports.PackageManagementAPI = void 0;
 // const jwt = require('jsonwebtoken');
 var express_1 = __importDefault(require("express"));
 require("express-async-errors");
-var body_parser_1 = __importDefault(require("body-parser"));
 var server_errors_1 = require("./server_errors");
 var logger_1 = __importDefault(require("../logger"));
 var Schemas = __importStar(require("../schemas"));
@@ -107,10 +106,8 @@ var PackageManagementAPI = /** @class */ (function () {
         this.server = null;
         this.database = dbCommunicator_1.default;
         this.app = (0, express_1.default)();
-        this.app.use(body_parser_1.default.json());
-        this.database.connect();
         this.app.use(express_1.default.json({ limit: '1mb' }));
-        this.app.use(express_1.default.urlencoded({ limit: '1mb', extended: true }));
+        this.database.connect();
         // authenticate middleware
         this.app.use(this.authenticate);
         // enable CORS for all requests
