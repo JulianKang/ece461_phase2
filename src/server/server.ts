@@ -2,7 +2,6 @@
 import express, { Request, Response, NextFunction } from 'express';
 import "express-async-errors"; 
 import { Server } from "http";
-import bodyParser from 'body-parser';
 import { Server_Error, AggregateError } from './server_errors'
 import logger from '../logger'
 import * as Schemas from '../schemas';
@@ -48,11 +47,9 @@ export class PackageManagementAPI {
 	
 	constructor() {
 		this.app = express();
-		this.app.use(bodyParser.json());
+		this.app.use(express.json({ limit: '1mb' }));
 		this.database.connect();
 
-		this.app.use(express.json({ limit: '1mb' }));
-		this.app.use(express.urlencoded({ limit: '1mb', extended: true }));
 		// authenticate middleware
 		this.app.use(this.authenticate);
 		// enable CORS for all requests
