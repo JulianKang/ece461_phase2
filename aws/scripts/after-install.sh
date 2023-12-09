@@ -16,6 +16,7 @@ sudo apt-get clean
 sudo npm cache clean --force
 scp ../environment-files/package.json .
 npm install
+rm -rf /home/ubuntu/apps/src/frontend
 scp -r build/* /var/www/build
 scp /home/ubuntu/environment-files/.env ./
 sudo apt-get clean
