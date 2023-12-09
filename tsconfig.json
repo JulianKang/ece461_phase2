@@ -21,8 +21,9 @@
     "jsx": "react-jsx",
     "rootDir": "./src", 
     "sourceMap": false,
-    "outDir": "./dist"  
+    "outDir": "./dist",
+    "types": ["node", "jest", "@testing-library/jest-dom"],
   },
-  "include": ["src/*/*.ts"],
+  "include": ["src/*/*.ts", "src/frontend/*.tsx", "src/frontend/*.ts"],
   "exclude": ["tests/", "node_modules", "src/server/serverOLD.ts"],
 }

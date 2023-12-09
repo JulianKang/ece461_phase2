@@ -177,3 +177,19 @@ body {
     text-align: center;
     border: 1px solid #333;
 }
+
+.styled-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.styled-table th,
+.styled-table td {
+    border: 1px solid #dddddd; /* Add borders to cells */
+    padding: 8px;
+    text-align: left;
+}
+
+.styled-table th {
+    background-color: #f2f2f2; /* Add background color to header cells */
+}
