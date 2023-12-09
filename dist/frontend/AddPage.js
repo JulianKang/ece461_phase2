@@ -79,7 +79,7 @@ var axios_1 = __importDefault(require("axios"));
 var Schemas = __importStar(require("../schemas"));
 var Evaluate = Schemas.Evaluate;
 require("./style.css");
-var jszip_1 = __importDefault(require("jszip"));
+// import JSZip from 'jszip';
 var AddPage = function () {
     var _a = (0, react_1.useState)({}), packageData = _a[0], setPackageData = _a[1];
     var _b = (0, react_1.useState)(''), errorMessage = _b[0], setErrorMessage = _b[1];
@@ -88,57 +88,107 @@ var AddPage = function () {
         setPackageData(__assign(__assign({}, packageData), { Content: undefined, URL: e.target.value, JSProgram: "if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}\n" }));
         setErrorMessage('');
     };
+    // const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    //     if (e.target.files) {
+    //         const file = e.target.files[0];
+    //         const zipReader = new FileReader();
+    //         zipReader.onload = async () => {
+    //             if (file) {
+    //                 try {
+    //                     const zip = new JSZip();
+    //                     const zipFile = await zip.loadAsync(zipReader.result as ArrayBuffer);
+    //                     const fileContents: { [fileName: string]: string } = {};
+    //                     await Promise.all(
+    //                         Object.keys(zipFile.files).map(async (fileName) => {
+    //                             const fileData = await zipFile.files[fileName].async('base64');
+    //                             // console.log('fileData: ', fileData);
+    //                             fileContents[fileName] = fileData;
+    //                         })
+    //                     );
+    //                     // Create a single string that contains the Base64-encoded ZIP content
+    //                     const zipContent = JSON.stringify(fileContents);
+    //                     console.log('zipContent: ', zipContent);
+    //                     setPackageData({
+    //                         ...packageData,
+    //                         URL: undefined,
+    //                         Content: zipContent,
+    //                         JSProgram:
+    //                             "if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}\n",
+    //                     });
+    //                     setErrorMessage('');
+    //                 } catch (error) {
+    //                     console.log('Error while processing the ZIP file:', error);
+    //                     setErrorMessage('Error unzipping the file.');
+    //                 }
+    //             }
+    //         };
+    //         zipReader.readAsArrayBuffer(file);
+    //     }
+    // };
+    //     const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    //     if (e.target.files) {
+    //         const file = e.target.files[0];
+    //         const fileReader = new FileReader();
+    //         fileReader.onload = async (event) => {
+    //             try {
+    //                 // Convert the entire file to a base64 string
+    //                 if(event && event.target && event.target.result) {
+    //                     const base64String = event.target.result.split(',')[1]; // fileReader.result.split(',')[1];
+    //                     console.log('Base64 ZIP Content:', base64String);
+    //                 setPackageData({
+    //                     ...packageData,
+    //                     URL: undefined,
+    //                     Content: undefined,
+    //                     JSProgram:
+    //                         "if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}\n",
+    //                     });
+    //                 }
+    //                 setErrorMessage('');
+    //             } catch (error) {
+    //                 console.log('Error while processing the ZIP file:', error);
+    //                 setErrorMessage('Error processing the file.');
+    //             }
+    //         };
+    //         fileReader.onerror = () => {
+    //             setErrorMessage('Error reading the file.');
+    //         };
+    //         fileReader.readAsDataURL(file); // Read the file as a data URL (which includes the base64 encoded data)
+    //     }
+    // };
     var handleFileChange = function (e) {
-        if (e.target.files) {
-            var file_1 = e.target.files[0];
-            var zipReader_1 = new FileReader();
-            zipReader_1.onload = function () { return __awaiter(void 0, void 0, void 0, function () {
-                var zip, zipFile_1, fileContents_1, zipContent, error_1;
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
-                        case 0:
-                            if (!file_1) return [3 /*break*/, 5];
-                            _a.label = 1;
-                        case 1:
-                            _a.trys.push([1, 4, , 5]);
-                            zip = new jszip_1.default();
-                            return [4 /*yield*/, zip.loadAsync(zipReader_1.result)];
-                        case 2:
-                            zipFile_1 = _a.sent();
-                            fileContents_1 = {};
-                            return [4 /*yield*/, Promise.all(Object.keys(zipFile_1.files).map(function (fileName) { return __awaiter(void 0, void 0, void 0, function () {
-                                    var fileData;
-                                    return __generator(this, function (_a) {
-                                        switch (_a.label) {
-                                            case 0: return [4 /*yield*/, zipFile_1.files[fileName].async('base64')];
-                                            case 1:
-                                                fileData = _a.sent();
-                                                // console.log('fileData: ', fileData);
-                                                fileContents_1[fileName] = fileData;
-                                                return [2 /*return*/];
-                                        }
-                                    });
-                                }); }))];
-                        case 3:
-                            _a.sent();
-                            zipContent = JSON.stringify(fileContents_1);
-                            setPackageData(__assign(__assign({}, packageData), { URL: undefined, Content: zipContent, JSProgram: "if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}\n" }));
-                            setErrorMessage('');
-                            return [3 /*break*/, 5];
-                        case 4:
-                            error_1 = _a.sent();
-                            console.log('Error while processing the ZIP file:', error_1);
-                            setErrorMessage('Error unzipping the file.');
-                            return [3 /*break*/, 5];
-                        case 5: return [2 /*return*/];
+        if (e.target && e.target.files) {
+            var file = e.target.files[0];
+            var fileReader = new FileReader();
+            fileReader.onload = function (event) { return __awaiter(void 0, void 0, void 0, function () {
+                var base64String;
+                var _a;
+                return __generator(this, function (_b) {
+                    try {
+                        // Check that event.target is not null and its result is a string
+                        if (((_a = event.target) === null || _a === void 0 ? void 0 : _a.result) && typeof event.target.result === 'string') {
+                            base64String = event.target.result.split(',')[1];
+                            console.log('Base64 ZIP Content:', base64String);
+                            setPackageData(__assign(__assign({}, packageData), { URL: undefined, Content: base64String, JSProgram: "if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}\n" }));
+                        }
+                        setErrorMessage('');
                     }
+                    catch (error) {
+                        console.log('Error while processing the ZIP file:', error);
+                        setErrorMessage('Error processing the file.');
+                    }
+                    return [2 /*return*/];
                 });
             }); };
-            zipReader_1.readAsArrayBuffer(file_1);
+            fileReader.onerror = function () {
+                setErrorMessage('Error reading the file.');
+            };
+            if (file) {
+                fileReader.readAsDataURL(file); // Read the file as a data URL (which includes the base64 encoded data)
+            }
         }
     };
     var handleSubmit = function (e) { return __awaiter(void 0, void 0, void 0, function () {
-        var response, error_2;
+        var response, error_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -161,11 +211,11 @@ var AddPage = function () {
                     setStatus('Success');
                     return [3 /*break*/, 4];
                 case 3:
-                    error_2 = _a.sent();
+                    error_1 = _a.sent();
                     setStatus('Failed');
-                    if (axios_1.default.isAxiosError(error_2)) {
-                        setErrorMessage(error_2.message);
-                        console.log(error_2.message);
+                    if (axios_1.default.isAxiosError(error_1)) {
+                        setErrorMessage(error_1.message);
+                        console.log(error_1.message);
                     }
                     return [3 /*break*/, 4];
                 case 4: return [2 /*return*/];

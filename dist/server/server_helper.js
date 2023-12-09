@@ -118,7 +118,8 @@ function APIHelpPackageContent(base64, JsProgram) {
                             //logger.info(`Extracted: ${entryName}`);
                             // Check for package.json with GitHub URL
                             if (entryName.includes('package.json')) {
-                                //logger.info('here');
+                                logger_1.default.info('here');
+                                logger_1.default.info(outputPath);
                                 var packageJson = JSON.parse(fs.readFileSync(outputPath, 'utf-8'));
                                 if (packageJson.repository && packageJson.repository.url) {
                                     gitRemoteUrl = packageJson.repository.url.split('+')[1].replace('.git', '');
