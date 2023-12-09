@@ -51,7 +51,7 @@ export class PackageManagementAPI {
 		this.app.use(bodyParser.json());
 		this.database.connect();
 
-		this.app.use(express.json({ limit: '1mb' }));
+		this.app.use(express.json({ limit: '1000kb' }));
 		// authenticate middleware
 		this.app.use(this.authenticate);
 		// enable CORS for all requests
