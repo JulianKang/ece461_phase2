@@ -55,6 +55,7 @@
   "dependencies": {
     "adm-zip": "^0.5.10",
     "body-parser": "^1.20.2",
+    "buffer": "^6.0.3",
     "Buffer": "^0.0.0",
     "chai-as-promised": "^7.1.1",
     "express": "^4.18.2",
