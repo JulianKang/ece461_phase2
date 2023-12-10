@@ -127,7 +127,8 @@ function APIHelpPackageContent(base64, JsProgram) {
                                         gitRemoteUrl = urlParts[1].replace('.git', '');
                                     }
                                     else {
-                                        logger_1.default.info("".concat(packageJson.repository.url));
+                                        gitRemoteUrl = packageJson.repository.url.replace('.git', '');
+                                        logger_1.default.info("".concat(gitRemoteUrl));
                                     }
                                     foundURL_1 = true;
                                 }
