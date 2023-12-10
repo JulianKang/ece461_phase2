@@ -84,7 +84,7 @@ export async function APIHelpPackageContent(base64: Schemas.PackageContent, JsPr
             throw error;
         }
         logger.error(`unkown error: {${error}}`);
-        throw new Server_Error(400, 7, 'POST "/package"', `${error}`)
+        throw new Server_Error(500, 7, 'POST "/package"', `Internal Server Error ${error}`)
     }
 }
 
