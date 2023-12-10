@@ -105,7 +105,6 @@ function APIHelpPackageContent(base64, JsProgram) {
                     foundURL_1 = false;
                     zipEntries.forEach(function (entry) {
                         if (!entry.isDirectory && !foundURL_1) {
-                            logger_1.default.info("".concat(entry));
                             var entryName = entry.entryName;
                             var entryData = entry.getData();
                             var outputPath = "".concat(unzipDir, "/").concat(entryName);
@@ -119,12 +118,21 @@ function APIHelpPackageContent(base64, JsProgram) {
                             //logger.info(`Extracted: ${entryName}`);
                             // Check for package.json with GitHub URL
                             if (entryName.includes('package.json')) {
-                                logger_1.default.info('here');
-                                logger_1.default.info(outputPath);
+                                // logger.info('here');
+                                // logger.info(outputPath);
                                 var packageJson = JSON.parse(fs.readFileSync(outputPath, 'utf-8'));
                                 if (packageJson.repository && packageJson.repository.url) {
-                                    gitRemoteUrl = packageJson.repository.url.split('+')[1].replace('.git', '');
-                                    foundURL_1 = true; // Set the flag to true when the URL is found
+                                    var urlParts = packageJson.repository.url.split('+');
+                                    if (urlParts.length > 1) {
+                                        gitRemoteUrl = urlParts[1].replace('.git', '');
+                                    }
+                                    else {
+                                        logger_1.default.info("".concat(packageJson.repository.url));
+                                    }
+                                    foundURL_1 = true;
+                                }
+                                else {
+                                    logger_1.default.warn('package.json does not contain repository URL');
                                 }
                             }
                         }
