@@ -67,7 +67,8 @@ export async function APIHelpPackageContent(base64: Schemas.PackageContent, JsPr
                             gitRemoteUrl = urlParts[1].replace('.git', '');
                         }
                         else{
-                            logger.info(`${packageJson.repository.url}`)
+                            gitRemoteUrl = packageJson.repository.url.replace('.git', '');
+                            logger.info(`${gitRemoteUrl}`)
                         }
                         foundURL = true;
                     } else {
