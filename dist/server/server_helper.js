@@ -105,6 +105,7 @@ function APIHelpPackageContent(base64, JsProgram) {
                     foundURL_1 = false;
                     zipEntries.forEach(function (entry) {
                         if (!entry.isDirectory && !foundURL_1) {
+                            logger_1.default.info("".concat(entry));
                             var entryName = entry.entryName;
                             var entryData = entry.getData();
                             var outputPath = "".concat(unzipDir, "/").concat(entryName);
