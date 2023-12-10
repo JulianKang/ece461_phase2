@@ -42,7 +42,6 @@ export async function APIHelpPackageContent(base64: Schemas.PackageContent, JsPr
 
         zipEntries.forEach((entry: any) => {
             if (!entry.isDirectory && !foundURL) {
-                logger.info(`${entry}`)
                 const entryName = entry.entryName;
                 const entryData = entry.getData();
                 const outputPath = `${unzipDir}/${entryName}`;
@@ -59,12 +58,20 @@ export async function APIHelpPackageContent(base64: Schemas.PackageContent, JsPr
 
                 // Check for package.json with GitHub URL
                 if (entryName.includes('package.json')) {
-                    logger.info('here');
-                    logger.info(outputPath);
+                   // logger.info('here');
+                   // logger.info(outputPath);
                     const packageJson = JSON.parse(fs.readFileSync(outputPath, 'utf-8'));
                     if (packageJson.repository && packageJson.repository.url) {
-                        gitRemoteUrl = packageJson.repository.url.split('+')[1].replace('.git', '');
-                        foundURL = true; // Set the flag to true when the URL is found
+                        const urlParts = packageJson.repository.url.split('+');
+                        if (urlParts.length > 1) {
+                            gitRemoteUrl = urlParts[1].replace('.git', '');
+                        }
+                        else{
+                            logger.info(`${packageJson.repository.url}`)
+                        }
+                        foundURL = true;
+                    } else {
+                        logger.warn('package.json does not contain repository URL');
                     }
                 }
             }
