@@ -42,6 +42,7 @@ export async function APIHelpPackageContent(base64: Schemas.PackageContent, JsPr
 
         zipEntries.forEach((entry: any) => {
             if (!entry.isDirectory && !foundURL) {
+                logger.info(`${entry}`)
                 const entryName = entry.entryName;
                 const entryData = entry.getData();
                 const outputPath = `${unzipDir}/${entryName}`;
