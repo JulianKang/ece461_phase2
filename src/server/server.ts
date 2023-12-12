@@ -26,7 +26,7 @@ import Evaluate = Schemas.Evaluate;
 * Need to be done:
 * 1. DataBase queries for all functions - database end, functions in development
 * 2. Authentication - database end, functions in development
-* 3. Return objects (for successfull queries) - TODO
+* 3. Return req.body.dataects (for successfull queries) - TODO
 * 
 * Issues I see:
 * 1. Their code is slow
@@ -78,7 +78,7 @@ export class PackageManagementAPI {
 		this.app.use(this.ErrorHandler);
 	}
 	
-	// Returns the Express app object (used in testing)
+	// Returns the Express app req.body.dataect (used in testing)
 	public getApp(): express.Express {
 		return this.app;
 	}
@@ -344,7 +344,7 @@ export class PackageManagementAPI {
 			if (!Evaluate.isPackageID(req.params.id)) {
 				throw new Server_Error(400, 2, 'PUT "/package/:id"', 'There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
 			}
-			if (!Evaluate.isPackage(req.body)) {
+			if (!Evaluate.isPackageMetadata(req.body.metadata) || !((Evaluate.isPackageContent(req.body.data.Content) || Evaluate.isPackageURL(req.body.data.URL)) && Evaluate.isPackageJSProgram(req.body.data.JSProgram))) {
 				throw new Server_Error(400, 3, 'PUT "/package/:id"', 'There is missing field(s) in the PackageID/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.');
 			}
 
@@ -502,14 +502,14 @@ export class PackageManagementAPI {
 			if (!isValidUser) {
 				throw new Server_Error(401, 'User or Password is invalid');
 			}
-			// Create the user object to include in the JWT token
-			const userObj = req.body.User
+			// Create the user req.body.dataect to include in the JWT token
+			const userreq.body.data = req.body.User
 			username: username,
 			isAdmin: isAdmin,
 		};
 		
 		// Sign the JWT token
-		// const token = jwt.sign(userObj, secretKey, { expiresIn: '10h' });
+		// const token = jwt.sign(userreq.body.data, secretKey, { expiresIn: '10h' });
 		
 		// Return the token in the "Bearer" format
 		// res.status(200).send(`"bearer ${token}"`);
@@ -545,7 +545,7 @@ export class PackageManagementAPI {
 		
 		// Perform a database query or other actions to retrieve the package history by name
 		// For demonstration purposes, let's assume you have a packages database and a function getPackageByName
-		const packageHistory: object = {}//getPackageByName(packageName);
+		const packageHistory: req.body.dataect = {}//getPackageByName(packageName);
 		
 		if (!packageHistory) {
 			// Package does not exist
