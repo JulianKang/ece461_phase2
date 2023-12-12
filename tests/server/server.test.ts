@@ -177,6 +177,9 @@ describe('Server', () => {
                 InvalidConstants.NonPackageIDs.forEach(async (curr) => {
                     const response = await request(app).get(`/package/${curr}`);
                     expect(response.statusCode).toBe(404);
+                    if(curr === "-1") {
+                        console.log(response.body);
+                    }
                 });
             });
         });
