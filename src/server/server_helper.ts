@@ -54,12 +54,9 @@ export async function APIHelpPackageContent(base64: Schemas.PackageContent, JsPr
 
                 // Write the entry data to the corresponding file
                 fs.writeFileSync(outputPath, entryData);
-                //logger.info(`Extracted: ${entryName}`);
 
                 // Check for package.json with GitHub URL
                 if (entryName.includes('package.json')) {
-                   // logger.info('here');
-                   // logger.info(outputPath);
                     const packageJson = JSON.parse(fs.readFileSync(outputPath, 'utf-8'));
                     if (packageJson.repository && packageJson.repository.url) {
                         const urlParts = packageJson.repository.url.split('+');
@@ -78,8 +75,6 @@ export async function APIHelpPackageContent(base64: Schemas.PackageContent, JsPr
             }
         });
         fs.rmSync(unzipDir, { recursive: true });
-        //logger.info('ZIP file extraction complete.');
-        //logger.info(gitRemoteUrl)
         if(!gitRemoteUrl) {
             throw new Server_Error(400, 5, 'POST "/package"', "There is missing field(s) in the PackageQuery/AuthenticationToken or it is formed improperly, or the AuthenticationToken is invalid.")
         }
@@ -155,28 +150,6 @@ export async function APIHelpPackageURL(url: Schemas.PackageURL, JsProgram: Sche
     }
 }
 
-// not used currently
-// export async function getUserAPIKey(username: string, password: string): Promise<string | boolean> {
-//     const admin = username === "ece30861defaultadminuser" && password === "correcthorsebatterystaple123(!__+@**(A'\"`;DROP TABLE packages;";
-//     if(admin){
-//         return true
-//     }
-
-//     // let authenication = await dbCommunicator.authenticateUser(username, password);
-//     if (!authenication) {
-//         return false;
-//     }
-
-//     return authenication;
-// }
-
-/*   
-    example input
-    {
-        "Version": "Exact (1.2.3)\nBounded range (1.2.3-2.1.0)\nCarat (^1.2.3)\nTilde (~1.2.0)",
-        "Name": "string"
-    }
- */
 export async function queryForPackage(Input: Schemas.PackageQuery): Promise<Schemas.PackageMetadata[]> {
     // return all packages
     if(Input.Name==="*" && Input.Version==="*") { 
