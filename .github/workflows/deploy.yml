@@ -32,12 +32,3 @@ jobs:
         run: |
           tsc
           npm run build
-
-      - name: Push Changes to Main Branch
-        run: |
-          git config user.email "github-actions@github.com"
-          git config user.name "GitHub Actions"
-          git add -f dist
-          git add -f build
-          git commit -m "Add compiled files"
-          git push origin main
