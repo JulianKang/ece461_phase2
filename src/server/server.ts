@@ -317,7 +317,7 @@ export class PackageManagementAPI {
 		
 		if (!package_result) {
 			// Package not found
-			next(new Server_Error(404, 3, 'GET "/package/:id"', 'Package not found.'));
+			next(new Server_Error(404, 3, 'GET "/package/:id"', 'Package does not exist.'));
 		}
 		
 		// Successfully retrieved the package
@@ -362,7 +362,7 @@ export class PackageManagementAPI {
 			
 			if (!updatedPackageBool) {
 				// Package does not exist
-				throw new Server_Error(404, 5, 'PUT "/package/:id"', 'Package not found.');
+				throw new Server_Error(404, 5, 'PUT "/package/:id"', 'Package does not exist.');
 			}
 			// Successfully updated package
 			logger.info(`At:{PUT "/package/:id"}:{1} got Code:200 -> Message: Successfully updated package`);
