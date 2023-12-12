@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import * as Schemas from '../schemas';
 import axios from 'axios';
 import './style.css';
+import { stringify } from 'node:querystring';
 
 function HomePage() {
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [packages, setPackages] = useState<Schemas.PackageMetadata[]>([]);
+    const [error, setError] = useState<string | null>(null);
 
     const handleSearch = async () => {
         try {
@@ -22,6 +24,11 @@ function HomePage() {
             setPackages(response.data);
         } catch (error) {
             console.error('Error fetching packages:', error);
+            let errorMessage = "Failed to do something exceptional";
+            if (error instanceof Error) {
+                errorMessage = error.message;
+            }
+            console.log(errorMessage);
         }
     };
 
@@ -37,9 +44,7 @@ function HomePage() {
     };
 
     const handleAdd = () => {
-        // Logic for adding a package
         window.location.href = "/add";
-        // This will need more details like a form input for package details
     };
 
     useEffect(() => {
@@ -65,6 +70,7 @@ function HomePage() {
     return (
         <div className="home-page">
             <div className="search-section">
+                {error && <div style={{ color: 'red', marginTop: '10px' }}>{error}</div>}
                 <input
                     type="button"
                     value="Add Package"

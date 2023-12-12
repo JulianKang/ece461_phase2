@@ -57,6 +57,8 @@ export async function APIHelpPackageContent(base64: Schemas.PackageContent, JsPr
 
                 // Check for package.json with GitHub URL
                 if (entryName.includes('package.json')) {
+                    // logger.info('here');
+                    // logger.info(outputPath);
                     const packageJson = JSON.parse(fs.readFileSync(outputPath, 'utf-8'));
                     if (packageJson.repository && packageJson.repository.url) {
                         const urlParts = packageJson.repository.url.split('+');

@@ -3,7 +3,6 @@ import axios from 'axios';
 import * as Schemas from '../schemas';
 import Evaluate = Schemas.Evaluate;
 import './style.css';
-// import JSZip from 'jszip';
 
 const AddPage: React.FC = () => {
     const [packageData, setPackageData] = useState<Schemas.PackageData>({});
@@ -20,87 +19,6 @@ const AddPage: React.FC = () => {
         setErrorMessage('');
     };
 
-    // const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    //     if (e.target.files) {
-    //         const file = e.target.files[0];
-    //         const zipReader = new FileReader();
-    
-    //         zipReader.onload = async () => {
-    //             if (file) {
-    //                 try {
-    //                     const zip = new JSZip();
-    //                     const zipFile = await zip.loadAsync(zipReader.result as ArrayBuffer);
-    
-    //                     const fileContents: { [fileName: string]: string } = {};
-    
-    //                     await Promise.all(
-    //                         Object.keys(zipFile.files).map(async (fileName) => {
-    //                             const fileData = await zipFile.files[fileName].async('base64');
-    //                             // console.log('fileData: ', fileData);
-    //                             fileContents[fileName] = fileData;
-    //                         })
-    //                     );
-    
-    //                     // Create a single string that contains the Base64-encoded ZIP content
-    //                     const zipContent = JSON.stringify(fileContents);
-
-    //                     console.log('zipContent: ', zipContent);
-    
-    //                     setPackageData({
-    //                         ...packageData,
-    //                         URL: undefined,
-    //                         Content: zipContent,
-    //                         JSProgram:
-    //                             "if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}\n",
-    //                     });
-    
-    //                     setErrorMessage('');
-    //                 } catch (error) {
-    //                     console.log('Error while processing the ZIP file:', error);
-    //                     setErrorMessage('Error unzipping the file.');
-                    
-    //                 }
-    //             }
-    //         };
-    
-    //         zipReader.readAsArrayBuffer(file);
-    //     }
-    // };
-
-//     const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-//     if (e.target.files) {
-//         const file = e.target.files[0];
-//         const fileReader = new FileReader();
-
-//         fileReader.onload = async (event) => {
-//             try {
-//                 // Convert the entire file to a base64 string
-//                 if(event && event.target && event.target.result) {
-//                     const base64String = event.target.result.split(',')[1]; // fileReader.result.split(',')[1];
-//                     console.log('Base64 ZIP Content:', base64String);
-
-//                 setPackageData({
-//                     ...packageData,
-//                     URL: undefined,
-//                     Content: undefined,
-//                     JSProgram:
-//                         "if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}\n",
-//                     });
-//                 }
-//                 setErrorMessage('');
-//             } catch (error) {
-//                 console.log('Error while processing the ZIP file:', error);
-//                 setErrorMessage('Error processing the file.');
-//             }
-//         };
-
-//         fileReader.onerror = () => {
-//             setErrorMessage('Error reading the file.');
-//         };
-//         fileReader.readAsDataURL(file); // Read the file as a data URL (which includes the base64 encoded data)
-//     }
-// };
-
 const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target && e.target.files) {
         const file = e.target.files[0];
@@ -108,7 +26,6 @@ const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
 
         fileReader.onload = async (event: ProgressEvent<FileReader>) => {
             try {
-                // Check that event.target is not null and its result is a string
                 if (event.target?.result && typeof event.target.result === 'string') {
                     const base64String = event.target.result.split(',')[1];
                     console.log('Base64 ZIP Content:', base64String);
@@ -158,6 +75,7 @@ const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
             );
             console.log(response.data);
             setStatus('Success');
+            setErrorMessage('');
         } catch (error) {
             setStatus('Failed');
             if (axios.isAxiosError(error)) {
