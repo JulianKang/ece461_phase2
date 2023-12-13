@@ -152,16 +152,28 @@ class DBCommunicator {
     if(Schemas.Evaluate.isPackageURL(newPackage.data.URL)){
       sql = "UPDATE packages SET url = ? WHERE package_id = ? AND name = ? AND version = ?";
       values = [newPackage.data.URL, newPackage.metadata.ID, newPackage.metadata.Name, newPackage.metadata.Version];
+      const result : QueryResult | null | number = await this.query(sql, values);
+      if (result == null || (result as mysql.ResultSetHeader).affectedRows == 0 || typeof(result) == "number") {
+        return false;
+      }
     }
-    else if(Schemas.Evaluate.isPackageContent(newPackage.data.Content)){
+    if(Schemas.Evaluate.isPackageContent(newPackage.data.Content)){
       sql = "UPDATE packages SET zip = ? WHERE package_id = ? AND name = ? AND version = ?";
       values = [newPackage.data.Content, newPackage.metadata.ID, newPackage.metadata.Name, newPackage.metadata.Version];
+      const result : QueryResult | null | number = await this.query(sql, values);
+      if (result == null || (result as mysql.ResultSetHeader).affectedRows == 0 || typeof(result) == "number") {
+        return false;
+      }
     }
-    else {
-      return false;
+    if(Schemas.Evaluate.isPackageJSProgram(newPackage.data.JSProgram)){
+      sql = "UPDATE packages SET js_program = ? WHERE package_id = ? AND name = ? AND version = ?";
+      values = [newPackage.data.JSProgram, newPackage.metadata.ID, newPackage.metadata.Name, newPackage.metadata.Version];
+      const result : QueryResult | null | number = await this.query(sql, values);
+      if (result == null || (result as mysql.ResultSetHeader).affectedRows == 0 || typeof(result) == "number") {
+        return false;
+      }
     }
-    const result : QueryResult | null | number = await this.query(sql, values);
-    if (result == null || (result as mysql.ResultSetHeader).affectedRows == 0 || typeof(result) == "number") {
+    if(!Schemas.Evaluate.isPackageJSProgram(newPackage.data.JSProgram) && !Schemas.Evaluate.isPackageContent(newPackage.data.Content) && !Schemas.Evaluate.isPackageURL(newPackage.data.URL)){
       return false;
     }
     return true;
