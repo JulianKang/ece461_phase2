@@ -77,8 +77,14 @@ describe('Server', () => {
                 });
             });         
             // too many packages (returned?) TODO
-            it.skip('should return 413', async () => {
-                
+            it('should return 413', async () => {
+                let longPackageQuery: Schemas.PackageQuery[] = [];
+                for(let i = 0; i < 101; i++) {
+                    longPackageQuery.push(ValidConstants.PackageQuerys[0]);
+                }
+
+                const response = await request(app).post('/packages').send(longPackageQuery);
+                expect(response.statusCode).toBe(413);
             });
         });
         
@@ -88,7 +94,7 @@ describe('Server', () => {
             // works when the 409 and 424 tests are skipped and vice versa for each
             // i am learning to not like jest, (probably my fault though :P)
             // jest mocks are broken rn, can't test most of this endpoint
-            it.skip('should return 201', async () => {
+            it('should return 201', async () => {
                 ValidConstants.Create.forEach(async (curr, idx) => {
                     jest.spyOn(Helper, 'APIHelpPackageContent').mockResolvedValue(ValidConstants.Packages[idx]);
                     jest.spyOn(Helper, 'APIHelpPackageURL').mockResolvedValue(ValidConstants.Packages[idx]);
