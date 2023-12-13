@@ -77,8 +77,14 @@ describe('Server', () => {
                 });
             });         
             // too many packages (returned?) TODO
-            it.skip('should return 413', async () => {
-                
+            it('should return 413', async () => {
+                let longPackageQuery: Schemas.PackageQuery[] = [];
+                for(let i = 0; i < 101; i++) {
+                    longPackageQuery.push(ValidConstants.PackageQuerys[0]);
+                }
+
+                const response = await request(app).post('/packages').send(longPackageQuery);
+                expect(response.statusCode).toBe(413);
             });
         });
         
