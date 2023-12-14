@@ -128,3 +128,8 @@ margin-bottom: 10px;
     border: 1px solid #ddd;
     
   }
+
+  :focus {
+    outline: 2px solid blue; /* Visible focus outline */
+    outline-offset: 2px; /* Space between outline and element */
+}

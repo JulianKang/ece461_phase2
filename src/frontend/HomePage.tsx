@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import * as Schemas from '../schemas';
 import axios from 'axios';
 import './style.css';
-import { stringify } from 'node:querystring';
 
 function HomePage() {
     const [searchTerm, setSearchTerm] = useState<string>('');
@@ -28,6 +27,7 @@ function HomePage() {
             if (error instanceof Error) {
                 errorMessage = error.message;
             }
+            setError(errorMessage);
             console.log(errorMessage);
         }
     };
@@ -40,6 +40,11 @@ function HomePage() {
             setSearchTerm('');
         } catch (error) {
             console.error('Error resetting database:', error);
+            let errorMessage = "Failed to do something exceptional";
+            if (error instanceof Error) {
+                errorMessage = error.message;
+            }
+            setError(errorMessage);
         }
     };
 
@@ -61,6 +66,11 @@ function HomePage() {
                 setPackages(response.data[0]);
             } catch (error) {
                 console.error('Error fetching packages:', error);
+                let errorMessage = "Failed to do something exceptional";
+                if (error instanceof Error) {
+                    errorMessage = error.message;
+                }
+                setError(errorMessage);
             }
         };
 
@@ -77,7 +87,7 @@ function HomePage() {
 
         
         <button
-            onClick={handleAdd}
+            onClick={handleAdd} 
             style={{ marginTop: '10px', marginLeft: '10px', marginRight: '5px' }}
             aria-label="Add Package"
         >

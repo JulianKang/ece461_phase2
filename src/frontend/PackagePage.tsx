@@ -185,13 +185,10 @@ const downloadPackage = async () => {
   });
 
   return (
-    <div className="package-details">
+    <div className="package-details" tabIndex={0}>
     <h2>Package Details</h2>
-    
     <p>Package ID: {packageId}</p>
-
     <h3>Package Ratings</h3>
-    
     <ul>
         <li>Bus Factor: {rating?.BusFactor}</li>
         <li>Correctness: {rating?.Correctness}</li>
@@ -203,31 +200,26 @@ const downloadPackage = async () => {
         <li>Net Score: {rating?.NetScore}</li>
     </ul>
 
-    
-    <button onClick={downloadPackage} className="download-button" aria-label="Download Package">
+    <button 
+        onClick={downloadPackage} 
+        className="download-button" 
+        aria-label="Download Package"
+        style={{ outline: 'none' }}>
         Download Package
     </button>
-
-    
     <form onSubmit={handleSubmit}>
-        <div>
-            
+        <div tabIndex={1}> 
             <label htmlFor="packageUrl" style={{ display: 'none' }}>Package URL</label>
             <input type="text" id="packageUrl" onChange={handleNpmUrlChange} placeholder="Package URL" />
         </div>
-        <div>
+        <div tabIndex={2}>
             <label htmlFor="packageFile" style={{ display: 'none' }}>Package File</label>
             <input type="file" id="packageFile" onChange={handleFileChange} />
-        </div>
-
-        
-        <button type="submit" aria-label="Add Package">Add Package</button>
+        </div> 
+        <button type="submit" aria-label="Update Package">Update Package</button>
     </form>
-
-    
     {errorMessage && <p role="alert">Error: {errorMessage}</p>}
 
-    
     <p aria-live="polite">Status: {status}</p>
 </div>
 
