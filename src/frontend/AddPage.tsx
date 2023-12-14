@@ -87,30 +87,41 @@ const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
 
     return (
         <div className="upload-package-page">
-            <form onSubmit={handleSubmit}>
-                <div className="form-group">
-                    <label htmlFor="npmUrl">NPM Package URL:</label>
-                    <input
-                        type="text"
-                        id="npmUrl"
-                        onChange={handleNpmUrlChange}
-                        placeholder="Enter npmjs package URL"
-                    />
-                </div>
-                <div className="form-group">
-                    <label htmlFor="packageFile">Package File (zip):</label>
-                    <input
-                        type="file"
-                        id="packageFile"
-                        onChange={handleFileChange}
-                        accept=".zip"
-                    />
-                </div>
-                <p> Status: {status}</p>
-                {errorMessage && <p className="error-message">{errorMessage}</p>}
-                <button type="submit">Upload Package</button>
-            </form>
+    <form onSubmit={handleSubmit}>
+        
+        <div className="form-group">
+            <label htmlFor="npmUrl">NPM Package URL:</label>
+            <input
+                type="text"
+                id="npmUrl"
+                onChange={handleNpmUrlChange}
+                placeholder="Enter npmjs package URL"
+                aria-required="true"
+            />
         </div>
+
+        <div className="form-group">
+            <label htmlFor="packageFile">Package File (zip):</label>
+            <input
+                type="file"
+                id="packageFile"
+                onChange={handleFileChange}
+                accept=".zip"
+                aria-required="true"
+            />
+        </div>
+
+        
+        <p aria-live="polite">Status: {status}</p>
+
+        
+        {errorMessage && <p className="error-message" role="alert">{errorMessage}</p>}
+
+        
+        <button type="submit">Upload Package</button>
+    </form>
+</div>
+
     );
 };
 

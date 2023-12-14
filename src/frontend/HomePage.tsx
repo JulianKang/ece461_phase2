@@ -69,55 +69,72 @@ function HomePage() {
 
     return (
         <div className="home-page">
-            <div className="search-section">
-                {error && <div style={{ color: 'red', marginTop: '10px' }}>{error}</div>}
-                <input
-                    type="button"
-                    value="Add Package"
-                    onClick={handleAdd}
-                    style={{ marginTop: '10px', marginLeft: '10px', marginRight: '5px' }}
-                />
-                <input
-                    type="button"
-                    value="Reset Database"
-                    onClick={handleReset}
-                    style={{ marginTop: '10px', marginLeft: '5px', marginRight: '5px', float: 'right' }}
-                />
-                <input 
-                    type="text" 
-                    value={searchTerm} 
-                    onChange={(e) => setSearchTerm(e.target.value)} 
-                    maxLength={100} 
-                    placeholder="Enter regex pattern for package search"
-                    style={{ width: '300px', marginTop: '10px', marginLeft: '5px', marginRight: '10px' }}
-                />
-                <input
-                    type="button"
-                    value="Search"
-                    onClick={handleSearch}
-                />
-            </div>
-            <div className = "package-table">
-                <table style={{ marginTop: '10px', marginLeft: '10px' }}>
-                    <thead>
-                        <tr>
-                            <th style={{ border: '1px solid #000', padding: '8px' }}>Package Name</th>
-                            <th style={{ border: '1px solid #000', padding: '8px' }}>Package Version</th>
-                            <th style={{ border: '1px solid #000', padding: '8px' }}>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {packages.map((pkg, index) => (
-                            <tr key={index}> 
-                                <td>{pkg.Name}</td>
-                                <td>{pkg.Version}</td>
-                                <td><a href={`/package/${pkg.ID}/`}>View</a></td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+    <div className="search-section">
+       
+        <div aria-live="polite" style={{ color: 'red', marginTop: '10px' }}>
+            {error && <span>{error}</span>}
         </div>
+
+        
+        <button
+            onClick={handleAdd}
+            style={{ marginTop: '10px', marginLeft: '10px', marginRight: '5px' }}
+            aria-label="Add Package"
+        >
+            Add Package
+        </button>
+
+        <button
+            onClick={handleReset}
+            style={{ marginTop: '10px', marginLeft: '5px', marginRight: '5px', float: 'right' }}
+            aria-label="Reset Database"
+        >
+            Reset Database
+        </button>
+
+        
+        <label htmlFor="packageSearch" style={{ display: 'none' }}>Search Packages</label>
+        <input 
+            type="text" 
+            id="packageSearch"
+            value={searchTerm} 
+            onChange={(e) => setSearchTerm(e.target.value)} 
+            maxLength={100} 
+            placeholder="Enter regex pattern for package search"
+            style={{ width: '300px', marginTop: '10px', marginLeft: '5px', marginRight: '10px' }}
+        />
+
+        <button
+            onClick={handleSearch}
+            aria-label="Search"
+        >
+            Search
+        </button>
+    </div>
+
+    <div className="package-table">
+        
+        <table style={{ marginTop: '10px', marginLeft: '10px' }}>
+            <thead>
+                <tr>
+                    <th style={{ border: '1px solid #000', padding: '8px' }}>Package Name</th>
+                    <th style={{ border: '1px solid #000', padding: '8px' }}>Package Version</th>
+                    <th style={{ border: '1px solid #000', padding: '8px' }}>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {packages.map((pkg, index) => (
+                    <tr key={index}> 
+                        <td>{pkg.Name}</td>
+                        <td>{pkg.Version}</td>
+                        <td><a href={`/package/${pkg.ID}/`} aria-label={`View package ${pkg.Name}`}>View</a></td>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    </div>
+</div>
+
     );
 }
 
